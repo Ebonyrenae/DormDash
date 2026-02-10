@@ -1,4 +1,5 @@
-import "./styles.css";
+import React from "react";
+
 import {
   IoTimeOutline,
   IoLocationOutline,
@@ -7,7 +8,7 @@ import {
   IoArrowBackOutline,
 } from "react-icons/io5";
 
-export default function App() {
+export default function HomePage() {
   return (
     <div className="App">
       <div style={{ flexDirection: "row", display: "flex", gap: "400px" }}>
@@ -31,6 +32,7 @@ export default function App() {
           display: "flex",
           justifyContent: "center",
           gap: "50px",
+          justifySelf: "center",
         }}
       >
         <div
@@ -287,7 +289,7 @@ export default function App() {
               style={{
                 width: "200px",
                 height: "120px",
-                borderRadius: "15px",
+                borderRadius: "10px",
                 boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
               }}
             >
@@ -336,7 +338,7 @@ export default function App() {
               style={{
                 width: "200px",
                 height: "120px",
-                borderRadius: "15px",
+                borderRadius: "10px",
                 boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
               }}
             >
@@ -396,7 +398,7 @@ export default function App() {
               style={{
                 width: "200px",
                 height: "120px",
-                borderRadius: "15px",
+                borderRadius: "10px",
                 boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
               }}
             >
@@ -445,7 +447,7 @@ export default function App() {
               style={{
                 width: "200px",
                 height: "120px",
-                borderRadius: "15px",
+                borderRadius: "10px",
                 boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
               }}
             >
