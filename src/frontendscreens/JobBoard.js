@@ -275,6 +275,30 @@ export default function JobBoard() {
             </h1>
             <h1 style={{ fontSize: "9px", fontWeight: "normal" }}>Moving</h1>
           </button>
+          <button
+            style={{
+              width: 70,
+              height: 50,
+              backgroundColor: "transparent",
+              borderWidth: "1.5px",
+              borderRadius: "5px",
+              borderStyle: "solid",
+              borderColor: "#d1d5dc",
+            }}
+          >
+            {" "}
+            <h1
+              style={{
+                fontSize: "20px",
+                fontWeight: "normal",
+                marginTop: 2,
+                marginBottom: 1,
+              }}
+            >
+              ➕
+            </h1>
+            <h1 style={{ fontSize: "9px", fontWeight: "normal" }}>Other</h1>
+          </button>
         </div>
 
         <h1
@@ -463,6 +487,39 @@ export default function JobBoard() {
             height: "100px",
           }}
         ></input>
+      </div>
+      <div
+        style={{
+          width: 500,
+          height: 40,
+          marginTop: 30,
+          backgroundColor: "#29AC3D",
+          justifySelf: "center",
+          justifyContent: "center",
+          alignItems: "center",
+          display: "flex",
+        }}
+      >
+        <h1 style={{ fontSize: 15, color: "white", textAlign: "center" }}>
+          POST JOB
+        </h1>
+      </div>
+
+      <div
+        style={{
+          width: 500,
+          height: 40,
+          marginTop: 30,
+          backgroundColor: "#29AC3D",
+          justifySelf: "center",
+          justifyContent: "center",
+          alignItems: "center",
+          display: "flex",
+        }}
+      >
+        <h1 style={{ fontSize: 15, color: "white", textAlign: "center" }}>
+          CANCEL
+        </h1>
       </div>
     </>
   );
