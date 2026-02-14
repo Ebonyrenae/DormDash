@@ -1,0 +1,11 @@
+node_modules/
+.vite/
+dist/
+build/
+.env
+.env.local
+dist/
+build/
+.env
+.env.local
+.env.*.local
