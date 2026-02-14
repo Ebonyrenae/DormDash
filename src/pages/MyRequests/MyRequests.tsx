@@ -8,7 +8,7 @@ import {
   IoLogoUsd,
 } from "react-icons/io5";
 
-export default function MyRequests() {
+export default function JobBoard() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   const statButtonStyle = {
