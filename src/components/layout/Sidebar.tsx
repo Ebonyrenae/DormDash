@@ -22,6 +22,12 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       
       {/* Sidebar */}
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+
+        <div className="sidebar-header" style ={{ display: 'flex', gap: '10px', marginBottom: '40px', marginLeft: '-10px' }}>
+          <strong style ={{ color: '#29AC3D', fontSize: '32px', textAlign: 'left', display: 'flex',  }}>Menu</strong>
+          <button className="close-btn" style={{fontSize: "32px"}} onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
         <p 
           className={`sidebar-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
           onClick={() => handleNavigate('/dashboard')}
@@ -39,6 +45,12 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           onClick={() => handleNavigate('/post-job')}
         >
           Post a Job
+        </p>
+
+        <p className={`sidebar-link ${location.pathname === '/requests' ? 'active' : ''}`}
+          onClick={() => handleNavigate('/my-requests')}
+        >
+          My Requests
         </p>
         <p 
           className={`sidebar-link ${location.pathname === '/profile' ? 'active' : ''}`}
