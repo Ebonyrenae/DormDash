@@ -1,245 +1,352 @@
-import React, { useState } from "react";
-import Sidebar from "../../components/layout/Sidebar";
-import {
-  IoTimeOutline,
-  IoLocationOutline,
-  IoMenuOutline,
-  IoCalendarOutline,
-  IoLogoUsd,
-} from "react-icons/io5";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import "./myrequests.css";
 
-export default function JobBoard() {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
+type StatusType = "Active" | "In Progress" | "Completed";
 
-  const statButtonStyle = {
-    width: 180, // Increased size
-    height: 90,
-    backgroundColor: "white",
-    borderWidth: "2px",
-    borderRadius: "12px",
-    borderStyle: "solid",
-    borderColor: "#d1d5dc",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    transition: "0.2s"
+interface Request {
+  id: string;
+  category: string;
+  categoryEmoji: string;
+  status: StatusType;
+  title: string;
+  description: string;
+  dateTime: string;
+  location: string;
+  budget: string;
+  offersCount: number;
+}
+
+const MY_REQUESTS: Request[] = [
+  {
+    id: "1",
+    category: "Ride",
+    categoryEmoji: "🚗",
+    status: "Active",
+    title: "Ride to Airport",
+    description: "I need a ride to the airport for spring break",
+    dateTime: "Sat, Feb 14, 2026\n14:30",
+    location: "Hadley Village → Airport",
+    budget: "$25",
+    offersCount: 3,
+  },
+  {
+    id: "2",
+    category: "Cleaning",
+    categoryEmoji: "🧼",
+    status: "In Progress",
+    title: "Bathroom Cleaning",
+    description: "Need someone to deep clean a shared bathroom",
+    dateTime: "Sat, Feb 14, 2026\n14:30",
+    location: "Ellicot Complex",
+    budget: "$25",
+    offersCount: 1,
+  },
+  {
+    id: "3",
+    category: "Food",
+    categoryEmoji: "🍔",
+    status: "Completed",
+    title: "Lunch Pickup",
+    description:
+      "I need someone to pick up my lunch from the commons at Dancing Chop Sticks",
+    dateTime: "Sat, Feb 14, 2026\n14:30",
+    location: "UB commons → Flint Village",
+    budget: "$5",
+    offersCount: 5,
+  },
+  {
+    id: "4",
+    category: "Tutoring",
+    categoryEmoji: "📚",
+    status: "Active",
+    title: "Math Tutoring",
+    description: "Need help with Calculus 2 homework",
+    dateTime: "Sun, Feb 15, 2026\n16:00",
+    location: "Library Study Room 3",
+    budget: "$30",
+    offersCount: 2,
+  },
+];
+
+const SIDEBAR_LINKS = [
+  { label: "Home", path: "/dashboard" },
+  { label: "View Jobs", path: "/all-jobs" },
+  { label: "Post a Job", path: "/post-job" },
+  { label: "Profile", path: "/profile" },
+  { label: "Messages", path: "/messages" },
+  { label: "Settings", path: "/settings" },
+];
+
+const statusClass: Record<StatusType, string> = {
+  Active: "status-active",
+  "In Progress": "status-in-progress",
+  Completed: "status-completed",
+};
+
+const ClockIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none">
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 6v6l4 2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const LocationIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none">
+    <path
+      d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx="12"
+      cy="10"
+      r="3"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const DollarIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none">
+    <line
+      x1="12"
+      y1="1"
+      x2="12"
+      y2="23"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+type FilterTab = "All" | StatusType;
+
+const MyRequests = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
+
+  const handleSidebarLink = (path: string) => {
+    setSidebarOpen(false);
+    if (location.pathname === path) return;
+    navigate(path);
   };
 
-  const cardStyle = {
-    width: "700px", // Scaled up from 500px
-    minHeight: "260px",
-    borderRadius: "15px",
-    backgroundColor: "white",
-    borderColor: "#d1d5dc",
-    borderWidth: "2px",
-    marginBottom: "30px",
-    borderStyle: "solid",
-    padding: "20px",
-    display: "flex",
-    flexDirection: "column",
-    boxShadow: "0px 2px 8px rgba(0,0,0,0.05)"
-  };
+  const activeCount = MY_REQUESTS.filter((r) => r.status === "Active").length;
+  const inProgressCount = MY_REQUESTS.filter(
+    (r) => r.status === "In Progress",
+  ).length;
+  const completedCount = MY_REQUESTS.filter(
+    (r) => r.status === "Completed",
+  ).length;
 
-  const iconCircleStyle = {
-    width: "40px",
-    height: "40px",
-    borderRadius: "50%",
-    backgroundColor: "#f0fdf4",
-    justifyContent: "center",
-    alignItems: "center",
-    display: "flex",
-    marginRight: "12px"
-  };
+  const filtered =
+    activeFilter === "All"
+      ? MY_REQUESTS
+      : MY_REQUESTS.filter((r) => r.status === activeFilter);
 
   return (
-    <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "Inter, sans-serif" }}>
-      <div style={{ padding: "20px 30px" }}>
-        <button onClick={() => setSidebarOpen(true)} style={{ cursor: "pointer", border: "none", background: "transparent" }}>
-          <IoMenuOutline style={{ fontSize: 40, cursor: "pointer" }} />
-        </button>
-      </div>
+    <div className="requests-page">
+      {/* Sidebar Overlay */}
+      <div
+        className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
 
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Sidebar Drawer */}
+      <aside
+        className={`sidebar-drawer${sidebarOpen ? " open" : ""}`}
+        aria-label="Navigation menu"
+      >
+        <nav className="sidebar-nav">
+          {SIDEBAR_LINKS.map((link) => (
+            <button
+              key={link.path}
+              className={`sidebar-link${location.pathname === link.path ? " active" : ""}`}
+              onClick={() => handleSidebarLink(link.path)}
+            >
+              {link.label}
+            </button>
+          ))}
+        </nav>
+      </aside>
 
-      <h1 style={{
-        textAlign: "center",
-        color: "#29AC3D",
-        fontWeight: "800",
-        marginBottom: "30px",
-        fontSize: "32px"
-      }}>
-        My Requests
-      </h1>
-
-      <hr style={{
-        border: "none",
-        height: "1px",
-        backgroundColor: "#dfe6e9",
-        width: "100%",
-        marginBottom: "40px"
-      }} />
-
-      {/* STATS SECTION */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "50px" }}>
-        <button style={statButtonStyle}>
-          <span style={{ fontSize: "28px", fontWeight: "bold", color: "#29AC3D" }}>2</span>
-          <span style={{ fontSize: "12px", color: "#636e72", fontWeight: "600" }}>Active Requests</span>
-        </button>
-
-        <button style={statButtonStyle}>
-          <span style={{ fontSize: "28px", fontWeight: "bold", color: "#d97706" }}>1</span>
-          <span style={{ fontSize: "12px", color: "#636e72", fontWeight: "600" }}>In Progress</span>
-        </button>
-
-        <button style={statButtonStyle}>
-          <span style={{ fontSize: "28px", fontWeight: "bold", color: "#6b7280" }}>1</span>
-          <span style={{ fontSize: "12px", color: "#636e72", fontWeight: "600" }}>Completed</span>
-        </button>
-      </div>
-
-      {/* REQUESTS LIST */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        
-        {/* CARD 1: RIDE */}
-        <div style={cardStyle}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div style={{
-              padding: "8px 15px",
-              borderRadius: "8px",
-              border: "1.5px solid #16a34a",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px"
-            }}>
-              <span style={{ fontSize: "20px" }}>🚘</span>
-              <span style={{ fontSize: "14px", fontWeight: "600" }}>Ride</span>
-            </div>
-            <div style={{ backgroundColor: "#e6f9f0", padding: "6px 16px", borderRadius: "20px" }}>
-              <span style={{ fontSize: "13px", color: "#29ac3d", fontWeight: "bold" }}>Active</span>
-            </div>
-          </div>
-
-          <h2 style={{ fontSize: "20px", margin: "0 0 8px 0", fontWeight: "700" }}>Ride to Airport</h2>
-          <p style={{ fontSize: "15px", color: "#636e72", margin: "0 0 25px 0" }}>
-            I need a ride to the airport for spring break
-          </p>
-
-          <div style={{ display: "flex", gap: "40px", marginBottom: "20px" }}>
-            {/* Date Info */}
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div style={iconCircleStyle}><IoCalendarOutline style={{ color: "#29ac3d", fontSize: "18px" }} /></div>
-              <div>
-                <div style={{ fontSize: "11px", color: "#b2bec3", textTransform: "uppercase", fontWeight: "bold" }}>Date & Time</div>
-                <div style={{ fontSize: "13px", fontWeight: "600" }}>Feb 14, 2026 • 14:30</div>
-              </div>
-            </div>
-
-            {/* Location Info */}
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div style={iconCircleStyle}><IoLocationOutline style={{ color: "#29ac3d", fontSize: "18px" }} /></div>
-              <div>
-                <div style={{ fontSize: "11px", color: "#b2bec3", textTransform: "uppercase", fontWeight: "bold" }}>Location</div>
-                <div style={{ fontSize: "13px", fontWeight: "600" }}>Hadley Village → Airport</div>
-              </div>
-            </div>
-
-            {/* Budget Info */}
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div style={iconCircleStyle}><IoLogoUsd style={{ color: "#29ac3d", fontSize: "18px" }} /></div>
-              <div>
-                <div style={{ fontSize: "11px", color: "#b2bec3", textTransform: "uppercase", fontWeight: "bold" }}>Budget</div>
-                <div style={{ fontSize: "16px", fontWeight: "800", color: "#29ac3d" }}>$25</div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ height: "1px", backgroundColor: "#eee", margin: "10px 0 20px 0" }}></div>
-
-          <button style={{
-            alignSelf: "flex-end",
-            backgroundColor: "#29ac3d",
-            color: "white",
-            border: "none",
-            padding: "10px 25px",
-            borderRadius: "10px",
-            fontSize: "14px",
-            fontWeight: "bold",
-            cursor: "pointer"
-          }}>
-            View Details
+      {/* Header */}
+      <header className="requests-header">
+        <div className="requests-header-inner">
+          <button
+            className="requests-menu-btn"
+            aria-label="Open menu"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <span />
+            <span />
+            <span />
           </button>
+          <h1 className="requests-page-title">My Requests</h1>
+        </div>
+        <hr className="requests-header-divider" />
+      </header>
+
+      {/* Main */}
+      <main className="requests-main">
+        {/* Stats */}
+        <div className="requests-stats-row">
+          <div
+            className={`stat-card${activeFilter === "Active" || activeFilter === "All" ? " stat-active" : ""}`}
+            onClick={() =>
+              setActiveFilter(activeFilter === "Active" ? "All" : "Active")
+            }
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              setActiveFilter(activeFilter === "Active" ? "All" : "Active")
+            }
+          >
+            <div className="stat-card-number color-green">{activeCount}</div>
+            <div className="stat-card-label">Active Requests</div>
+          </div>
+
+          <div
+            className={`stat-card${activeFilter === "In Progress" ? " stat-active" : ""}`}
+            onClick={() =>
+              setActiveFilter(
+                activeFilter === "In Progress" ? "All" : "In Progress",
+              )
+            }
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              setActiveFilter(
+                activeFilter === "In Progress" ? "All" : "In Progress",
+              )
+            }
+          >
+            <div className="stat-card-number color-orange">
+              {inProgressCount}
+            </div>
+            <div className="stat-card-label">In Progress</div>
+          </div>
+
+          <div
+            className={`stat-card${activeFilter === "Completed" ? " stat-active" : ""}`}
+            onClick={() =>
+              setActiveFilter(
+                activeFilter === "Completed" ? "All" : "Completed",
+              )
+            }
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              setActiveFilter(
+                activeFilter === "Completed" ? "All" : "Completed",
+              )
+            }
+          >
+            <div className="stat-card-number color-gray">{completedCount}</div>
+            <div className="stat-card-label">Completed</div>
+          </div>
         </div>
 
-        {/* CARD 2: CLEANING */}
-        <div style={cardStyle}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div style={{
-              padding: "8px 15px",
-              borderRadius: "8px",
-              border: "1.5px solid #16a34a",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px"
-            }}>
-              <span style={{ fontSize: "20px" }}>🧼</span>
-              <span style={{ fontSize: "14px", fontWeight: "600" }}>Cleaning</span>
-            </div>
-            <div style={{ backgroundColor: "#e6f9f0", padding: "6px 16px", borderRadius: "20px" }}>
-              <span style={{ fontSize: "13px", color: "#29ac3d", fontWeight: "bold" }}>Active</span>
-            </div>
-          </div>
+        {/* Request Cards */}
+        <div className="requests-list">
+          {filtered.map((req) => (
+            <div key={req.id} className="request-card">
+              <div className="request-card-top">
+                <div className="category-badge">
+                  <span className="category-badge-emoji">
+                    {req.categoryEmoji}
+                  </span>
+                  <span>{req.category}</span>
+                </div>
+                <span className={`status-badge ${statusClass[req.status]}`}>
+                  {req.status}
+                </span>
+              </div>
 
-          <h2 style={{ fontSize: "20px", margin: "0 0 8px 0", fontWeight: "700" }}>Bathroom Cleaning</h2>
-          <p style={{ fontSize: "15px", color: "#636e72", margin: "0 0 25px 0" }}>
-            Need someone to deep clean a shared bathroom
-          </p>
+              <h3 className="request-card-title">{req.title}</h3>
+              <p className="request-card-description">{req.description}</p>
 
-          <div style={{ display: "flex", gap: "40px", marginBottom: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div style={iconCircleStyle}><IoCalendarOutline style={{ color: "#29ac3d", fontSize: "18px" }} /></div>
-              <div>
-                <div style={{ fontSize: "11px", color: "#b2bec3", textTransform: "uppercase", fontWeight: "bold" }}>Date & Time</div>
-                <div style={{ fontSize: "13px", fontWeight: "600" }}>Feb 14, 2026 • 14:30</div>
+              <div className="request-card-meta">
+                <div className="request-meta-item">
+                  <span className="request-meta-key">
+                    <ClockIcon /> Date &amp; Time
+                  </span>
+                  <span
+                    className="request-meta-value"
+                    style={{ whiteSpace: "pre-line" }}
+                  >
+                    {req.dateTime}
+                  </span>
+                </div>
+                <div className="request-meta-item">
+                  <span className="request-meta-key">
+                    <LocationIcon /> Location
+                  </span>
+                  <span className="request-meta-value">{req.location}</span>
+                </div>
+                <div className="request-meta-item">
+                  <span className="request-meta-key">
+                    <DollarIcon /> Budget
+                  </span>
+                  <span className="request-meta-value budget-value">
+                    {req.budget}
+                  </span>
+                </div>
+              </div>
+
+              <div className="request-card-footer">
+                <span className="request-offers-text">
+                  {req.offersCount} {req.offersCount === 1 ? "offer" : "offers"}{" "}
+                  received
+                </span>
+                <button
+                  className="btn-view-details"
+                  onClick={() => navigate(`/my-requests/${req.id}`)}
+                >
+                  View Details
+                </button>
               </div>
             </div>
-
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div style={iconCircleStyle}><IoLocationOutline style={{ color: "#29ac3d", fontSize: "18px" }} /></div>
-              <div>
-                <div style={{ fontSize: "11px", color: "#b2bec3", textTransform: "uppercase", fontWeight: "bold" }}>Location</div>
-                <div style={{ fontSize: "13px", fontWeight: "600" }}>Ellicot Complex</div>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div style={iconCircleStyle}><IoLogoUsd style={{ color: "#29ac3d", fontSize: "18px" }} /></div>
-              <div>
-                <div style={{ fontSize: "11px", color: "#b2bec3", textTransform: "uppercase", fontWeight: "bold" }}>Budget</div>
-                <div style={{ fontSize: "16px", fontWeight: "800", color: "#29ac3d" }}>$25</div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ height: "1px", backgroundColor: "#eee", margin: "10px 0 20px 0" }}></div>
-
-          <button style={{
-            alignSelf: "flex-end",
-            backgroundColor: "#29ac3d",
-            color: "white",
-            border: "none",
-            padding: "10px 25px",
-            borderRadius: "10px",
-            fontSize: "14px",
-            fontWeight: "bold",
-            cursor: "pointer"
-          }}>
-            View Details
-          </button>
+          ))}
         </div>
-
-      </div>
+      </main>
     </div>
   );
-}
+};
+
+export default MyRequests;
