@@ -22,7 +22,7 @@
 }
 
 .signin-logo h1 {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   font-size: 48px;
   line-height: 1.2;
@@ -37,7 +37,7 @@
 }
 
 .signin-logo p {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 1.5;
@@ -50,7 +50,7 @@
   background: white;
   border-radius: 16px;
   padding: 36px;
-  box-shadow: 
+  box-shadow:
     0px 20px 25px 0px rgba(0, 0, 0, 0.1),
     0px 8px 10px 0px rgba(0, 0, 0, 0.04);
 }
@@ -60,7 +60,7 @@
 }
 
 .card-header h2 {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 24px;
   line-height: 1.4;
@@ -69,7 +69,7 @@
 }
 
 .card-header p {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 1.5;
@@ -91,7 +91,7 @@
 }
 
 .form-group label {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 500;
   font-size: 14px;
   line-height: 1.5;
@@ -130,13 +130,15 @@
   padding: 12px 16px 12px 44px;
   border: 1px solid #d1d5dc;
   border-radius: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 400;
   font-size: 15px;
   line-height: 1.5;
   color: #0a0a0a;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   box-sizing: border-box;
 }
 
@@ -150,7 +152,7 @@
 }
 
 .input-hint {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 400;
   font-size: 12px;
   line-height: 1.5;
@@ -165,13 +167,15 @@
   background: #29ac3d;
   border: none;
   border-radius: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 15px;
   line-height: 1.5;
   color: white;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition:
+    background 0.2s,
+    transform 0.1s;
   margin-top: 8px;
 }
 
@@ -192,7 +196,7 @@
 }
 
 .signin-footer p {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 500;
   font-size: 14px;
   line-height: 1.5;
