@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import './directmessage.css';
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import "./directmessage.css";
 
 interface Message {
   id: number;
@@ -12,37 +12,37 @@ interface Message {
 const DirectMessage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [messageText, setMessageText] = useState('');
+  const [messageText, setMessageText] = useState("");
 
   // Mock conversation data
   const conversation = {
-    name: 'Mike Johnson',
-    initials: 'MJ',
-    role: 'Helper',
-    subject: 'Re: Ride to Airport',
+    name: "Mike Johnson",
+    initials: "MJ",
+    role: "Helper",
+    subject: "Re: Ride to Airport",
   };
 
   const [messages] = useState<Message[]>([
     {
       id: 1,
-      text: 'Hi! I need a ride to the airport on Saturday at 2:30pm. Are you available?',
+      text: "Hi! I need a ride to the airport on Saturday at 2:30pm. Are you available?",
       isSent: true,
     },
     {
       id: 2,
-      text: 'Hey! Yes I can help with that. What terminal?',
+      text: "Hey! Yes I can help with that. What terminal?",
       isSent: false,
     },
     {
       id: 3,
-      text: 'Terminal B',
+      text: "Terminal B",
       isSent: true,
     },
     {
       id: 4,
-      text: 'Sounds good! Looking forward to it 👍',
+      text: "Sounds good! Looking forward to it 👍",
       isSent: false,
-      timestamp: '10:37 AM',
+      timestamp: "10:37 AM",
     },
   ]);
 
@@ -50,13 +50,13 @@ const DirectMessage = () => {
     e.preventDefault();
     if (messageText.trim()) {
       // Handle sending message
-      console.log('Sending message:', messageText);
-      setMessageText('');
+      console.log("Sending message:", messageText);
+      setMessageText("");
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage(e);
     }
@@ -67,7 +67,7 @@ const DirectMessage = () => {
       {/* Header */}
       <div className="dm-header">
         <div className="dm-header-left">
-          <button className="back-button" onClick={() => navigate('/messages')}>
+          <button className="back-button" onClick={() => navigate("/messages")}>
             <svg viewBox="0 0 24 24" fill="none">
               <path
                 d="M12 19L5 12L12 5"
@@ -90,7 +90,9 @@ const DirectMessage = () => {
             <div className="dm-user-details">
               <div className="dm-name-row">
                 <span className="dm-name">{conversation.name}</span>
-                <span className={`dm-badge dm-badge-${conversation.role.toLowerCase()}`}>
+                <span
+                  className={`dm-badge dm-badge-${conversation.role.toLowerCase()}`}
+                >
                   {conversation.role}
                 </span>
               </div>
@@ -164,14 +166,21 @@ const DirectMessage = () => {
           </div>
 
           {messages.map((message, index) => (
-            <div key={message.id} className={`message ${message.isSent ? 'sent' : 'received'}`}>
-              {!message.isSent && <div className="message-avatar">{conversation.initials}</div>}
+            <div
+              key={message.id}
+              className={`message ${message.isSent ? "sent" : "received"}`}
+            >
+              {!message.isSent && (
+                <div className="message-avatar">{conversation.initials}</div>
+              )}
               <div className="message-bubble">{message.text}</div>
             </div>
           ))}
 
           {messages[messages.length - 1]?.timestamp && (
-            <div className="message-timestamp">{messages[messages.length - 1].timestamp}</div>
+            <div className="message-timestamp">
+              {messages[messages.length - 1].timestamp}
+            </div>
           )}
         </div>
       </div>

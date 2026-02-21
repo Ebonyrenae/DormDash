@@ -55,25 +55,53 @@ const CONVERSATIONS: Conversation[] = [
 ];
 
 const SIDEBAR_LINKS = [
-  { label: "Home",       path: "/dashboard" },
-  { label: "View Jobs",  path: "/all-jobs"  },
-  { label: "Post a Job", path: "/post-job"  },
-  { label: "Profile",    path: "/profile"   },
-  { label: "Messages",   path: "/messages"  },
-  { label: "Settings",   path: "/settings"  },
+  { label: "Home", path: "/dashboard" },
+  { label: "View Jobs", path: "/all-jobs" },
+  { label: "Post a Job", path: "/post-job" },
+  { label: "Profile", path: "/profile" },
+  { label: "Messages", path: "/messages" },
+  { label: "Settings", path: "/settings" },
 ];
 
 const SearchIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <circle
+      cx="11"
+      cy="11"
+      r="8"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M21 21l-4.35-4.35"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
 const PersonIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx="12"
+      cy="7"
+      r="4"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -94,12 +122,11 @@ const Messages = () => {
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.subject.toLowerCase().includes(search.toLowerCase()) ||
-      c.preview.toLowerCase().includes(search.toLowerCase())
+      c.preview.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <div className="messages-page">
-
       {/* Sidebar Overlay */}
       <div
         className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
@@ -132,7 +159,9 @@ const Messages = () => {
           aria-label="Open menu"
           onClick={() => setSidebarOpen(true)}
         >
-          <span /><span /><span />
+          <span />
+          <span />
+          <span />
         </button>
         <h1 className="messages-page-title">Messages</h1>
       </header>
@@ -140,10 +169,8 @@ const Messages = () => {
       {/* Main */}
       <main className="messages-main">
         <div className="messages-container">
-
           {/* ── Left panel ── */}
           <div className="messages-left">
-
             {/* Search */}
             <div className="messages-search-wrap">
               <div className="messages-search-inner">
@@ -176,7 +203,9 @@ const Messages = () => {
                   <div className="conv-body">
                     <div className="conv-name-row">
                       <span className="conv-name">{conv.name}</span>
-                      <span className={`conv-role-badge ${conv.role.toLowerCase()}`}>
+                      <span
+                        className={`conv-role-badge ${conv.role.toLowerCase()}`}
+                      >
                         {conv.role}
                       </span>
                     </div>
@@ -202,10 +231,11 @@ const Messages = () => {
               <div className="messages-empty-icon">
                 <PersonIcon />
               </div>
-              <p className="messages-empty-text">Select a conversation to start messaging</p>
+              <p className="messages-empty-text">
+                Select a conversation to start messaging
+              </p>
             </div>
           </div>
-
         </div>
       </main>
     </div>
