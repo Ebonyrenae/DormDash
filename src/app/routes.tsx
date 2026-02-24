@@ -11,7 +11,7 @@ import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
 import Settings from "../pages/Settings/Settings";
-import NotFound from "../pages/NotFound/NotFound";
+import Profile from "../pages/Profile/Profile";
 
 export const router = createBrowserRouter(
   [
@@ -58,8 +58,8 @@ export const router = createBrowserRouter(
       Component: Settings,
     },
     {
-      path: "*",
-      Component: NotFound,
+      path: "/profile",
+      Component: Profile,
     },
   ],
   {
