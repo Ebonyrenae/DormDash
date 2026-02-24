@@ -1,136 +1,322 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './signup.css';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./signup.css";
+
+/* ── Icons ── */
+const MailIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect
+      x="2"
+      y="4"
+      width="20"
+      height="16"
+      rx="2"
+      stroke="#9ca3af"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M2 7l10 7 10-7"
+      stroke="#9ca3af"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const LockIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect
+      x="3"
+      y="11"
+      width="18"
+      height="11"
+      rx="2"
+      stroke="#9ca3af"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M7 11V7a5 5 0 0 1 10 0v4"
+      stroke="#9ca3af"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const EyeIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx="12"
+      cy="12"
+      r="3"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M1 1l22 22"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const CheckCircleIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" fill="#29ac3d" />
+    <path
+      d="M8 12l3 3 5-6"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  // Form values
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+
+  // UI state
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmError, setConfirmError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Password match validation
+    if (password !== confirm) {
+      setConfirmError("Passwords do not match");
+      return;
+    }
+
+    setConfirmError("");
+    setIsLoading(true);
+
+    try {
+      const res = await fetch(
+        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/SignUpPage.php",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: name, // ⭐ important
+            email: email,
+            password: password,
+          }),
+        },
+      );
+
+      const data = await res.json();
+      console.log(data);
+
+      if (data.success) {
+        setSuccess(true);
+
+        // ⭐ redirect to SIGN IN after success
+        setTimeout(() => navigate("/signin"), 1400);
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("signup failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Sign up data:', formData);
-    navigate('/dashboard');
+  const handleConfirmChange = (val: string) => {
+    setConfirm(val);
+    if (confirmError) setConfirmError("");
   };
 
   return (
     <div className="signup-page">
       <div className="signup-container">
-        {/* Logo Header */}
+        {/* Logo */}
         <div className="signup-logo">
-          <h1 
-            onClick={() => navigate('/')} 
-            style={{ cursor: 'pointer' }}
-          >
-            DORMDASH 🏃‍💨
-          </h1>
+          <h1 onClick={() => navigate("/")}>DORMDASH 🏃‍💨💨</h1>
           <p>College students helping college students</p>
         </div>
 
-        {/* Sign Up Card */}
+        {/* Card */}
         <div className="signup-card">
-          <div className="signup-header">
-            <h2>Create Account</h2>
-            <p>Sign up with your .edu email to get started</p>
-          </div>
-
-          <form className="signup-form" onSubmit={handleSubmit}>
-            {/* Full Name */}
-            <div className="form-group">
-              <label htmlFor="fullName">Full Name</label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="John Doe"
-                required
-              />
-            </div>
-
-            {/* College Email */}
-            <div className="form-group">
-              <label htmlFor="email">College Email</label>
-              <div className="input-with-icon">
-                <svg className="input-icon" fill="none" viewBox="0 0 20 20">
-                  <path d="M3.33333 5.83333L10 10.8333L16.6667 5.83333" stroke="#99A1AF" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M3.33333 5.83333H16.6667V14.1667C16.6667 14.3877 16.5789 14.5996 16.4226 14.7559C16.2663 14.9122 16.0543 15 15.8333 15H4.16667C3.94565 15 3.73369 14.9122 3.57741 14.7559C3.42113 14.5996 3.33333 14.3877 3.33333 14.1667V5.83333Z" stroke="#99A1AF" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@university.edu"
-                  required
-                />
+          {/* ── Success state ── */}
+          {success ? (
+            <div className="signup-success">
+              <div className="signup-success-icon">
+                <CheckCircleIcon />
               </div>
-              <p className="input-hint">Must be a valid .edu email address</p>
+              <p className="signup-success-text">
+                Account created successfully
+              </p>
             </div>
-
-            {/* Password */}
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <div className="input-with-icon">
-                <svg className="input-icon" fill="none" viewBox="0 0 20 20">
-                  <path d="M5.83333 9.16667V5.83333C5.83333 4.72826 6.27232 3.66846 7.05372 2.88706C7.83512 2.10565 8.89493 1.66667 10 1.66667C11.1051 1.66667 12.1649 2.10565 12.9463 2.88706C13.7277 3.66846 14.1667 4.72826 14.1667 5.83333V9.16667" stroke="#99A1AF" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M4.16667 9.16667H15.8333C16.7538 9.16667 17.5 9.91286 17.5 10.8333V16.6667C17.5 17.5871 16.7538 18.3333 15.8333 18.3333H4.16667C3.24619 18.3333 2.5 17.5871 2.5 16.6667V10.8333C2.5 9.91286 3.24619 9.16667 4.16667 9.16667Z" stroke="#99A1AF" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                />
+          ) : (
+            <>
+              <div className="signup-header">
+                <h2>Create Account</h2>
+                <p>Sign up with your .edu email to get started</p>
               </div>
-            </div>
 
-            {/* Submit Button */}
-            <button type="submit" className="signup-btn">
-              Sign Up
-            </button>
-          </form>
+              <form className="signup-form" onSubmit={handleSubmit} noValidate>
+                {/* Full Name */}
+                <div className="form-group">
+                  <label htmlFor="su-name">Full Name</label>
+                  <input
+                    id="su-name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                    required
+                  />
+                </div>
 
-          {/* Sign In Link */}
-          <div className="signup-footer">
-            <p onClick={() => navigate('/signin')}>
-              Already have an account? Sign in
-            </p>
-          </div>
-        </div>
+                {/* College Email */}
+                <div className="form-group">
+                  <label htmlFor="su-email">College Email</label>
+                  <div className="input-with-icon">
+                    <span className="input-icon">
+                      <MailIcon />
+                    </span>
+                    <input
+                      id="su-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
+                      required
+                    />
+                  </div>
+                  <p className="input-hint">
+                    Must be a valid .edu email address
+                  </p>
+                </div>
 
-        {/* Why Section */}
-        <div className="why-section">
-          <h3>Why DormDev?</h3>
-          <ul className="why-list">
-            <li>
-              <span className="checkmark">✓</span>
-              <span>Connect with fellow students for help</span>
-            </li>
-            <li>
-              <span className="checkmark">✓</span>
-              <span>Earn money by sharing your skills</span>
-            </li>
-            <li>
-              <span className="checkmark">✓</span>
-              <span>Safe and verified .edu community</span>
-            </li>
-          </ul>
+                {/* Password */}
+                <div className="form-group">
+                  <label htmlFor="su-password">Password</label>
+                  <div className="input-with-icon input-with-eye">
+                    <span className="input-icon">
+                      <LockIcon />
+                    </span>
+                    <input
+                      id="su-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="eye-toggle-btn"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Re-enter Password */}
+                <div className="form-group">
+                  <label htmlFor="su-confirm">Re-enter Password</label>
+                  <div className="input-with-icon input-with-eye">
+                    <span className="input-icon">
+                      <LockIcon />
+                    </span>
+                    <input
+                      id="su-confirm"
+                      type={showConfirm ? "text" : "password"}
+                      className={confirmError ? "input-error" : ""}
+                      value={confirm}
+                      onChange={(e) => handleConfirmChange(e.target.value)}
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="eye-toggle-btn"
+                      onClick={() => setShowConfirm((v) => !v)}
+                      aria-label={
+                        showConfirm ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+                  {confirmError && (
+                    <p className="input-hint-error">{confirmError}</p>
+                  )}
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  className="signup-btn"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating account..." : "Sign Up"}
+                </button>
+              </form>
+
+              {/* Sign in link */}
+              <div className="signup-footer">
+                <p onClick={() => navigate("/signin")}>
+                  Already have an account? Sign in
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,7 +1,18 @@
 <?php
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'None'
+]);
 
+session_start();
 
-header("Access-Control-Allow-Origin: *");
+/* CORS — IMPORTANT FOR SESSIONS */
+header("Access-Control-Allow-Origin: https://aptitude.cse.buffalo.edu");
+header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 
@@ -9,14 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 header("Content-Type: application/json");
 
 $host = "localhost";
 $user = "narde";
-$pass = "50501035"; 
+$pass = "50501035";
 $db = "cse442_2026_spring_team_i_db";
 
 $conn = new mysqli($host,$user,$pass,$db);
@@ -48,6 +56,11 @@ if (!password_verify($password,$userRow["password"])) {
     echo json_encode(["success"=>false,"message"=>"invalid password"]);
     exit;
 }
+
+/* ✅ SESSION SET */
+$_SESSION["user_id"] = $userRow["id"];
+$_SESSION["username"] = $userRow["username"];
+$_SESSION["email"] = $userRow["email"];
 
 echo json_encode([
     "success"=>true,
