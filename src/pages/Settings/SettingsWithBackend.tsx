@@ -1,4 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+
+
+
+
+// API Configuration - UPDATE THESE VALUES
+const API_BASE_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api-backend'; // UPDATE THIS to your actual API path
+const USER_ID = 1; // UPDATE THIS - Get this from your login/session
 
 // SVG Icon Components
 const UserIcon = () => (
@@ -244,40 +252,193 @@ function App() {
     dataSharing: true
   });
 
+  // Load user settings on component mount
+  useEffect(() => {
+    fetchUserSettings();
+  }, []);
+
+  // API Functions
+  const fetchUserSettings = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_user_settings.php?userId=${USER_ID}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setEmail(result.data.email);
+        setPhone(result.data.phone);
+        setUniversity(result.data.university);
+        setNotificationsEnabled(result.data.notificationSettings);
+        setPrivacySettings(result.data.privacySettings);
+      } else {
+        alert('Failed to load user settings: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching user settings:', error);
+      alert('Failed to load user settings');
+    }
+  };
+
+  const updateEmail = async (newEmail: string) => {
+
+  console.log('=== UPDATE EMAIL CALLED ===');
+  console.log('API URL:', `${API_BASE_URL}/update_email.php`);
+  console.log('User ID:', USER_ID);
+  console.log('New Email:', newEmail);
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/update_email.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: USER_ID, email: newEmail })
+    });
+    
+    console.log('Response received:', response);
+    
+    const result = await response.json();
+    console.log('Result:', result);
+    
+    // ... rest of the code
+    
+      
+      
+      if (result.success) {
+        setEmail(newEmail);
+        return true;
+      } else {
+        alert('Failed to update email: ' + result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error updating email:', error);
+      alert('Failed to update email');
+      return false;
+    }
+  };
+
+  const updatePhone = async (newPhone: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/update_phone.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: USER_ID, phone: newPhone })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setPhone(newPhone);
+        return true;
+      } else {
+        alert('Failed to update phone: ' + result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error updating phone:', error);
+      alert('Failed to update phone number');
+      return false;
+    }
+  };
+
+  const updateUniversity = async (newUniversity: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/update_university.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: USER_ID, university: newUniversity })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setUniversity(newUniversity);
+        return true;
+      } else {
+        alert('Failed to update university: ' + result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error updating university:', error);
+      alert('Failed to update university');
+      return false;
+    }
+  };
+
+  const updateNotificationSettings = async (newSettings: NotificationsSettings) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/update_notifications.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: USER_ID, settings: newSettings })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setNotificationsEnabled(newSettings);
+        return true;
+      } else {
+        alert('Failed to update notification settings: ' + result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error updating notification settings:', error);
+      return false;
+    }
+  };
+
+  const updatePrivacySettings = async (newSettings: PrivacySettings) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/update_privacy.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: USER_ID, settings: newSettings })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setPrivacySettings(newSettings);
+        return true;
+      } else {
+        alert('Failed to update privacy settings: ' + result.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error updating privacy settings:', error);
+      return false;
+    }
+  };
+
   const handleLogout = () => {
-    setCurrentPage('logout');
+    alert('Logged out successfully!');
+    console.log('Logging out...');
   };
 
   const goBack = () => setCurrentPage('main');
 
-  // Logout Page
-  if (currentPage === 'logout') {
-    return <LogoutPage goBack={goBack} />;
-  }
-
   // Email Page
   if (currentPage === 'email') {
-    return <EmailPage email={email} setEmail={setEmail} goBack={goBack} />;
+    return <EmailPage email={email} updateEmail={updateEmail} goBack={goBack} />;
   }
   
   // Phone Page
   if (currentPage === 'phone') {
-    return <PhonePage phone={phone} setPhone={setPhone} goBack={goBack} />;
+    return <PhonePage phone={phone} updatePhone={updatePhone} goBack={goBack} />;
   }
   
   // University Page
   if (currentPage === 'university') {
-    return <UniversityPage university={university} setUniversity={setUniversity} goBack={goBack} />;
+    return <UniversityPage university={university} updateUniversity={updateUniversity} goBack={goBack} />;
   }
   
   // Notifications Page
   if (currentPage === 'notifications') {
-    return <NotificationsPage settings={notificationsEnabled} setSettings={setNotificationsEnabled} goBack={goBack} />;
+    return <NotificationsPage settings={notificationsEnabled} updateSettings={updateNotificationSettings} goBack={goBack} />;
   }
   
   // Privacy Page
   if (currentPage === 'privacy') {
-    return <PrivacyPage settings={privacySettings} setSettings={setPrivacySettings} goBack={goBack} />;
+    return <PrivacyPage settings={privacySettings} updateSettings={updatePrivacySettings} goBack={goBack} />;
   }
   
   // Help Page
@@ -680,21 +841,33 @@ function SettingItem({ icon: Icon, label, value, onClick, color }: SettingItemPr
 }
 
 // Email Settings Page
-type EmailPageProps = { email: string; setEmail: (s: string) => void; goBack: () => void };
+type EmailPageProps = { email: string; updateEmail: (s: string) => Promise<boolean>; goBack: () => void };
 
-function EmailPage({ email, setEmail, goBack }: EmailPageProps) {
+function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
   const [tempEmail, setTempEmail] = useState(email);
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleSave = () => {
-    if (!tempEmail || !tempEmail.includes('@')) {
-      alert('Please enter a valid email address');
-      return;
-    }
-    setEmail(tempEmail);
+  const handleSave = async () => {
+  console.log('=== SAVE CLICKED ===');
+  console.log('Temp email:', tempEmail);
+  
+  if (!tempEmail || !tempEmail.includes('@')) {
+    alert('Please enter a valid email address');
+    return;
+  }
+  
+  console.log('Calling updateEmail...');
+  const success = await updateEmail(tempEmail);
+  console.log('Success:', success);
+  
+  if (success) {
     setIsEditing(false);
     alert('Email updated successfully!');
-  };
+  }
+};
+
+
+  
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
@@ -857,20 +1030,23 @@ function EmailPage({ email, setEmail, goBack }: EmailPageProps) {
 }
 
 // Phone Settings Page
-type PhonePageProps = { phone: string; setPhone: (s: string) => void; goBack: () => void };
+type PhonePageProps = { phone: string; updatePhone: (s: string) => Promise<boolean>; goBack: () => void };
 
-function PhonePage({ phone, setPhone, goBack }: PhonePageProps) {
+function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
   const [tempPhone, setTempPhone] = useState(phone);
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!tempPhone) {
       alert('Phone number is required');
       return;
     }
-    setPhone(tempPhone);
-    setIsEditing(false);
-    alert('Phone number updated successfully!');
+    
+    const success = await updatePhone(tempPhone);
+    if (success) {
+      setIsEditing(false);
+      alert('Phone number updated successfully!');
+    }
   };
 
   return (
@@ -1049,9 +1225,9 @@ function PhonePage({ phone, setPhone, goBack }: PhonePageProps) {
 }
 
 // University Settings Page
-type UniversityPageProps = { university: string; setUniversity: (s: string) => void; goBack: () => void };
+type UniversityPageProps = { university: string; updateUniversity: (s: string) => Promise<boolean>; goBack: () => void };
 
-function UniversityPage({ university, setUniversity, goBack }: UniversityPageProps) {
+function UniversityPage({ university, updateUniversity, goBack }: UniversityPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const universities = [
     'University at Buffalo', 'Harvard University', 'Stanford University', 'MIT',
@@ -1063,9 +1239,11 @@ function UniversityPage({ university, setUniversity, goBack }: UniversityPagePro
     uni.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelect = (uni: string) => {
-    setUniversity(uni);
-    alert(`University changed to ${uni}`);
+  const handleSelect = async (uni: string) => {
+    const success = await updateUniversity(uni);
+    if (success) {
+      alert(`University changed to ${uni}`);
+    }
   };
 
   return (
@@ -1233,13 +1411,14 @@ function UniversityPage({ university, setUniversity, goBack }: UniversityPagePro
 // Notifications Settings Page
 type NotificationsPageProps = {
   settings: NotificationsSettings;
-  setSettings: React.Dispatch<React.SetStateAction<NotificationsSettings>>;
+  updateSettings: (s: NotificationsSettings) => Promise<boolean>;
   goBack: () => void;
 };
 
-function NotificationsPage({ settings, setSettings, goBack }: NotificationsPageProps) {
-  const toggleSetting = (key: keyof NotificationsSettings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+function NotificationsPage({ settings, updateSettings, goBack }: NotificationsPageProps) {
+  const toggleSetting = async (key: keyof NotificationsSettings) => {
+    const newSettings = { ...settings, [key]: !settings[key] };
+    await updateSettings(newSettings);
   };
 
   return (
@@ -1288,22 +1467,7 @@ function NotificationsPage({ settings, setSettings, goBack }: NotificationsPageP
           </div>
         </div>
 
-        <div style={{ marginBottom: '32px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px' }}>Notification Types</h3>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-            border: '1px solid #E5E7EB',
-            overflow: 'hidden'
-          }}>
-            <ToggleItem icon={CalendarIcon} label="Assignment Deadlines" description="Reminders for upcoming deadlines" checked={settings.deadlines} onChange={() => toggleSetting('deadlines')} color="red" />
-            <div style={{ borderBottom: '1px solid #F3F4F6' }}></div>
-            <ToggleItem icon={GraduationCapIcon} label="Grade Updates" description="Notifications when grades are posted" checked={settings.grades} onChange={() => toggleSetting('grades')} color="yellow" />
-            <div style={{ borderBottom: '1px solid #F3F4F6' }}></div>
-            <ToggleItem icon={PartyPopperIcon} label="Campus Events" description="Updates about campus activities" checked={settings.events} onChange={() => toggleSetting('events')} color="pink" />
-          </div>
-        </div>
+        
 
         <div style={{
           backgroundColor: '#FEF3C7',
@@ -1328,13 +1492,14 @@ function NotificationsPage({ settings, setSettings, goBack }: NotificationsPageP
 // Privacy Settings Page
 type PrivacyPageProps = {
   settings: PrivacySettings;
-  setSettings: React.Dispatch<React.SetStateAction<PrivacySettings>>;
+  updateSettings: (s: PrivacySettings) => Promise<boolean>;
   goBack: () => void;
 };
 
-function PrivacyPage({ settings, setSettings, goBack }: PrivacyPageProps) {
-  const toggleSetting = (key: keyof PrivacySettings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+function PrivacyPage({ settings, updateSettings, goBack }: PrivacyPageProps) {
+  const toggleSetting = async (key: keyof PrivacySettings) => {
+    const newSettings = { ...settings, [key]: !settings[key] };
+    await updateSettings(newSettings);
   };
 
   return (

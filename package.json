@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/Settings",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

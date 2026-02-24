@@ -11,7 +11,7 @@ import PostJob from '../pages/PostJob/PostJob';
 import MyRequests from '../pages/MyRequests/MyRequests';
 import Messages from '../pages/Messages/Messages';
 import DirectMessage from '../pages/Messages/DirectMessage';
-import Settings from '../pages/Settings/Settings';
+import Settings from '../pages/Settings/SettingsWithBackend';
 import NotFound from '../pages/NotFound/NotFound';
 
 export const router = createBrowserRouter([
