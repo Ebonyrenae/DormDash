@@ -438,8 +438,11 @@ function App() {
   
   // Privacy Page
   if (currentPage === 'privacy') {
-    return <PrivacyPage settings={privacySettings} updateSettings={updatePrivacySettings} goBack={goBack} />;
+    return <PrivacyPage settings={privacySettings} updateSettings={updatePrivacySettings} goBack={goBack} setCurrentPage={setCurrentPage} />;
   }
+  if (currentPage === 'password') {
+  return <PasswordPage goBack={goBack} />;
+}
   
   // Help Page
   if (currentPage === 'help') {
@@ -1224,6 +1227,350 @@ function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
   );
 }
 
+// Password Change Page
+type PasswordPageProps = { goBack: () => void };
+
+function PasswordPage({ goBack }: PasswordPageProps) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleChangePassword = async () => {
+    // Validation
+    if (!currentPassword) {
+      alert('Please enter your current password');
+      return;
+    }
+    
+    if (!newPassword) {
+      alert('Please enter a new password');
+      return;
+    }
+    
+    if (newPassword.length < 8) {
+      alert('New password must be at least 8 characters long');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      alert('New passwords do not match');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/update_password.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: USER_ID,
+          currentPassword: currentPassword,
+          newPassword: newPassword
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('Password updated successfully!');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        goBack();
+      } else {
+        alert('Failed to update password: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      alert('Failed to update password');
+    }
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
+      <div style={{ maxWidth: '768px', margin: '0 auto', padding: '32px 16px' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <button
+            onClick={goBack}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: '#6B7280',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              marginBottom: '16px',
+              fontSize: '15px',
+              fontWeight: '500',
+              padding: '4px'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#16A34A'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
+          >
+            <ArrowLeftIcon />
+            <span>Back to Settings</span>
+          </button>
+          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>Change Password</h1>
+          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px' }}>Update your account password for enhanced security</p>
+        </div>
+
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          border: '1px solid #E5E7EB',
+          padding: '32px',
+          marginBottom: '24px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingBottom: '16px', borderBottom: '1px solid #F3F4F6', marginBottom: '24px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              backgroundColor: '#FEE2E2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#DC2626'
+            }}>
+              <LockIcon />
+            </div>
+            <div>
+              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px' }}>Security Update</h3>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>Choose a strong, unique password</p>
+            </div>
+          </div>
+
+          {/* Current Password */}
+          <div style={{ marginBottom: '20px' }}>
+            <label htmlFor="currentPassword" style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151',
+              marginBottom: '8px'
+            }}>
+              Current Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="currentPassword"
+                type={showCurrentPassword ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter your current password"
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  padding: '0 48px 0 16px',
+                  fontSize: '16px',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#16A34A'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#E5E7EB'}
+              />
+              <button
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#6B7280',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {showCurrentPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
+          </div>
+
+          {/* New Password */}
+          <div style={{ marginBottom: '20px' }}>
+            <label htmlFor="newPassword" style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151',
+              marginBottom: '8px'
+            }}>
+              New Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="newPassword"
+                type={showNewPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter your new password"
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  padding: '0 48px 0 16px',
+                  fontSize: '16px',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#16A34A'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#E5E7EB'}
+              />
+              <button
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#6B7280',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {showNewPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div style={{ marginBottom: '24px' }}>
+            <label htmlFor="confirmPassword" style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151',
+              marginBottom: '8px'
+            }}>
+              Confirm New Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm your new password"
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  padding: '0 48px 0 16px',
+                  fontSize: '16px',
+                  border: '2px solid #E5E7EB',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#16A34A'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#E5E7EB'}
+              />
+              <button
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#6B7280',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
+          </div>
+
+          {/* Password Requirements */}
+          <div style={{
+            backgroundColor: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '24px'
+          }}>
+            <p style={{ fontSize: '14px', fontWeight: '500', color: '#1E3A8A', margin: '0 0 8px 0' }}>
+              Password Requirements:
+            </p>
+            <ul style={{ fontSize: '13px', color: '#1E3A8A', margin: 0, paddingLeft: '20px' }}>
+              <li>At least 8 characters long</li>
+              <li>Mix of letters, numbers, and symbols recommended</li>
+              <li>Different from your current password</li>
+            </ul>
+          </div>
+
+          {/* Update Button */}
+          <button
+            onClick={handleChangePassword}
+            style={{
+              width: '100%',
+              height: '48px',
+              backgroundColor: '#16A34A',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#15803D'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#16A34A'}
+          >
+            <KeyIcon />
+            Update Password
+          </button>
+        </div>
+
+        {/* Security Tips */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          border: '1px solid #E5E7EB',
+          padding: '24px'
+        }}>
+          <h4 style={{ fontWeight: '600', color: '#111827', marginBottom: '12px', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShieldIcon />
+            Security Tips
+          </h4>
+          <ul style={{ fontSize: '14px', color: '#6B7280', margin: 0, paddingLeft: '20px', lineHeight: '1.6' }}>
+            <li>Use a unique password you don't use elsewhere</li>
+            <li>Consider using a password manager</li>
+            <li>Enable two-factor authentication for extra security</li>
+            <li>Never share your password with anyone</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // University Settings Page
 type UniversityPageProps = { university: string; updateUniversity: (s: string) => Promise<boolean>; goBack: () => void };
 
@@ -1494,9 +1841,10 @@ type PrivacyPageProps = {
   settings: PrivacySettings;
   updateSettings: (s: PrivacySettings) => Promise<boolean>;
   goBack: () => void;
+  setCurrentPage: (p: string) => void;
 };
 
-function PrivacyPage({ settings, updateSettings, goBack }: PrivacyPageProps) {
+function PrivacyPage({ settings, updateSettings, goBack, setCurrentPage }: PrivacyPageProps) {
   const toggleSetting = async (key: keyof PrivacySettings) => {
     const newSettings = { ...settings, [key]: !settings[key] };
     await updateSettings(newSettings);
@@ -1575,7 +1923,7 @@ function PrivacyPage({ settings, updateSettings, goBack }: PrivacyPageProps) {
               label="Change Password"
               description="Update your account password"
               color="red"
-              onClick={() => alert('Opening password change dialog...')}
+              onClick={() => setCurrentPage('password')}
             />
             <div style={{ borderBottom: '1px solid #F3F4F6' }}></div>
             <SecurityActionButton
