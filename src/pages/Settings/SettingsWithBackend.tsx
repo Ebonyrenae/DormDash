@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 
 // API Configuration - UPDATE THESE VALUES
 const API_BASE_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api-backend'; // UPDATE THIS to your actual API path
-const USER_ID = 1; // UPDATE THIS - Get this from your login/session
+const ME_API_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api-backend/me.php';
 
 // SVG Icon Components
 const UserIcon = () => (
@@ -231,6 +231,13 @@ type PrivacySettings = {
   dataSharing: boolean;
 };
 
+// User type
+type User = {
+  id: number;
+  username?: string;
+  email?: string;
+};
+
 function App() {
   const [currentPage, setCurrentPage] = useState('main');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -252,16 +259,62 @@ function App() {
     dataSharing: true
   });
 
+  const [user, setUser] = useState<User | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const showSuccessMessage = (message: string): void => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const showErrorMessage = (message: string): void => {
+    setErrorMessage(message);
+    setTimeout(() => setErrorMessage(''), 5000);
+  };
+
   // Load user settings on component mount
+  // Load current user and their settings on component mount
   useEffect(() => {
-    fetchUserSettings();
+    fetchCurrentUser();
   }, []);
 
-  // API Functions
-  const fetchUserSettings = async () => {
+  // Fetch the currently logged-in user
+  const fetchCurrentUser = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/get_user_settings.php?userId=${USER_ID}`);
-      const result = await response.json();
+      const res = await fetch(ME_API_URL, {
+        credentials: 'include',
+      });
+      const data = await res.json();
+
+      if (data.loggedIn && data.user) {
+        setUser(data.user);
+        setUserId(data.user.id);
+        // Now fetch their settings
+        fetchUserSettings(data.user.id);
+      } else {
+        // Not logged in - redirect to login
+        window.location.href = '/signin';
+      }
+    } catch (err) {
+      console.error('Failed to fetch current user:', err);
+      setIsLoading(false);
+    }
+  };
+
+  // API Functions
+  const fetchUserSettings = async (currentUserId: number | null): Promise<void> => {
+    if (currentUserId === null) {
+      // nothing to fetch if we don't have a user id
+      setIsLoading(false);
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_user_settings_final.php?userId=${currentUserId}`);
+      const result = await response.json();  // ✅ ADD THIS LINE
+
       
       if (result.success) {
         setEmail(result.data.email);
@@ -269,46 +322,46 @@ function App() {
         setUniversity(result.data.university);
         setNotificationsEnabled(result.data.notificationSettings);
         setPrivacySettings(result.data.privacySettings);
+        setIsLoading(false);  // ✅ ADD THIS LINE TOO
+
       } else {
-        alert('Failed to load user settings: ' + result.message);
+        showErrorMessage('Failed to load user settings: ' + result.message);
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Error fetching user settings:', error);
-      alert('Failed to load user settings');
+      showErrorMessage('Failed to load user settings');
+      setIsLoading(false);
     }
   };
 
   const updateEmail = async (newEmail: string) => {
 
-  console.log('=== UPDATE EMAIL CALLED ===');
-  console.log('API URL:', `${API_BASE_URL}/update_email.php`);
-  console.log('User ID:', USER_ID);
-  console.log('New Email:', newEmail);
+  
   
   try {
     const response = await fetch(`${API_BASE_URL}/update_email.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: USER_ID, email: newEmail })
+      body: JSON.stringify({ userId: userId, email: newEmail })
     });
     
-    console.log('Response received:', response);
     
     const result = await response.json();
-    console.log('Result:', result);
     
     // ... rest of the code
     
       
       
       if (result.success) {
-        setEmail(newEmail);
-        return true;
-      } else {
-        alert('Failed to update email: ' + result.message);
-        return false;
-      }
-    } catch (error) {
+  setEmail(newEmail);
+  showSuccessMessage('Email updated successfully!');
+  return true;
+} else {
+  showErrorMessage('Failed to update email: ' + result.message);
+  return false;
+}
+}catch (error) {
       console.error('Error updating email:', error);
       alert('Failed to update email');
       return false;
@@ -320,7 +373,7 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/update_phone.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: USER_ID, phone: newPhone })
+        body: JSON.stringify({ userId: userId, phone: newPhone })
       });
       
       const result = await response.json();
@@ -344,7 +397,7 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/update_university.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: USER_ID, university: newUniversity })
+        body: JSON.stringify({ userId: userId, university: newUniversity })
       });
       
       const result = await response.json();
@@ -368,7 +421,7 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/update_notifications.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: USER_ID, settings: newSettings })
+        body: JSON.stringify({ userId: userId, settings: newSettings })
       });
       
       const result = await response.json();
@@ -391,7 +444,7 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/update_privacy.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: USER_ID, settings: newSettings })
+        body: JSON.stringify({ userId: userId, settings: newSettings })
       });
       
       const result = await response.json();
@@ -409,10 +462,15 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    alert('Logged out successfully!');
-    console.log('Logging out...');
-  };
+  const handleLogout = async () => {
+  try {
+    // Redirect to signin
+    window.location.href = '/signin';
+  } catch (err) {
+    console.error('Logout failed:', err);
+    window.location.href = '/signin';
+  }
+};
 
   const goBack = () => setCurrentPage('main');
 
@@ -441,13 +499,67 @@ function App() {
     return <PrivacyPage settings={privacySettings} updateSettings={updatePrivacySettings} goBack={goBack} setCurrentPage={setCurrentPage} />;
   }
   if (currentPage === 'password') {
-  return <PasswordPage goBack={goBack} />;
-}
+    // Ensure we have a valid userId before rendering the password page
+    if (!userId) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#F9FAFB'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              width: '50px',
+              height: '50px',
+              border: '4px solid #E5E7EB',
+              borderTop: '4px solid #16A34A',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 16px'
+            }}></div>
+            <p style={{ color: '#6B7280' }}>Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return <PasswordPage goBack={goBack} userId={userId} />;
+  }
   
   // Help Page
   if (currentPage === 'help') {
     return <HelpCenterPage goBack={goBack} />;
   }
+
+  // Show loading while fetching user
+  if (isLoading || !userId) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#F9FAFB'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '4px solid #E5E7EB',
+            borderTop: '4px solid #16A34A',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px'
+          }}></div>
+          <p style={{ color: '#6B7280' }}>Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  
 
   // Main Settings Page
   return (
@@ -469,6 +581,7 @@ function App() {
         <div style={{ padding: '24px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', margin: 0 }}>Settings</h2>
+            
             <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '4px', margin: 0 }}>Manage your account</p>
           </div>
           <button
@@ -555,8 +668,44 @@ function App() {
         />
       )}
 
-      {/* Main Content */}
+    {/* Main Content */}
       <main style={{ flex: 1, marginLeft: 0 }}>
+        {/* Success/Error Messages */}
+        {successMessage && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            backgroundColor: '#10B981',
+            color: 'white',
+            padding: '16px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <CheckIcon />
+            <span>{successMessage}</span>
+          </div>
+        )}
+        {errorMessage && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            backgroundColor: '#EF4444',
+            color: 'white',
+            padding: '16px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            zIndex: 9999
+          }}>
+            <span>{errorMessage}</span>
+          </div>
+        )}
+        
         {/* Mobile Header */}
         <header style={{
           position: 'sticky',
@@ -588,8 +737,40 @@ function App() {
           </button>
           <h1 style={{ marginLeft: '12px', fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>Settings</h1>
         </header>
-
         <div style={{ maxWidth: '896px', margin: '0 auto', padding: '32px 16px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* Back to Homepage Button */}
+          <div style={{ marginBottom: '-16px' }}>
+            <button
+              onClick={() => window.location.href = '/dashboard'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                backgroundColor: 'white',
+                border: '2px solid #E5E7EB',
+                borderRadius: '8px',
+                fontSize: '15px',
+                fontWeight: '500',
+                color: '#374151',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#F9FAFB';
+                e.currentTarget.style.borderColor = '#16A34A';
+                e.currentTarget.style.color = '#16A34A';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'white';
+                e.currentTarget.style.borderColor = '#E5E7EB';
+                e.currentTarget.style.color = '#374151';
+              }}
+            >
+              <ArrowLeftIcon />
+              <span>Back to Homepage</span>
+            </button>
+          </div>
           {/* Profile Card */}
           <div style={{
             backgroundColor: 'white',
@@ -613,7 +794,9 @@ function App() {
                 <UserIcon />
               </div>
               <div>
-                <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>Jane Doe</h2>
+                <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>
+                {user?.username || 'Loading...'}
+                 </h2>
                 <p style={{ color: '#6B7280', marginTop: '4px', margin: '0 0 8px 0' }}>{email}</p>
                 <span style={{
                   display: 'inline-flex',
@@ -851,17 +1034,17 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSave = async () => {
-  console.log('=== SAVE CLICKED ===');
-  console.log('Temp email:', tempEmail);
-  
+
+
+    
   if (!tempEmail || !tempEmail.includes('@')) {
     alert('Please enter a valid email address');
     return;
   }
   
-  console.log('Calling updateEmail...');
+
   const success = await updateEmail(tempEmail);
-  console.log('Success:', success);
+
   
   if (success) {
     setIsEditing(false);
@@ -1228,9 +1411,9 @@ function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
 }
 
 // Password Change Page
-type PasswordPageProps = { goBack: () => void };
+type PasswordPageProps = { goBack: () => void; userId: number };
 
-function PasswordPage({ goBack }: PasswordPageProps) {
+function PasswordPage({ goBack, userId }: PasswordPageProps) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -1265,7 +1448,7 @@ function PasswordPage({ goBack }: PasswordPageProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: USER_ID,
+          userId: userId,
           currentPassword: currentPassword,
           newPassword: newPassword
         })
