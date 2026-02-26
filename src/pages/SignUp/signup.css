@@ -1,0 +1,396 @@
+/* Sign Up Page Styles */
+
+.signup-page {
+  min-height: 100vh;
+  background-color: #f2ffde;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.signup-container {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Logo Header */
+.signup-logo {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.signup-logo h1 {
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1.2;
+  color: #29ac3d;
+  margin: 0 0 8px 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.signup-logo h1:hover {
+  opacity: 0.8;
+}
+
+.signup-logo p {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #4a5565;
+  margin: 0;
+}
+
+/* Sign Up Card */
+.signup-card {
+  background-color: white;
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow:
+    0px 20px 25px 0px rgba(0, 0, 0, 0.1),
+    0px 8px 10px 0px rgba(0, 0, 0, 0.04);
+}
+
+.signup-header {
+  margin-bottom: 28px;
+}
+
+.signup-header h2 {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.4;
+  color: #101828;
+  margin: 0 0 6px 0;
+}
+
+.signup-header p {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a5565;
+  margin: 0;
+}
+
+/* Form Styles */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #364153;
+}
+
+.form-group input {
+  width: 100%;
+  height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #d1d5dc;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #0a0a0a;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group input::placeholder {
+  color: rgba(10, 10, 10, 0.4);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #29ac3d;
+  box-shadow: 0 0 0 3px rgba(41, 172, 61, 0.1);
+}
+
+/* Input with Icon */
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon input {
+  padding-left: 44px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.input-hint {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #6a7282;
+  margin: 0;
+}
+
+/* Submit Button */
+.signup-btn {
+  width: 100%;
+  height: 48px;
+  background-color: #29ac3d;
+  color: white;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+  margin-top: 8px;
+}
+
+.signup-btn:hover {
+  background-color: #238a33;
+}
+
+.signup-btn:active {
+  transform: scale(0.98);
+}
+
+.signup-btn:disabled {
+  background-color: #6bcf7f;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Sign In Link */
+.signup-footer {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.signup-footer p {
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #29ac3d;
+  margin: 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.signup-footer p:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
+
+/* Why Section */
+.why-section {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid rgba(41, 172, 61, 0.1);
+}
+
+.why-section h3 {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.4;
+  color: #101828;
+  margin: 0 0 14px 0;
+}
+
+.why-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.why-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #364153;
+}
+
+.checkmark {
+  color: #29ac3d;
+  font-weight: 600;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+/* ── Eye toggle button ── */
+.eye-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  color: #9ca3af;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.eye-toggle-btn:hover {
+  color: #364153;
+}
+
+.eye-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Input that has an eye button — extra right padding so text doesn't overlap */
+.input-with-eye input {
+  padding-right: 44px;
+}
+
+/* ── Error state on input ── */
+.input-error {
+  border-color: #ef4444 !important;
+  background-color: #fff5f5 !important;
+}
+
+.input-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* ── Error hint text ── */
+.input-hint-error {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #ef4444;
+  margin: 0;
+}
+
+/* ── Success state ── */
+.signup-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px 24px;
+  animation: su-fade-scale-in 0.35s ease forwards;
+}
+
+.signup-success-icon svg {
+  width: 64px;
+  height: 64px;
+}
+
+.signup-success-text {
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #101828;
+  margin: 0;
+  text-align: center;
+}
+
+@keyframes su-fade-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .signup-page {
+    padding: 24px 16px;
+  }
+
+  .signup-logo h1 {
+    font-size: 40px;
+  }
+
+  .signup-logo p {
+    font-size: 15px;
+  }
+
+  .signup-card {
+    padding: 28px 24px;
+  }
+
+  .signup-header h2 {
+    font-size: 22px;
+  }
+
+  .why-section {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .signup-logo h1 {
+    font-size: 36px;
+  }
+
+  .signup-logo p {
+    font-size: 14px;
+  }
+
+  .signup-card {
+    padding: 24px 20px;
+  }
+}
