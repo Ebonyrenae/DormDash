@@ -1,4 +1,6 @@
+import React from "react";
 import { useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./myrequests.css";
 
@@ -16,6 +18,59 @@ interface Request {
   budget: string;
   offersCount: number;
 }
+
+const POSTED_JOBS_KEY = "posted_jobs_v1";
+
+type StoredJob = {
+  id: string;
+  createdAt: string;
+  serviceType: string;
+  title: string;
+  date: string;
+  time: string;
+  budget: string;
+  location: string;
+  description: string;
+};
+
+function readPostedJobs(): StoredJob[] {
+  try {
+    const raw = localStorage.getItem(POSTED_JOBS_KEY);
+    return raw ? (JSON.parse(raw) as StoredJob[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+
+
+const API_BASE_URL =
+  "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+
+type BackendJob = {
+  id: number;
+  service_type: string;
+  title: string;
+  description: string | null;
+  budget: string;
+  location: string;
+  job_date: string;
+  job_time: string;
+};
+
+const SERVICE_EMOJI: Record<string, string> = {
+  rides: "🚗",
+  groceries: "🛒",
+  cleaning: "🧼",
+  tutoring: "📚",
+  handyman: "🧑‍🔧",
+  cooking: "👨‍🍳",
+  moving: "🚛",
+};
+
+
+
+
 
 const MY_REQUESTS: Request[] = [
   {
@@ -151,6 +206,87 @@ const DollarIcon = () => (
 type FilterTab = "All" | StatusType;
 
 const MyRequests = () => {
+  const [postedJobs, setPostedJobs] = useState<StoredJob[]>([]);
+
+const [requests, setRequests] = useState<Request[]>([]);
+const [loadError, setLoadError] = useState<string | null>(null);
+
+useEffect(() => {
+  (async () => {
+    try {
+      setLoadError(null);
+      const res = await fetch(`${API_BASE_URL}/get_my_jobs.php`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        setLoadError(data.message || "Failed to load your requests.");
+        return;
+      }
+
+      const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
+        const categoryLabel =
+          j.service_type?.charAt(0).toUpperCase() + j.service_type.slice(1);
+
+        const time = j.job_time?.slice(0, 5); // "HH:MM"
+        const dateTime = `${j.job_date}\n${time}`;
+
+        return {
+          id: String(j.id),
+          category: categoryLabel,
+          categoryEmoji: SERVICE_EMOJI[j.service_type] ?? "🧾",
+          status: "Active",        // for this task: all are Active
+          title: j.title,
+          description: j.description ?? "",
+          dateTime,
+          location: j.location,
+          budget: j.budget,
+          offersCount: 0,          // not needed yet
+        };
+      });
+
+      setRequests(mapped);
+    } catch {
+      setLoadError("Network error loading your requests.");
+    }
+  })();
+}, []);
+
+useEffect(() => {
+  setPostedJobs(readPostedJobs());
+}, []);
+
+const postedAsRequests: Request[] = useMemo(() => {
+  return postedJobs.map((j) => {
+    const dt = j.date && j.time ? new Date(`${j.date}T${j.time}`) : null;
+    const prettyDate = dt
+      ? dt.toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : j.date;
+
+    return {
+      id: j.id,
+      category: j.serviceType
+        ? j.serviceType.charAt(0).toUpperCase() + j.serviceType.slice(1)
+        : "Other",
+      categoryEmoji: SERVICE_EMOJI[j.serviceType] ?? "🧾",
+      status: "Active",
+      title: j.title,
+      description: j.description,
+      dateTime: `${prettyDate}\n${j.time || ""}`.trim(),
+      location: j.location,
+      budget: j.budget?.trim().startsWith("$") ? j.budget.trim() : `$${j.budget}`,
+      offersCount: 0,
+    };
+  });
+}, [postedJobs]);
+
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -162,18 +298,18 @@ const MyRequests = () => {
     navigate(path);
   };
 
-  const activeCount = MY_REQUESTS.filter((r) => r.status === "Active").length;
-  const inProgressCount = MY_REQUESTS.filter(
+  const activeCount = requests.filter((r) => r.status === "Active").length;
+  const inProgressCount = requests.filter(
     (r) => r.status === "In Progress",
   ).length;
-  const completedCount = MY_REQUESTS.filter(
+  const completedCount = requests.filter(
     (r) => r.status === "Completed",
   ).length;
 
   const filtered =
     activeFilter === "All"
-      ? MY_REQUESTS
-      : MY_REQUESTS.filter((r) => r.status === activeFilter);
+      ? requests
+      : requests.filter((r) => r.status === activeFilter);
 
   return (
     <div className="requests-page">

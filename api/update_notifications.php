@@ -1,12 +1,30 @@
 <?php
-// Set the response header to indicate that the response will be in JSON format
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
-// Include the configuration file to get the database connection details
+header('Content-Type: application/json');
+
+$allowed_origins = [
+  "https://aptitude.cse.buffalo.edu",
+  "http://localhost:5173",
+];
+
+$origin = $_SERVER["HTTP_ORIGIN"] ?? "";
+if (in_array($origin, $allowed_origins, true)) {
+  header("Access-Control-Allow-Origin: $origin");
+  header("Access-Control-Allow-Credentials: true");
+  header("Vary: Origin");
+}
+
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+  http_response_code(200);
+  exit();
+}
+
 require_once 'config.php';
+
+// Set the response header to indicate that the response will be in JSON format
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
 
@@ -25,9 +43,11 @@ $pushEnabled = $settings['push'] ? 1 : 0; // Using 'push' for phone notification
 
 try {
     // Check if notification settings already exist for this user
-    $checkSql = "SELECT * FROM notification_settings WHERE user_id = ?";
-    $checkStmt = $pdo->prepare($checkSql);
-    $checkStmt->execute([$userId]);
+    $sql = "INSERT INTO notification_settings (user_id, email_enabled, push_enabled, sms_enabled)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE email_enabled = VALUES(email_enabled), push_enabled = VALUES(push_enabled), sms_enabled = VALUES(sms_enabled)";
+    $checkStmt = $pdo->prepare($sql);
+    $checkStmt->execute([$userId, $emailEnabled, $pushEnabled, $smsEnabled]);
     
     if ($checkStmt->rowCount() > 0) {
         // Update existing notification settings
