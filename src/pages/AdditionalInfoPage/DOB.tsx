@@ -2,19 +2,25 @@
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from "react";
 import "./DOB.css";
-import Gender from "./Gender";
+
 
 export default function DOB() {
     const navigate = useNavigate();
 
-    const [dob, setDob] = useState("");
-    const [month, setMonth] = useState("");
-    const [day, setDay] = useState("");
-    const [year, setYear] = useState("");   
+    const selectDob= localStorage.getItem("dob") || "";
+    const selectmonth = localStorage.getItem("month") || "";
+    const selectday = localStorage.getItem("day") || "";
+    const selectyear = localStorage.getItem("year") || "";
+
+    const [dob, setDob] = useState(selectDob);
+    const [month, setMonth] = useState(selectmonth);
+    const [day, setDay] = useState(selectday);
+    const [year, setYear] = useState(selectyear);   
     const [message, setMessage] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
 
-    const userId = 2; // 👈 temporary testing user
+    const userId = localStorage.getItem("user_id");
+    console.log("Current User ID from storage:", userId);
     const months = [
         "January",
         "February",
@@ -42,7 +48,16 @@ export default function DOB() {
    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); //  Stops page refresh
      // ✅ Format proper date
-    const formattedDOB = `${year}-${month}-${day}`;
+    const monthIndex = months.indexOf(month) + 1;
+    const formattedMonth = monthIndex.toString().padStart(2, '0');
+    const formattedDay = day.toString().padStart(2, '0');
+
+    const formattedDOB = (month && day && year) ? `${year}-${formattedMonth}-${formattedDay}` : null;
+//remove this after testing
+    const payload = { dob: formattedDOB, user_id: userId };
+    console.log("SENDING TO PHP:", payload);
+
+    
 
    
 
@@ -54,15 +69,17 @@ export default function DOB() {
     ,{
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dob: formattedDOB, userId })
+        body: JSON.stringify({ dob: formattedDOB, user_id: userId })
     });
 
     {/* Handling the response from the server and displaying appropriate messages based on the response status. */}
     const response = await dataSend.json();
+    console.log("SERVER RESPONSE:", response);
     if (response.success) {
-        navigate("/gender");
+       
         setMessage('Sign up successful!');
-        setIsSuccess(true)
+        setIsSuccess(true);
+        navigate("/gender");
     } else {
         setMessage(response.message || 'Sign up failed. Please try again.');
         setIsSuccess(false);
@@ -86,23 +103,29 @@ export default function DOB() {
 
                                 <div className="field">
                                     <label className="field-label">Month</label>
-                                    <select className="DOB-select">
+                                    <select className="DOB-select" value={month} onChange={(e) => {
+                                        setMonth(e.target.value);
+                                        localStorage.setItem("month", e.target.value);
+                                    }}>
+                                    
                                     <option value=""></option>
-                                    {months.map((month) => (
-                                        <option key={month} value={month}>
-                                        {month}
-                                        </option>
+                                    {months.map((m) => (
+                                        <option key={m} value={m}>
+                                        {m}</option>
                                     ))}
                                     </select>
                                 </div>
 
                                 <div className="field">
                                     <label className="field-label">Day</label>
-                                    <select className="DOB-select">
+                                    <select className="DOB-select" value={day} onChange={(e) => {
+                                        setDay(e.target.value);
+                                        localStorage.setItem("day", e.target.value);
+                                    }}>
                                     <option value=""></option>
-                                    {days.map((day) => (
-                                        <option key={day} value={day}>
-                                        {day}
+                                    {days.map((d) => (
+                                        <option key={d} value={d}>
+                                        {d}
                                         </option>
                                     ))}
                                     </select>
@@ -110,7 +133,10 @@ export default function DOB() {
 
                                 <div className="field">
                                     <label className="field-label">Year</label>
-                                    <select className="DOB-select">
+                                    <select className="DOB-select" value={year} onChange={(e) => {
+                                        setYear(e.target.value);
+                                        localStorage.setItem("year", e.target.value);
+                                    }}>
                                     <option value=""></option>
                                     {years.map((year) => (
                                         <option key={year} value={year}>
@@ -125,7 +151,7 @@ export default function DOB() {
                     
                     </div>
 
-               <p className="skip-text" onClick={() => navigate("/Gender")}>Skip for now</p>
+               <p className="skip-text" onClick={() => navigate("/gender")}>Skip for now</p>
                
                
                </div>

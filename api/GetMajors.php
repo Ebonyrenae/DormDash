@@ -3,16 +3,30 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
-include("db_connect.php"); // your DB connection
 
-$sql = "SELECT id, name FROM majors ORDER BY name ASC";
-$result = $conn->query($sql);
 
-$majors = [];
+require_once 'config.php'; 
 
-while ($row = $result->fetch_assoc()) {
-    $majors[] = $row;
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
 }
 
-echo json_encode($majors);
+try {
+    // 1. Define the SQL string FIRST
+    $sql = "SELECT id, majorName AS field FROM majors ORDER BY majorName ASC";
+
+    // 2. Execute the query using the $pdo object
+    $stmt = $pdo->query($sql);
+
+    // 3. Fetch all results into an associative array
+    $majors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 4. Output as JSON
+    echo json_encode($majors);
+
+} catch (PDOException $e) {
+    // Handle errors gracefully
+    echo json_encode(["error" => $e->getMessage()]);
+}
 ?>

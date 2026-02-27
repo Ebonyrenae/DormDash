@@ -5,12 +5,15 @@ import "./Gender.css";
 
 export default function Gender() {
   const navigate = useNavigate();
-  const [selectedGender, setSelectedGender] = useState("");
+  const gender_clicked = localStorage.getItem("selectedGender") || "";
+  
+  const [selectedGender, setSelectedGender] = useState(gender_clicked);
     const [message, setMessage] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
-    const userId = 2; // 👈 temporary testing user
+    const userId = localStorage.getItem("user_id");
 
 
+  console.log("Selected Gender:", selectedGender); // Debugging log
 
   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault(); //  Stops page refresh
@@ -19,11 +22,11 @@ export default function Gender() {
   
       try{
   
-           const dataSend= await fetch("https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/Onboarding.php"
+           const dataSend= await fetch("https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/Gender.php"
       ,{
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({  selectedGender, userId })
+          body: JSON.stringify({  selectedGender, user_id: userId })
       });
   
       {/* Handling the response from the server and displaying appropriate messages based on the response status. */}
@@ -57,17 +60,23 @@ export default function Gender() {
           className={`gender-option ${
             selectedGender === "Female" ? "selected" : ""
           }`}
-          onClick={() => setSelectedGender("Female")}
+          onClick={() => {
+            setSelectedGender("Female");
+            localStorage.setItem("selectedGender", "Female");
+          }}
         >
           <span className="gender-emoji">👩</span>
           <p>Female</p>
         </div>
-
+        
         <div
           className={`gender-option ${
             selectedGender === "Male" ? "selected" : ""
           }`}
-          onClick={() => setSelectedGender("Male")}
+          onClick={() => {
+            setSelectedGender("Male");
+            localStorage.setItem("selectedGender", "Male");
+          }}
         >
           <span className="gender-emoji">👨</span>
           <p>Male</p>
@@ -79,7 +88,7 @@ export default function Gender() {
   <div className="buttons-row">
     <p
       className="previous-text"
-      onClick={() => navigate("/")}
+      onClick={() => navigate("/dob")}
     >
       Previous
     </p>

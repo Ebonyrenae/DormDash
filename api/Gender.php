@@ -1,14 +1,12 @@
 <?php
-
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
-
 require_once 'config.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
+    http_response_code(200);
+    exit();
 }
 
 // Get JSON data
@@ -30,24 +28,17 @@ $gender = $data['selectedGender'];
 try {
 
     // Update gender for that user
-    $sql = "UPDATE account_info 
-            SET gender = ?
-            WHERE id = ?";
+    $sql = "INSERT INTO account_info (`gender`, user_id) VALUES (?, ?)". "ON DUPLICATE KEY UPDATE `gender` = VALUES(`gender`)";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$gender, $user_id]);
 
-    if ($stmt->rowCount() > 0) {
+   
         echo json_encode([
             "success" => true,
             "message" => "Gender updated successfully"
         ]);
-    } else {
-        echo json_encode([
-            "success" => false,
-            "message" => "User not found or no changes made"
-        ]);
-    }
+   
 
 } catch (PDOException $e) {
 

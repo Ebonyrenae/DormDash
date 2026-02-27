@@ -1,16 +1,18 @@
 <?php
-
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
+
+
 require_once 'config.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
+    http_response_code(200);
+    exit();
 }
-
-// Get raw data
+// Get raw data from the frontend and decode it from JSON format into a PHP associative array. 
+// The file_get_contents("php://input") function reads the raw data from the request body, and json_decode() converts the 
+// JSON string into a PHP array for easier access to the individual fields.
 $rawData = file_get_contents("php://input");
 $data = json_decode($rawData, true);
 
@@ -18,37 +20,44 @@ $data = json_decode($rawData, true);
 if (!isset($data['user_id'])) {
     echo json_encode([
         "success" => false,
-        "message" => "User ID missing"
+        "message" => "User ID missing: " .( $data['user_id'] ?? "nothing provided")
     ]);
     exit;
 }
 
+
 $user_id = $data['user_id'];
 $college = $data['college'] ?? null;
-$major = $data['major'] ?? null;
-$year = $data['year'] ?? null;
+$major_id = $data['major_id'] ?? null;
+$year_in_school = $data['year_in_school'] ?? null;
+$custom_major = $data['custom_major'] ?? null;
 
 try {
 
-    // Update existing user row
-    $sql = "UPDATE users 
-            SET college = ?, major = ?, year_in_school = ?
-            WHERE id = ?";
+    $sql1= "SELECT majorName FROM majors WHERE id = ?";
+    $stmt1 = $pdo->prepare($sql1);
+    $stmt1->execute([$major_id]);
+    $row = $stmt1->fetch(PDO::FETCH_ASSOC);
+    $majorName = $row['majorName'];
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$college, $major, $year, $user_id]);
 
-    if ($stmt->rowCount() > 0) {
-        echo json_encode([
-            "success" => true,
-            "message" => "Academic info updated successfully"
-        ]);
-    } else {
-        echo json_encode([
-            "success" => false,
-            "message" => "User not found or no changes made"
-        ]);
-    }
+    $sql = "UPDATE account_info 
+            SET college = ?, major_id = ?, year_in_school = ?, custom_major = ?
+            WHERE user_id = ?";
+     $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        $college,      
+        $major_id,     
+        $year_in_school,        
+        $custom_major, 
+        $user_id      ]);
+   
+
+    echo json_encode([
+        "success" => true,
+        "message" => "Academic information saved successfully"
+    ]);
+    exit;
 
 } catch (PDOException $e) {
 

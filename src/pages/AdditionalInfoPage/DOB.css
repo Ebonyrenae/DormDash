@@ -19,9 +19,9 @@
 .DOB-heading {
   text-align: center;
   margin-bottom: 0px;
-  font-size: 3.5rem;
+  font-size: 3.0rem;
   color: #29AC3D;
-  margin-top: 80px;
+  margin-top: 90px;
 }
 
 .text-below{
@@ -38,20 +38,21 @@
 .dropdown-container {
     display: flex;
     gap: 340px;            /* Clean spacing */
-    margin-top: 200px;
+    margin-top: 145px;
 }
 
 .field {
     display: flex;
     flex-direction: column;   /* label above dropdown */
     align-items: flex-start;  /* left align label + select */
+  
 }
 
 .field-label {
     color: #29AC3D;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 500;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     font-family: 'Inter', sans-serif;
     margin-right: 100px;
 }
@@ -60,11 +61,15 @@
     width: 100px;
     height: 35px;
     font-size: 16px;
-    border: 1px solid #ccc;
+    border: 1px solid #ffffff;
     border-radius: 4px;
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
-    margin-left: 60px;
+    margin-left: 70px;
     margin-top: 5px;
+    background-color: white;
+    appearance: none; /* Remove default arrow */
+    text-indent: 10px;
+
 }
 
 .button-n{

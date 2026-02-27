@@ -1,8 +1,9 @@
 import { createBrowserRouter } from "react-router-dom";
 import Gender from "../pages/AdditionalInfoPage/Gender";
 import AcademicInfo from "../pages/AdditionalInfoPage/AcademicInfo";
-import Location from "../pages/AdditionalInfoPage/Location";
+
 import Dashboard from "../pages/Dashboard/Dashboard";
+import SignUp from "../pages/SignUp/SignUp";
 /*import Landing from "../pages/Landing/Landing";
 import SignIn from "../pages/SignIn/SignIn";
 import SignUp from "../pages/SignUp/SignUp";
@@ -26,8 +27,15 @@ export const router = createBrowserRouter(
   [ 
     
     {path: "/",
+      Component: SignUp,
+    },
+
+    {path: "/dob",
       Component: DOB,
     },
+
+
+
 
     {path: "/gender",
       Component: Gender,
@@ -37,10 +45,7 @@ export const router = createBrowserRouter(
       Component: AcademicInfo,
     },
 
-    {path: "/location",
-      Component: Location,
-    },
-
+    
     {
       path: "/dashboard",
       Component: Dashboard,
