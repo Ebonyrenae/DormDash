@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 
 
 
 
 // API Configuration - UPDATE THESE VALUES
-const API_BASE_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api-backend'; // UPDATE THIS to your actual API path
-const ME_API_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api-backend/me.php';
+const API_BASE_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api'; // UPDATE THIS to your actual API path
+const ME_API_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php';
 
 // SVG Icon Components
 const UserIcon = () => (
@@ -238,12 +239,13 @@ type User = {
   email?: string;
 };
 
-function App() {
+function Settings() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState('main');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [email, setEmail] = useState('janedoe@university.edu');
-  const [phone, setPhone] = useState('+1 (555) 123-4567');
-  const [university, setUniversity] = useState('University at Buffalo');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [university, setUniversity] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState<NotificationsSettings>({
     email: true,
     push: true,
@@ -296,44 +298,75 @@ function App() {
         fetchUserSettings(data.user.id);
       } else {
         // Not logged in - redirect to login
-        window.location.href = '/signin';
+        navigate('/signin'); // React Router navigation, no full-page reload
       }
     } catch (err) {
       console.error('Failed to fetch current user:', err);
+      setIsLoading(false);
+      navigate('/signin');
+    }finally {
       setIsLoading(false);
     }
   };
 
   // API Functions
-  const fetchUserSettings = async (currentUserId: number | null): Promise<void> => {
-    if (currentUserId === null) {
-      // nothing to fetch if we don't have a user id
-      setIsLoading(false);
+  // add this near your other state:
+const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+
+const fetchUserSettings = async (uid: number) => {
+  setIsLoadingSettings(true);
+
+  const toBool = (v: any) => v === true || v === 1 || v === "1" || v === "true";
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/get_user_settings.php?userId=${encodeURIComponent(uid)}`,
+      { credentials: "include" }
+    );
+
+    const root = await res.json();
+
+    // Accept multiple shapes:
+    // { success:true, settings:{...} } OR { success:true, data:{...} } OR { ...direct fields... }
+    const payload = root?.settings ?? root?.data ?? root ?? {};
+
+    if (root?.success === false) {
+      console.error("Failed to fetch user settings:", root);
       return;
     }
-    try {
-      const response = await fetch(`${API_BASE_URL}/get_user_settings_final.php?userId=${currentUserId}`);
-      const result = await response.json();  // ✅ ADD THIS LINE
 
-      
-      if (result.success) {
-        setEmail(result.data.email);
-        setPhone(result.data.phone);
-        setUniversity(result.data.university);
-        setNotificationsEnabled(result.data.notificationSettings);
-        setPrivacySettings(result.data.privacySettings);
-        setIsLoading(false);  // ✅ ADD THIS LINE TOO
+    // Basic fields
+    setEmail(payload.email ?? "");
+    setPhone(payload.phone ?? "");
+    setUniversity(payload.university ?? "");
 
-      } else {
-        showErrorMessage('Failed to load user settings: ' + result.message);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error('Error fetching user settings:', error);
-      showErrorMessage('Failed to load user settings');
-      setIsLoading(false);
-    }
-  };
+    // Nested settings
+    const ns = payload.notificationSettings ?? payload.notification_settings ?? payload.notifications ?? {};
+    const ps = payload.privacySettings ?? payload.privacy_settings ?? payload.privacy ?? {};
+
+    // ✅ MUST match your NotificationsSettings type EXACTLY
+    setNotificationsEnabled({
+      email: toBool(ns.email ?? ns.email_notifications ?? ns.emailNotifications),
+      push: toBool(ns.push ?? ns.push_notifications ?? ns.pushNotifications),
+      sms: toBool(ns.sms ?? ns.sms_notifications ?? ns.smsNotifications),
+      deadlines: toBool(ns.deadlines ?? ns.deadline_notifications ?? ns.deadlinesNotifications),
+      grades: toBool(ns.grades ?? ns.grade_notifications ?? ns.gradesNotifications),
+      events: toBool(ns.events ?? ns.event_notifications ?? ns.eventsNotifications),
+    });
+
+    // ✅ MUST match your PrivacySettings type EXACTLY
+    setPrivacySettings({
+      profileVisible: toBool(ps.profileVisible ?? ps.profile_visible ?? ps.profileVisibility),
+      showEmail: toBool(ps.showEmail ?? ps.show_email),
+      showPhone: toBool(ps.showPhone ?? ps.show_phone),
+      dataSharing: toBool(ps.dataSharing ?? ps.data_sharing),
+    });
+  } catch (err) {
+    console.error("Error fetching user settings:", err);
+  } finally {
+    setIsLoadingSettings(false);
+  }
+};
 
   const updateEmail = async (newEmail: string) => {
 
@@ -342,6 +375,7 @@ function App() {
   try {
     const response = await fetch(`${API_BASE_URL}/update_email.php`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: userId, email: newEmail })
     });
@@ -372,6 +406,7 @@ function App() {
     try {
       const response = await fetch(`${API_BASE_URL}/update_phone.php`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: userId, phone: newPhone })
       });
@@ -396,6 +431,7 @@ function App() {
     try {
       const response = await fetch(`${API_BASE_URL}/update_university.php`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: userId, university: newUniversity })
       });
@@ -420,6 +456,7 @@ function App() {
     try {
       const response = await fetch(`${API_BASE_URL}/update_notifications.php`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: userId, settings: newSettings })
       });
@@ -443,6 +480,7 @@ function App() {
     try {
       const response = await fetch(`${API_BASE_URL}/update_privacy.php`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: userId, settings: newSettings })
       });
@@ -465,10 +503,10 @@ function App() {
   const handleLogout = async () => {
   try {
     // Redirect to signin
-    window.location.href = '/signin';
+    navigate('/signin'); // React Router navigation, no full-page reload
   } catch (err) {
     console.error('Logout failed:', err);
-    window.location.href = '/signin';
+    navigate('/signin'); // React Router navigation, no full-page reload
   }
 };
 
@@ -534,30 +572,19 @@ function App() {
   }
 
   // Show loading while fetching user
-  if (isLoading || !userId) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F9FAFB'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '50px',
-            height: '50px',
-            border: '4px solid #E5E7EB',
-            borderTop: '4px solid #16A34A',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 16px'
-          }}></div>
-          <p style={{ color: '#6B7280' }}>Loading settings...</p>
-        </div>
-      </div>
-    );
-  }
+ // Show loading while fetching user
+if (isLoading) {
+  return <div>Loading settings...</div>;
+}
+
+// If done loading but no userId, show error + redirect
+if (!userId) {
+  return (
+    <div style={{ padding: 24 }}>
+      <p>Not logged in. Redirecting…</p>
+    </div>
+  );
+}
 
   
 
@@ -741,7 +768,7 @@ function App() {
           {/* Back to Homepage Button */}
           <div style={{ marginBottom: '-16px' }}>
             <button
-              onClick={() => window.location.href = '/dashboard'}
+              onClick={() => navigate('/dashboard')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -1446,6 +1473,7 @@ function PasswordPage({ goBack, userId }: PasswordPageProps) {
     try {
       const response = await fetch(`${API_BASE_URL}/update_password.php`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
@@ -2624,4 +2652,4 @@ function LogoutPage({ goBack }: LogoutPageProps) {
   );
 }
 
-export default App;
+export default Settings;

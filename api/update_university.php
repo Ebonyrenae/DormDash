@@ -1,12 +1,29 @@
 <?php
-// Set the response header to indicate that the response will be in JSON format
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
-// Include the configuration file to get the database connection details
+$allowed_origins = [
+  "https://aptitude.cse.buffalo.edu",
+  "http://localhost:5173",
+];
+
+$origin = $_SERVER["HTTP_ORIGIN"] ?? "";
+if (in_array($origin, $allowed_origins, true)) {
+  header("Access-Control-Allow-Origin: $origin");
+  header("Access-Control-Allow-Credentials: true");
+  header("Vary: Origin");
+}
+
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+  http_response_code(200);
+  exit();
+}
+
 require_once 'config.php';
+// Set the response header to indicate that the response will be in JSON format
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
 
@@ -20,9 +37,11 @@ $university = $data['university'];
 
 try {
     // Update the university in the database
-    $sql = "UPDATE account_info SET college = ? WHERE id = ?";
+        $sql = "INSERT INTO account_info (id, college)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE college = VALUES(college)";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$university, $userId]);
+    $stmt->execute([$userId, $university]);
     
     if ($stmt->rowCount() > 0) {
         echo json_encode(['success' => true, 'message' => 'University updated successfully']);

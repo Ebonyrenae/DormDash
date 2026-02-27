@@ -4,7 +4,7 @@ import './src/styles/globals.css';
 import Settings from  './src/pages/Settings/SettingsWithBackend';
 
 const App = () => {
-  return <Settings />;
+  return <RouterProvider router={router} />;
 };
 
 export default App;

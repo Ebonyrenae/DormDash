@@ -10,7 +10,7 @@ import PostJob from "../pages/PostJob/PostJob";
 import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
-import Settings from "../pages/Settings/Settings";
+import Settings from "../pages/Settings/SettingsWithBackend";
 import Profile from "../pages/Profile/Profile";
 
 export const router = createBrowserRouter(
@@ -63,6 +63,7 @@ export const router = createBrowserRouter(
     },
   ],
   {
-    basename: "/CSE442/2026-Spring/cse-442i/",
+        basename: import.meta.env.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
+
   },
 );
