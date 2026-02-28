@@ -120,3 +120,40 @@
     text-decoration: underline;
 }
 
+.arrow-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  pointer-events: none; /* Allow clicks to pass through */
+  right: 1100px; /* Position the icon on the right */
+    top: 51%;
+    left: 19%;
+
+  
+  
+}
+
+.arrow-icon2 {
+  position: absolute;
+  display: flex;
+  
+  pointer-events: none; /* Allow clicks to pass through */
+  left: 100px; /* Position the icon on the right */
+    top: 51%;
+    left: 54%;
+
+  
+  
+}
+
+.arrow-icon3 {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  pointer-events: none; /* Allow clicks to pass through */
+  
+    top: 51%;
+    left: 89%;
+
+  
+}

@@ -1,6 +1,7 @@
 // AccountPage.tsx
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from "react";
+import { IoMdArrowDropdown } from "react-icons/io";
 import "./DOB.css";
 
 
@@ -103,36 +104,50 @@ export default function DOB() {
 
                                 <div className="field">
                                     <label className="field-label">Month</label>
-                                    <select className="DOB-select" value={month} onChange={(e) => {
-                                        setMonth(e.target.value);
-                                        localStorage.setItem("month", e.target.value);
-                                    }}>
-                                    
-                                    <option value=""></option>
-                                    {months.map((m) => (
-                                        <option key={m} value={m}>
-                                        {m}</option>
-                                    ))}
-                                    </select>
+
+                                    <div className="select-wrapper">
+                                   
+                                        <select className="DOB-select" value={month} onChange={(e) => {
+                                            setMonth(e.target.value);
+                                            localStorage.setItem("month", e.target.value);
+                                        }}>
+
+                                        <option value=""></option>
+                                        {months.map((m) => (
+                                            <option key={m} value={m}>
+                                            {m}</option>
+                                        ))}
+                                        </select>
+
+                                        <IoMdArrowDropdown className="arrow-icon3"  size={20}/>
                                 </div>
+                                </div>
+
+
+
+                                {/* Day and Year side by side */}
 
                                 <div className="field">
                                     <label className="field-label">Day</label>
-                                    <select className="DOB-select" value={day} onChange={(e) => {
-                                        setDay(e.target.value);
-                                        localStorage.setItem("day", e.target.value);
-                                    }}>
-                                    <option value=""></option>
-                                    {days.map((d) => (
-                                        <option key={d} value={d}>
-                                        {d}
-                                        </option>
-                                    ))}
-                                    </select>
+                                    
+                                        <select className="DOB-select" value={day} onChange={(e) => {
+                                            setDay(e.target.value);
+                                            localStorage.setItem("day", e.target.value);
+                                        }}>
+                                        <option value=""></option>
+                                        {days.map((d) => (
+                                            <option key={d} value={d}>
+                                            {d}
+                                            </option>
+                                        ))}
+                                        </select>
+                                        <IoMdArrowDropdown className="arrow-icon2"  size={20}/>
+                                    
                                 </div>
 
                                 <div className="field">
                                     <label className="field-label">Year</label>
+                                    <div className="select-wrapper">
                                     <select className="DOB-select" value={year} onChange={(e) => {
                                         setYear(e.target.value);
                                         localStorage.setItem("year", e.target.value);
@@ -144,6 +159,9 @@ export default function DOB() {
                                         </option>
                                     ))}
                                     </select>
+                                    <IoMdArrowDropdown className="arrow-icon"  size={20}/>
+
+                                    </div>
                                 </div>
                                 </div>
                 <div className="button-container">

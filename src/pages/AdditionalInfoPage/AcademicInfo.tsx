@@ -75,6 +75,12 @@ const [customMajorText, setCustomMajorText] = useState(savedCustom);
         localStorage.removeItem("college");
         localStorage.removeItem("custom_major");
 
+        localStorage.removeItem("dob");
+        localStorage.removeItem("month");
+        localStorage.removeItem("day");
+        localStorage.removeItem("year");
+        localStorage.removeItem("selectedGender");
+    
         // ✅ Navigate AFTER success
         navigate("/dashboard");
       } else {
