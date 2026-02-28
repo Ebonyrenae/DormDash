@@ -64,6 +64,7 @@ export default function SignUp() {
                 "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/SignUp.php",
                 {
                     method: "POST",
+                    credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         email,
