@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+.Outer-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  align-items: center;
+  background-color: #f2ffde;
+}
+
+/* Heading */
+.Gender-heading {
+  margin-top: 80px;
+  font-size: 3.5rem;
+  color: #29AC3D;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Gender Options Container */
+.gender-container {
+  display: flex;
+  gap: 200px;
+  margin-top: 150px;
+}
+
+/* Circle Cards */
+.gender-option {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Hover effect */
+.gender-option:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Selected state */
+.gender-option.selected {
+  border: 3px solid #29AC3D;
+  box-shadow: 0 0 0 5px rgba(41, 172, 61, 0.2),
+              0 15px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Emoji */
+.gender-emoji {
+  font-size: 60px;
+  margin-bottom: 10px;
+}
+
+/* Bottom section wrapper */
+.bottom-section {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Row for Previous + Next */
+.buttons-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;  /* THIS spreads them */
+  padding: 0 80px;                 /* space from edges */
+}
+
+/* Previous text */
+.previous-text {
+  font-size: 16px;
+  color: #757575;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  margin-top: 105px;
+  font-weight: 500;
+}
+
+.previous-text:hover {
+  text-decoration: underline;
+}
+
+.skip-text {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #757575;
+    cursor: pointer;
+    font-weight: 400;
+    font-family: 'Inter', sans-serif;
+    margin-left: 80%;
+    
+}
+
+.button-n{
+    margin-top: 100px;
+}
