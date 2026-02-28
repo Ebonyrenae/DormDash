@@ -59,20 +59,20 @@ export default function SignUp() {
             setConfirmPasswordError("");
         }
 
-        try {
-            const dataSend = await fetch(
-                "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/SignUp.php",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        email,
-                        password,
-                        confirmPassword,
-                        fullname
-                    })
-                }
-            );
+    try {
+      const dataSend = await fetch(
+        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/SignUpPage.php",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // ⭐ in case we want to set cookies in the future
+          body: JSON.stringify({
+            username: name, // ⭐ important
+            email: email,
+            password: password,
+          }),
+        },
+      );
 
             const response = await dataSend.json();
 
@@ -240,7 +240,8 @@ export default function SignUp() {
                         Sign Up
                     </button>
 
-                    <p className="form-loginNav">
+                    <p onClick={() => navigate("/signin")} className="form-loginNav">
+
                         Already have an account? Sign in
                     </p>
                 </div>

@@ -151,8 +151,15 @@
     font-weight: 500;
     font-family:'Inter', sans-serif;
     text-align:left;
+    cursor: pointer;
     align-self: center;
 
+
+
+}
+
+.form-loginNav:hover {
+    text-decoration: underline;
 }
 
 .form-containerSecond{

@@ -23,7 +23,7 @@ const SignIn = () => {
 
     try {
       const res = await fetch(
-        "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/login.php",
+        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/login.php",
         {
           method: "POST",
           credentials: "include", // ⭐ REQUIRED FOR PHP SESSION COOKIE
