@@ -4,6 +4,8 @@ import SignIn from "../pages/SignIn/SignIn";
 import SignUp from "../pages/SignUp/SignUp";
 import Dashboard from "../pages/Dashboard/Dashboard";
 
+import DOB from "../pages/AdditionalInfoPage/DOB";
+
 import AllJobs from "../pages/AllJobs/AllJobs";
 
 import PostJob from "../pages/PostJob/PostJob";
@@ -12,6 +14,9 @@ import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
 import Settings from "../pages/Settings/SettingsWithBackend";
 import Profile from "../pages/Profile/Profile";
+import { Add } from "@mui/icons-material";
+import AcademicInfo from "../pages/AdditionalInfoPage/AcademicInfo";
+import Gender from "../pages/AdditionalInfoPage/Gender";
 
 export const router = createBrowserRouter(
   [
@@ -57,10 +62,37 @@ export const router = createBrowserRouter(
       path: "/settings",
       Component: Settings,
     },
+   
+
     {
-      path: "/profile",
+      path: "/dob",
+      Component: DOB ,
+    },
+
+    {
+      path: "/academic-info",
+      Component: AcademicInfo, 
+    },
+
+    {
+      path: "/gender",
+      Component: Gender, 
+    },
+
+    {
+      path: "/profile/:id?", // The '?' makes the ID optional so your own profile still works!
       Component: Profile,
     },
+
+    
+
+
+
+
+
+
+
+
   ],
   {
         basename: import.meta.env.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',

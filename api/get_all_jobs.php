@@ -24,7 +24,25 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 require_once 'config.php';
 
 try {
-  $sql = "SELECT id, user_id, service_type, title, description, budget, location, job_date, job_time, created_at
+  $sql = "SELECT jobs.id, jobs.user_id, jobs.service_type, jobs.title, 
+                 jobs.description, jobs.budget, jobs.location, 
+                 jobs.job_date, jobs.job_time, jobs.created_at,
+                 users.username
+          FROM jobs
+          LEFT JOIN users ON jobs.user_id = users.id
+          ORDER BY jobs.created_at DESC";
+          
+  $jobs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+  echo json_encode(['success' => true, 'jobs' => $jobs]);
+} catch (PDOException $e) {
+  echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+}
+
+
+
+
+ /* $sql = "SELECT id, user_id, service_type, title, description, budget, location, job_date, job_time, created_at
           FROM jobs
           ORDER BY created_at DESC";
   $jobs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
@@ -32,4 +50,4 @@ try {
   echo json_encode(['success' => true, 'jobs' => $jobs]);
 } catch (PDOException $e) {
   echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-}
+}*/
