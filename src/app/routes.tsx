@@ -4,29 +4,36 @@ import AcademicInfo from "../pages/AdditionalInfoPage/AcademicInfo";
 
 import Dashboard from "../pages/Dashboard/Dashboard";
 import SignUp from "../pages/SignUp/SignUp";
+import AllJobs from "../pages/AllJobs/AllJobs";
+import PostJob from "../pages/PostJob/PostJob";
+import DOB from "../pages/AdditionalInfoPage/DOB";
+import Profile from "../pages/Profile/Profile";
+import { Component } from "react";
 /*import Landing from "../pages/Landing/Landing";
 import SignIn from "../pages/SignIn/SignIn";
 import SignUp from "../pages/SignUp/SignUp";
 import Dashboard from "../pages/Dashboard/Dashboard";
 
-import AllJobs from "../pages/AllJobs/AllJobs";
 
-import PostJob from "../pages/PostJob/PostJob";
+
+
 import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
 import Settings from "../pages/Settings/Settings";
 import NotFound from "../pages/NotFound/NotFound";*/
 
-import DOB from "../pages/AdditionalInfoPage/DOB";
-import { Component } from "react";
+
+
 import Settings from "../pages/Settings/SettingsWithBackend";
-import Profile from "../pages/Profile/Profile";
+
 
 export const router = createBrowserRouter(
   
   
   [ 
+
+
     
     {path: "/",
       Component: SignUp,
@@ -52,12 +59,29 @@ export const router = createBrowserRouter(
       path: "/dashboard",
       Component: Dashboard,
     },
+    {
+      path: "/all-jobs",
+      Component: AllJobs,
+    },
+
+     {
+      path: "/profile",
+      Component: Profile,
+    },
+
+     {
+      path: "/post-job",
+      Component: PostJob,
+    },
+
   ],
 
   {
-    basename: import.meta.env.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
-  },
+    // The (import.meta as any) fix bypasses the TS error
+    basename: (import.meta as any).env?.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
+  }
 );
+
 
 
 
@@ -80,15 +104,8 @@ export const router = createBrowserRouter(
       Component: Dashboard,
     },
 
-    {
-      path: "/all-jobs",
-      Component: AllJobs,
-    },
-
-    {
-      path: "/post-job",
-      Component: PostJob,
-    },
+    
+   
     {
       path: "/my-requests",
       Component: MyRequests,
@@ -105,10 +122,7 @@ export const router = createBrowserRouter(
       path: "/settings",
       Component: Settings,
     },
-    {
-      path: "/profile",
-      Component: Profile,
-    },
+   
   ],
   {*/
 
