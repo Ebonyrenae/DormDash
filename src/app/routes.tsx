@@ -4,20 +4,13 @@ import AcademicInfo from "../pages/AdditionalInfoPage/AcademicInfo";
 
 import Dashboard from "../pages/Dashboard/Dashboard";
 import SignUp from "../pages/SignUp/SignUp";
-/*import Landing from "../pages/Landing/Landing";
-import SignIn from "../pages/SignIn/SignIn";
-import SignUp from "../pages/SignUp/SignUp";
-import Dashboard from "../pages/Dashboard/Dashboard";
-
-import AllJobs from "../pages/AllJobs/AllJobs";
-
 import PostJob from "../pages/PostJob/PostJob";
+import Landing from "../pages/Landing/Landing";
+import SignIn from "../pages/SignIn/SignIn";
+import AllJobs from "../pages/AllJobs/AllJobs";
 import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
-import Settings from "../pages/Settings/Settings";
-import NotFound from "../pages/NotFound/NotFound";*/
-
 import DOB from "../pages/AdditionalInfoPage/DOB";
 import { Component } from "react";
 import Settings from "../pages/Settings/SettingsWithBackend";
@@ -36,9 +29,6 @@ export const router = createBrowserRouter(
       Component: DOB,
     },
 
-
-
-
     {path: "/gender",
       Component: Gender,
     },
@@ -52,43 +42,27 @@ export const router = createBrowserRouter(
       path: "/dashboard",
       Component: Dashboard,
     },
-  ],
 
-  {
-    basename: import.meta.env.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
-  },
-);
+     {
+      path: "/post-job",
+      Component: PostJob,
+    },
 
-
-
-
-
-    /*
-      path: "/",
+     { path: "/",
       Component: Landing,
     },
     {
       path: "/signin",
       Component: SignIn,
     },
-    {
-      path: "/signup",
-      Component: SignUp,
-    },
-    {
-      path: "/dashboard",
-      Component: Dashboard,
-    },
+  
 
     {
       path: "/all-jobs",
       Component: AllJobs,
     },
 
-    {
-      path: "/post-job",
-      Component: PostJob,
-    },
+   
     {
       path: "/my-requests",
       Component: MyRequests,
@@ -110,7 +84,19 @@ export const router = createBrowserRouter(
       Component: Profile,
     },
   ],
-  {*/
+
+  {
+    basename: import.meta.env.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
+  },
+);
+
+
+
+
+
+    
+    
+  
 
        
 
