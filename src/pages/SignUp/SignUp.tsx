@@ -143,6 +143,7 @@ const SignUp = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include", // ⭐ in case we want to set cookies in the future
           body: JSON.stringify({
             username: name, // ⭐ important
             email: email,

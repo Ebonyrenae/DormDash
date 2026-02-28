@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from "react-router-dom";
 
-
+const SIDEBAR_LINKS = [
+  { label: "Home", path: "/dashboard" },
+  { label: "View Jobs", path: "/all-jobs" },
+  { label: "Post a Job", path: "/post-job" },
+  { label: "Profile", path: "/profile" },
+  { label: "Messages", path: "/messages" },
+  { label: "Settings", path: "/settings" },
+];
 
 
 
 // API Configuration - UPDATE THESE VALUES
-const API_BASE_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api'; // UPDATE THIS to your actual API path
-const ME_API_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php';
+const API_BASE_URL = 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api'; // UPDATE THIS to your actual API path
+const ME_API_URL = 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php';
 
 // SVG Icon Components
 const UserIcon = () => (
@@ -241,6 +248,7 @@ type User = {
 
 function Settings() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState('main');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -592,95 +600,33 @@ if (!userId) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', display: 'flex', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       {/* Desktop Sidebar */}
-      <aside style={{
-        position: 'fixed',
-        top: 0,
-        left: isSidebarOpen ? 0 : '-320px',
-        height: '100vh',
-        width: '320px',
-        backgroundColor: 'white',
-        borderRight: '1px solid #E5E7EB',
-        transition: 'left 0.3s ease',
-        zIndex: 50,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <div style={{ padding: '24px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', margin: 0 }}>Settings</h2>
-            
-            <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '4px', margin: 0 }}>Manage your account</p>
-          </div>
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            style={{
-              padding: '8px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <XIcon />
-          </button>
-        </div>
+     {/* Sidebar Overlay */}
+<div
+  className={`sidebar-overlay${isSidebarOpen ? " open" : ""}`}
+  onClick={() => setIsSidebarOpen(false)}
+  aria-hidden="true"
+/>
 
-        <nav style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto' }}>
-          <div>
-            <p style={{ fontSize: '12px', fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: '12px', marginBottom: '8px' }}>Main</p>
-            <NavButton icon={UserIcon} label="Account" active onClick={() => setCurrentPage('main')} />
-          </div>
-
-          <div>
-            <p style={{ fontSize: '12px', fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: '12px', marginBottom: '8px' }}>Account Settings</p>
-            <NavButton icon={MailIcon} label="Email" onClick={() => setCurrentPage('email')} />
-            <NavButton icon={PhoneIcon} label="Phone" onClick={() => setCurrentPage('phone')} />
-            <NavButton icon={BuildingIcon} label="University" onClick={() => setCurrentPage('university')} />
-          </div>
-
-          <div>
-            <p style={{ fontSize: '12px', fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: '12px', marginBottom: '8px' }}>Preferences</p>
-            <NavButton icon={BellIcon} label="Notifications" onClick={() => setCurrentPage('notifications')} />
-            <NavButton icon={ShieldIcon} label="Privacy & Security" onClick={() => setCurrentPage('privacy')} />
-          </div>
-
-          <div>
-            <p style={{ fontSize: '12px', fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: '12px', marginBottom: '8px' }}>Support</p>
-            <NavButton icon={HelpCircleIcon} label="Help Center" onClick={() => setCurrentPage('help')} />
-          </div>
-        </nav>
-
-        <div style={{ padding: '16px', borderTop: '1px solid #E5E7EB' }}>
-          <button
-            onClick={handleLogout}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '10px 12px',
-              color: '#DC2626',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-              fontSize: '15px',
-              fontWeight: '500'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FEF2F2'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <LogOutIcon />
-            <span>Log Out</span>
-          </button>
-        </div>
-      </aside>
+{/* Sidebar Drawer */}
+<aside
+  className={`sidebar-drawer${isSidebarOpen ? " open" : ""}`}
+  aria-label="Navigation menu"
+>
+  <nav className="sidebar-nav">
+    {SIDEBAR_LINKS.map((link) => (
+      <button
+        key={link.path}
+        className={`sidebar-link${location.pathname === link.path ? " active" : ""}`}
+        onClick={() => {
+          setIsSidebarOpen(false);
+          if (location.pathname !== link.path) navigate(link.path);
+        }}
+      >
+        {link.label}
+      </button>
+    ))}
+  </nav>
+</aside>
 
       {/* Overlay for mobile */}
       {isSidebarOpen && (
