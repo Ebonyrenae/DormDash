@@ -5,6 +5,7 @@ import "./signin.css";
 
 const SignIn = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -22,9 +23,10 @@ const SignIn = () => {
 
     try {
       const res = await fetch(
-        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/login.php",
+        "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/login.php",
         {
           method: "POST",
+          credentials: "include", // ⭐ REQUIRED FOR PHP SESSION COOKIE
           headers: {
             "Content-Type": "application/json",
           },
@@ -66,7 +68,7 @@ const SignIn = () => {
           </div>
 
           <form className="signin-form" onSubmit={handleSubmit}>
-            {/* College Email */}
+            {/* Email */}
             <div className="form-group">
               <label htmlFor="email">College Email</label>
               <div className="input-wrapper">
@@ -88,6 +90,7 @@ const SignIn = () => {
                     />
                   </svg>
                 </div>
+
                 <input
                   type="email"
                   id="email"
@@ -123,6 +126,7 @@ const SignIn = () => {
                     />
                   </svg>
                 </div>
+
                 <input
                   type="password"
                   id="password"
@@ -135,13 +139,11 @@ const SignIn = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
             <button type="submit" className="signin-btn">
               Sign In
             </button>
           </form>
 
-          {/* Sign Up Link */}
           <div className="signin-footer">
             <p onClick={() => navigate("/signup")}>
               Don't have an account? Sign up

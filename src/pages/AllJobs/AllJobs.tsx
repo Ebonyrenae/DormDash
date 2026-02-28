@@ -1,4 +1,6 @@
+import React from "react";
 import { useState } from "react";
+import { useEffect, useMemo} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./alljobs.css";
 
@@ -10,6 +12,57 @@ interface Job {
   location: string;
   time: string;
   category: string;
+}
+
+const POSTED_JOBS_KEY = "posted_jobs_v1";
+
+type StoredJob = {
+  id: string;
+  createdAt: string;
+  serviceType: string;
+  title: string;
+  date: string;
+  time: string;
+  budget: string;
+  location: string;
+  description: string;
+};
+
+function readPostedJobs(): StoredJob[] {
+  try {
+    const raw = localStorage.getItem(POSTED_JOBS_KEY);
+    return raw ? (JSON.parse(raw) as StoredJob[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+
+
+const API_BASE_URL =
+  "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+
+type BackendJob = {
+  id: number;
+  service_type: string;
+  title: string;
+  description: string | null;
+  budget: string;
+  location: string;
+  job_date: string;  // "YYYY-MM-DD"
+  job_time: string;  // "HH:MM:SS"
+};
+
+function toCategoryLabel(serviceType: string): string {
+  if (!serviceType) return "Others";
+  return serviceType.charAt(0).toUpperCase() + serviceType.slice(1);
+}
+
+function toTimeLabel(jobDate: string, jobTime: string): string {
+  // Minimal: show time. (You can include date later if you want.)
+  // jobTime is "HH:MM:SS"
+  const t = jobTime?.slice(0, 5); // "HH:MM"
+  return t || "";
 }
 
 const ALL_JOBS: Job[] = [
@@ -134,6 +187,47 @@ const ClockIcon = () => (
 );
 
 const AllJobs = () => {
+  const [jobs, setJobs] = useState<Job[]>([]);
+const [loadError, setLoadError] = useState<string | null>(null);
+
+const [postedJobs, setPostedJobs] = useState<StoredJob[]>([]);
+
+useEffect(() => {
+  setPostedJobs(readPostedJobs());
+}, []);
+
+useEffect(() => {
+  (async () => {
+    try {
+      setLoadError(null);
+      const res = await fetch(`${API_BASE_URL}/get_all_jobs.php`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        setLoadError(data.message || "Failed to load jobs.");
+        return;
+      }
+
+      const mapped: Job[] = (data.jobs as BackendJob[]).map((j) => ({
+        id: String(j.id),
+        title: j.title,
+        description: j.description ?? "",
+        price: j.budget,
+        location: j.location,
+        time: toTimeLabel(j.job_date, j.job_time),
+        category: toCategoryLabel(j.service_type),
+      }));
+
+      setJobs(mapped);
+    } catch {
+      setLoadError("Network error loading jobs.");
+    }
+  })();
+}, []);
+
   const navigate = useNavigate();
   const location = useLocation();
   const [activeCategory, setActiveCategory] = useState("All");
@@ -147,8 +241,8 @@ const AllJobs = () => {
 
   const filtered =
     activeCategory === "All"
-      ? ALL_JOBS
-      : ALL_JOBS.filter((j) => j.category === activeCategory);
+      ? jobs
+      : jobs.filter((j) => j.category === activeCategory);
 
   return (
     <div className="alljobs-page">

@@ -20,6 +20,8 @@ import NotFound from "../pages/NotFound/NotFound";*/
 
 import DOB from "../pages/AdditionalInfoPage/DOB";
 import { Component } from "react";
+import Settings from "../pages/Settings/SettingsWithBackend";
+import Profile from "../pages/Profile/Profile";
 
 export const router = createBrowserRouter(
   
@@ -53,7 +55,7 @@ export const router = createBrowserRouter(
   ],
 
   {
-    basename: "/CSE442/2026-Spring/cse-442i/Onboarding/",
+    basename: import.meta.env.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
   },
 );
 
@@ -104,9 +106,12 @@ export const router = createBrowserRouter(
       Component: Settings,
     },
     {
-      path: "*",
-      Component: NotFound,
-    },*/
+      path: "/profile",
+      Component: Profile,
+    },
+  ],
+  {*/
 
+       
 
-   
+  

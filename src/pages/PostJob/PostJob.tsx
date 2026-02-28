@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./postjob.css";
@@ -20,6 +21,26 @@ const SIDEBAR_LINKS = [
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
 ];
+
+const POSTED_JOBS_KEY = "posted_jobs_v1";
+
+type StoredJob = PostJobForm & {
+  id: string;
+  createdAt: string;
+};
+
+function readPostedJobs(): StoredJob[] {
+  try {
+    const raw = localStorage.getItem(POSTED_JOBS_KEY);
+    return raw ? (JSON.parse(raw) as StoredJob[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePostedJobs(jobs: StoredJob[]) {
+  localStorage.setItem(POSTED_JOBS_KEY, JSON.stringify(jobs));
+}
 
 const CalendarIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -124,12 +145,40 @@ const PostJob = () => {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: wire up to backend / API
-    console.log("Submitting job:", form);
-    navigate("/dashboard");
-  };
+
+
+  const API_BASE_URL = "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+
+const [submitError, setSubmitError] = useState<string | null>(null);
+const [isSubmitting, setIsSubmitting] = useState(false);
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setSubmitError(null);
+  setIsSubmitting(true);
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/create_job.php`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form), // <-- uses your exact fields, nothing hardcoded
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      setSubmitError(data.message || "Failed to create job.");
+      return;
+    }
+
+    navigate("/all-jobs");
+  } catch (err) {
+    setSubmitError("Network error creating job.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="postjob-page">
