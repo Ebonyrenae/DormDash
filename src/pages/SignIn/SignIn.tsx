@@ -23,7 +23,7 @@ const SignIn = () => {
 
     try {
       const res = await fetch(
-        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/login.php",
+        "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/login.php",
         {
           method: "POST",
           credentials: "include", // ⭐ REQUIRED FOR PHP SESSION COOKIE
@@ -39,12 +39,18 @@ const SignIn = () => {
 
       const data = await res.json();
       console.log(data);
-
       if (data.success) {
-        navigate("/dashboard");
-      } else {
-        alert(data.message);
-      }
+  // ⭐ SAVE USER DATA TO LOCALSTORAGE AS A BACKUP
+  localStorage.setItem("isLoggedIn", "true");
+  localStorage.setItem("userId", data.user.id.toString());
+  localStorage.setItem("username", data.user.username);
+  
+  navigate("/dashboard");
+} else {
+  alert(data.message);
+}
+
+      
     } catch (err) {
       console.error(err);
       alert("login failed");

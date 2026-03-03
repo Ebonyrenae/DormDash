@@ -45,7 +45,7 @@ function readPostedJobs(): StoredJob[] {
 
 
 const API_BASE_URL =
-  "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+  "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
 
 type BackendJob = {
   id: number;
@@ -128,7 +128,7 @@ const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
   { label: "View Jobs", path: "/all-jobs" },
   { label: "Post a Job", path: "/post-job" },
-  { label: "Profile", path: "/profile" },
+  { label: "Profile", path: "/profile/me" },
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
 ];
