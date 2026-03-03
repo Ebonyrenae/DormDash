@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import "./profile.css";
 
 const SIDEBAR_LINKS = [
@@ -79,34 +80,47 @@ const USER = {
   ],
 };
 
-const Profile = () => {
+
+  const Profile = () => {
+  const { id } = useParams(); 
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(
-          "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php",
-          {
-            credentials: "include",
-          },
-        );
+        // 1. If no ID, just fetch 'me' as usual
+        if (!id) {
+          const res = await fetch("https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php", { credentials: "include" });
+          const data = await res.json();
+          if (data.loggedIn) setUser(data.user);
+          return;
+        }
 
+        // 2. If there IS an ID, but we can't use get_user.php, 
+        // we pull the username from the list of all jobs we already have access to.
+        const res = await fetch("https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/get_all_jobs.php");
         const data = await res.json();
-
-        if (data.loggedIn) {
-          setUser(data.user);
+        
+        if (data.success) {
+          // Find the specific job posted by this user to grab their username
+          const foundJob = data.jobs.find((j: any) => String(j.user_id) === String(id));
+          if (foundJob) {
+            setUser({
+              id: id,
+              username: foundJob.username
+            });
+          }
         }
       } catch (err) {
-        console.error("me.php failed", err);
+        console.error("Profile fallback failed", err);
       }
     };
 
     fetchUser();
-  }, []);
-
+  }, [id]);
   const handleSidebarLink = (path: string) => {
     setSidebarOpen(false);
     if (location.pathname === path) return;
