@@ -38,15 +38,37 @@ session_set_cookie_params([
 
 session_start();
 
-if (isset($_SESSION["user_id"])) {
-  echo json_encode([
-    "loggedIn" => true,
-    "user" => [
-      "id" => (int)$_SESSION["user_id"],
-      "username" => $_SESSION["username"] ?? null,
-      "email" => $_SESSION["email"] ?? null,
-    ]
-  ]);
-} else {
+if (!isset($_SESSION["user_id"])) {
   echo json_encode(["loggedIn" => false]);
+  exit;
 }
+
+$userId = (int)$_SESSION["user_id"];
+$user = [
+  "id" => $userId,
+  "username" => $_SESSION["username"] ?? null,
+  "email" => $_SESSION["email"] ?? null,
+];
+
+// Optional profile columns (only if DB has them via schema_profile.sql / schema_profile_photo.sql)
+try {
+  require_once __DIR__ . "/config.php";
+  $stmt = $pdo->prepare("SELECT university, program, bio, experience, profile_photo FROM users WHERE id = ?");
+  $stmt->execute([$userId]);
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+  if ($row) {
+    if (array_key_exists("university", $row)) $user["university"] = $row["university"] ?? "";
+    if (array_key_exists("program", $row)) $user["program"] = $row["program"] ?? "";
+    if (array_key_exists("bio", $row)) $user["bio"] = $row["bio"] ?? "";
+    if (array_key_exists("experience", $row)) {
+      $user["experience"] = $row["experience"] ? json_decode($row["experience"], true) : [];
+      if (!is_array($user["experience"])) $user["experience"] = [];
+    }
+    if (array_key_exists("profile_photo", $row) && $row["profile_photo"] !== null && $row["profile_photo"] !== "")
+      $user["profilePhoto"] = $row["profile_photo"];
+  }
+} catch (Exception $e) {
+  // Profile columns may not exist yet; keep only id, username, email
+}
+
+echo json_encode(["loggedIn" => true, "user" => $user]);
