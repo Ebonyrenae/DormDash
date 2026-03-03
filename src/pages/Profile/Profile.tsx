@@ -7,7 +7,7 @@ const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
   { label: "View Jobs", path: "/all-jobs" },
   { label: "Post a Job", path: "/post-job" },
-  { label: "Profile", path: "/profile" },
+  { label: "Profile", path: "/profile/me" },
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
 ];
@@ -82,7 +82,9 @@ const USER = {
 
 
   const Profile = () => {
-  const { id } = useParams(); 
+  // 1. Only use the name defined in your router
+  const { userId } = useParams(); 
+  
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -91,36 +93,47 @@ const USER = {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // 1. If no ID, just fetch 'me' as usual
-        if (!id) {
-          const res = await fetch("https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php", { credentials: "include" });
-          const data = await res.json();
-          if (data.loggedIn) setUser(data.user);
-          return;
-        }
-
-        // 2. If there IS an ID, but we can't use get_user.php, 
-        // we pull the username from the list of all jobs we already have access to.
-        const res = await fetch("https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/get_all_jobs.php");
+        // 2. If the URL is just "/profile/me" or "/profile", fetch the logged-in user
+        if (!userId || userId === "me") {
+  const res = await fetch("https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php", { 
+    credentials: "include" 
+  });
+  const data = await res.json();
+  
+  if (data.loggedIn) {
+    setUser(data.user);
+  } else {
+    // THIS IS THE FIX: Set a fallback so it stops saying "Loading..."
+    setUser({ username: "Guest", isGuest: true }); 
+    // navigate("/signin"); // Uncomment this to kick them to login
+  }
+  return;
+}
+        // 3. If there is a numeric ID (like /profile/5), find that person in the job list
+        const res = await fetch("https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/get_all_jobs.php");
         const data = await res.json();
         
         if (data.success) {
-          // Find the specific job posted by this user to grab their username
-          const foundJob = data.jobs.find((j: any) => String(j.user_id) === String(id));
+          // Use userId here, not id
+          const foundJob = data.jobs.find((j: any) => String(j.user_id) === String(userId));
           if (foundJob) {
             setUser({
-              id: id,
+              id: userId,
               username: foundJob.username
             });
+          } else {
+            // If no job by this user is found, we don't have their name in this specific API
+            setUser({ username: "Unknown User" });
           }
         }
       } catch (err) {
-        console.error("Profile fallback failed", err);
+        console.error("Profile fetch failed", err);
+        setUser({ username: "Error loading user" });
       }
     };
 
     fetchUser();
-  }, [id]);
+  }, [userId]); // IMPORTANT: Re-run when the URL changes
   const handleSidebarLink = (path: string) => {
     setSidebarOpen(false);
     if (location.pathname === path) return;

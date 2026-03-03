@@ -13,8 +13,8 @@ const SIDEBAR_LINKS = [
 
 
 // API Configuration - UPDATE THESE VALUES
-const API_BASE_URL = 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api'; // UPDATE THIS to your actual API path
-const ME_API_URL = 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php';
+const API_BASE_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api'; // UPDATE THIS to your actual API path
+const ME_API_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php';
 
 // SVG Icon Components
 const UserIcon = () => (
@@ -1053,8 +1053,8 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
             <ArrowLeftIcon />
             <span>Back to Settings</span>
           </button>
-          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>Email Address</h1>
-          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px' }}>Manage your email address for account notifications and updates</p>
+          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' ,fontFamily: 'Inter, sans-serif'}}>Email Address</h1>
+          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px',fontFamily: 'Inter, sans-serif' }}>Manage your email address for account notifications and updates</p>
         </div>
 
         <div style={{
@@ -1079,8 +1079,8 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
               <MailIcon />
             </div>
             <div>
-              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px' }}>Primary Email</h3>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>This email is used for all communications</p>
+              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Primary Email</h3>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 ,fontFamily: 'Inter, sans-serif'}}>This email is used for all communications</p>
             </div>
           </div>
 
@@ -1090,7 +1090,8 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
               fontSize: '14px',
               fontWeight: '500',
               color: '#374151',
-              marginBottom: '8px'
+              marginBottom: '8px',
+              fontFamily: 'Inter, sans-serif'
             }}>
               Email Address
             </label>
@@ -1126,7 +1127,7 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
             padding: '16px',
             marginBottom: '24px'
           }}>
-            <p style={{ fontSize: '14px', color: '#1E3A8A', margin: 0 }}>
+            <p style={{ fontSize: '14px', color: '#1E3A8A', margin: 0, fontFamily: 'Inter, sans-serif' }}>
               <strong>Important:</strong> Your email address is used for account notifications, password resets, and important updates.
             </p>
           </div>
@@ -1165,10 +1166,10 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
           border: '1px solid #E5E7EB',
           padding: '24px'
         }}>
-          <h4 style={{ fontWeight: '600', color: '#111827', marginBottom: '12px', fontSize: '16px' }}>Email Verification</h4>
+          <h4 style={{ fontWeight: '600', color: '#111827', marginBottom: '12px', fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Email Verification</h4>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Your email is verified</p>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0', fontFamily: 'Inter, sans-serif' }}>Your email is verified</p>
               <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '4px', margin: 0 }}>Verified on January 15, 2026</p>
             </div>
             <div style={{
@@ -1233,8 +1234,8 @@ function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
             <ArrowLeftIcon />
             <span>Back to Settings</span>
           </button>
-          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>Phone Number</h1>
-          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px' }}>Manage your phone number for SMS notifications and security</p>
+          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0', fontFamily: 'Inter, sans-serif' }}>Phone Number</h1>
+          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Manage your phone number for SMS notifications and security</p>
         </div>
 
         <div style={{
@@ -1259,8 +1260,8 @@ function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
               <PhoneIcon />
             </div>
             <div>
-              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px' }}>Primary Phone</h3>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>Used for SMS and two-factor authentication</p>
+              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Primary Phone</h3>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0, fontFamily: 'Inter, sans-serif' }}>Used for SMS and two-factor authentication</p>
             </div>
           </div>
 
@@ -1270,7 +1271,8 @@ function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
               fontSize: '14px',
               fontWeight: '500',
               color: '#374151',
-              marginBottom: '8px'
+              marginBottom: '8px',
+              fontFamily: 'Inter, sans-serif'
             }}>
               Phone Number
             </label>
@@ -1306,7 +1308,7 @@ function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
             padding: '16px',
             marginBottom: '24px'
           }}>
-            <p style={{ fontSize: '14px', color: '#581C87', margin: 0 }}>
+            <p style={{ fontSize: '14px', color: '#581C87', margin: 0 ,fontFamily: 'Inter, sans-serif' }}>
               <strong>Security Tip:</strong> Add a phone number to enable SMS notifications and two-factor authentication.
             </p>
           </div>
@@ -1360,8 +1362,8 @@ function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
               <ShieldIcon />
             </div>
             <div>
-              <h4 style={{ fontWeight: '600', color: '#111827', marginBottom: '8px', fontSize: '16px' }}>Two-Factor Authentication</h4>
-              <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '12px' }}>Add an extra layer of security to your account.</p>
+              <h4 style={{ fontWeight: '600', color: '#111827', marginBottom: '8px', fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Two-Factor Authentication</h4>
+              <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '12px', fontFamily: 'Inter, sans-serif' }}>Add an extra layer of security to your account.</p>
               <button style={{
                 height: '36px',
                 padding: '0 16px',
@@ -1775,8 +1777,8 @@ function UniversityPage({ university, updateUniversity, goBack }: UniversityPage
             <ArrowLeftIcon />
             <span>Back to Settings</span>
           </button>
-          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>University</h1>
-          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px' }}>Select your university to personalize your experience</p>
+          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0', fontFamily: 'Inter, sans-serif' }}>University</h1>
+          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Select your university to personalize your experience</p>
         </div>
 
         <div style={{
@@ -1801,8 +1803,8 @@ function UniversityPage({ university, updateUniversity, goBack }: UniversityPage
               <BuildingIcon />
             </div>
             <div>
-              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px' }}>Current University</h3>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>{university}</p>
+              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Current University</h3>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 , fontFamily: 'Inter, sans-serif' }}>{university}</p>
             </div>
           </div>
 
@@ -1903,7 +1905,7 @@ function UniversityPage({ university, updateUniversity, goBack }: UniversityPage
           borderRadius: '16px',
           padding: '24px'
         }}>
-          <p style={{ fontSize: '14px', color: '#1E3A8A', margin: 0 }}>
+          <p style={{ fontSize: '14px', color: '#1E3A8A', margin: 0, fontFamily: 'Inter, sans-serif' }}>
             <strong>Note:</strong> Changing your university will update your campus community access.
           </p>
         </div>
@@ -1950,18 +1952,19 @@ function NotificationsPage({ settings, updateSettings, goBack }: NotificationsPa
             <ArrowLeftIcon />
             <span>Back to Settings</span>
           </button>
-          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>Notifications</h1>
-          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px' }}>Manage how you receive updates and alerts</p>
+          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0', fontFamily: 'Inter, sans-serif' }}>Notifications</h1>
+          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Manage how you receive updates and alerts</p>
         </div>
 
         <div style={{ marginBottom: '32px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px' }}>Notification Channels</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px', fontFamily: 'Inter, sans-serif' }}>Notification Channels</h3>
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             border: '1px solid #E5E7EB',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            fontFamily: 'Inter, sans-serif'
           }}>
             <ToggleItem icon={MailIcon} label="Email Notifications" description="Receive updates via email" checked={settings.email} onChange={() => toggleSetting('email')} color="blue" />
             <div style={{ borderBottom: '1px solid #F3F4F6' }}></div>
@@ -1983,7 +1986,7 @@ function NotificationsPage({ settings, updateSettings, goBack }: NotificationsPa
             <div style={{ color: '#92400E', flexShrink: 0, marginTop: '2px' }}>
               <BellIcon />
             </div>
-            <p style={{ fontSize: '14px', color: '#78350F', margin: 0 }}>
+            <p style={{ fontSize: '14px', color: '#78350F', margin: 0, fontFamily: 'Inter, sans-serif' }}>
               <strong>Tip:</strong> Enable push notifications to stay up-to-date with important updates.
             </p>
           </div>
@@ -2030,20 +2033,21 @@ function PrivacyPage({ settings, updateSettings, goBack, setCurrentPage }: Priva
             onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
           >
             <ArrowLeftIcon />
-            <span>Back to Settings</span>
+            <span style={{ fontFamily: 'Inter, sans-serif' }}>Back to Settings</span>
           </button>
-          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>Privacy & Security</h1>
-          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px' }}>Control your privacy settings and account security</p>
+          <h1 style={{ fontSize: '30px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0', fontFamily: 'Inter, sans-serif' }}>Privacy & Security</h1>
+          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Control your privacy settings and account security</p>
         </div>
 
         <div style={{ marginBottom: '32px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px' }}>Profile Privacy</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px', fontFamily: 'Inter, sans-serif' }}>Profile Privacy</h3>
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             border: '1px solid #E5E7EB',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            fontFamily: 'Inter, sans-serif'
           }}>
             <ToggleItem icon={EyeIcon} label="Public Profile" description="Make your profile visible to other students" checked={settings.profileVisible} onChange={() => toggleSetting('profileVisible')} color="blue" />
             <div style={{ borderBottom: '1px solid #F3F4F6' }}></div>
@@ -2054,26 +2058,28 @@ function PrivacyPage({ settings, updateSettings, goBack, setCurrentPage }: Priva
         </div>
 
         <div style={{ marginBottom: '32px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px' }}>Data & Security</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px', fontFamily: 'Inter, sans-serif' }}>Data & Security</h3>
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             border: '1px solid #E5E7EB',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            fontFamily: 'Inter, sans-serif'
           }}>
             <ToggleItem icon={DatabaseIcon} label="Data Sharing" description="Share anonymized data to improve services" checked={settings.dataSharing} onChange={() => toggleSetting('dataSharing')} color="green" />
           </div>
         </div>
 
         <div style={{ marginBottom: '32px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px' }}>Security Actions</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', paddingLeft: '4px', fontFamily: 'Inter, sans-serif' }}>Security Actions</h3>
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
             border: '1px solid #E5E7EB',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            fontFamily: 'Inter, sans-serif'
           }}>
             <SecurityActionButton
               icon={LockIcon}
@@ -2104,8 +2110,8 @@ function PrivacyPage({ settings, updateSettings, goBack, setCurrentPage }: Priva
               <ShieldIcon />
             </div>
             <div>
-              <p style={{ fontSize: '14px', color: '#7F1D1D', fontWeight: '500', marginBottom: '4px' }}>Security Recommendation</p>
-              <p style={{ fontSize: '14px', color: '#991B1B', margin: 0 }}>We recommend enabling two-factor authentication and keeping your password secure.</p>
+              <p style={{ fontSize: '14px', color: '#7F1D1D', fontWeight: '500', marginBottom: '4px', fontFamily: 'Inter, sans-serif' }}>Security Recommendation</p>
+              <p style={{ fontSize: '14px', color: '#991B1B', margin: 0, fontFamily: 'Inter, sans-serif' }}>We recommend enabling two-factor authentication and keeping your password secure.</p>
             </div>
           </div>
         </div>

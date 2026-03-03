@@ -5,6 +5,7 @@ header('Content-Type: application/json');
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
+  "https://cattle.cse.buffalo.edu",
   "http://localhost:5173",
 ];
 

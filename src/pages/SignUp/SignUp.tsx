@@ -61,7 +61,7 @@ export default function SignUp() {
 
     try {
       const dataSend = await fetch(
-        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/SignUp.php",
+        "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/SignUp.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

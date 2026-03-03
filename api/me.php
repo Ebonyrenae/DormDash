@@ -4,6 +4,7 @@ header("Content-Type: application/json");
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
+  "https://cattle.cse.buffalo.edu",
   "http://localhost:5173",
 ];
 
@@ -25,13 +26,15 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 // For localhost dev, you may be on http. Handle that safely:
 $isHttps = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off");
 
+// Replace your current session_set_cookie_params with this:
 session_set_cookie_params([
-  "lifetime" => 0,
-  "path" => "/",
-  "secure" => $isHttps,     // true on aptitude (https), false on localhost(http)
-  "httponly" => true,
-  "samesite" => "None",     // required for cross-site cookies
+  'lifetime' => 0,
+  'path' => '/',
+  'secure' => true,      // FORCE to true for aptitude
+  'httponly' => true,
+  'samesite' => 'None'   // Required for cross-origin / Buffalo setup
 ]);
+
 
 session_start();
 
