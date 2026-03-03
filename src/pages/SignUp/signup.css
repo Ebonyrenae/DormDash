@@ -155,11 +155,10 @@ html, body {
     color: #29AC3D;
     font-size: 14px;
     font-weight: 500;
-    margin-top: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: color 0.2s ease, opacity 0.2s ease;
-    font-family: 'Inter', sans-serif;
+    font-family:'Inter', sans-serif;
+    text-align:left;
+    align-self: center;
+    
 
 }
 
