@@ -17,7 +17,7 @@ const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
   { label: "View Jobs", path: "/all-jobs" },
   { label: "Post a Job", path: "/post-job" },
-  { label: "Profile", path: "/profile/me" },
+  { label: "Profile", path: "/profile" },
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
 ];

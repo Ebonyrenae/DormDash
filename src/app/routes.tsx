@@ -72,8 +72,12 @@ export const router = createBrowserRouter(
       Component: AllJobs,
     },
 
-     {
-     path: "/profile/:userId",
+    {
+      path: "/profile",
+      Component: Profile,
+    },
+    {
+      path: "/profile/:userId",
       Component: Profile,
     },
      {
