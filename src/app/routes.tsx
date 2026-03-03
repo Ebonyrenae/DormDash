@@ -4,11 +4,8 @@ import SignIn from "../pages/SignIn/SignIn";
 import SignUp from "../pages/SignUp/SignUp";
 import Dashboard from "../pages/Dashboard/Dashboard";
 
-import DOB from "../pages/AdditionalInfoPage/DOB";
-
-import AllJobs from "../pages/AllJobs/AllJobs";
-
 import PostJob from "../pages/PostJob/PostJob";
+import AllJobs from "../pages/AllJobs/AllJobs";
 import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
@@ -16,7 +13,8 @@ import Settings from "../pages/Settings/SettingsWithBackend";
 import Profile from "../pages/Profile/Profile";
 import { Add } from "@mui/icons-material";
 import AcademicInfo from "../pages/AdditionalInfoPage/AcademicInfo";
-import Gender from "../pages/AdditionalInfoPage/Gender";
+
+import AboutYourself from "../pages/AdditionalInfoPage/AboutYourself";
 
 export const router = createBrowserRouter(
   [
@@ -28,24 +26,14 @@ export const router = createBrowserRouter(
       path: "/signin",
       Component: SignIn,
     },
-    {
-      path: "/signup",
-      Component: SignUp,
-    },
-    {
-      path: "/dashboard",
-      Component: Dashboard,
-    },
+  
 
     {
       path: "/all-jobs",
       Component: AllJobs,
     },
 
-    {
-      path: "/post-job",
-      Component: PostJob,
-    },
+   
     {
       path: "/my-requests",
       Component: MyRequests,
@@ -64,9 +52,21 @@ export const router = createBrowserRouter(
     },
    
 
+   
     {
-      path: "/dob",
-      Component: DOB ,
+      path: "/academic-info",
+      Component: AcademicInfo, 
+    },
+
+   
+    {
+      path: "/profile/:id?", // The '?' makes the ID optional so your own profile still works!
+      Component: Profile,
+    },
+
+    {
+      path: "/about-yourself",
+      Component: AboutYourself,
     },
 
     {
@@ -75,21 +75,17 @@ export const router = createBrowserRouter(
     },
 
     {
-      path: "/gender",
-      Component: Gender, 
+      path:"/dashboard",
+      Component: Dashboard,
     },
 
     {
-      path: "/profile/:id?", // The '?' makes the ID optional so your own profile still works!
-      Component: Profile,
-    },
-
-    
+      path:"/signup",
+      Component: SignUp,
+    }
 
 
-
-
-
+  
 
 
 

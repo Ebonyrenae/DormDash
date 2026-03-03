@@ -81,7 +81,7 @@ export default function SignUp() {
                 setMessage("Sign up successful!");
                 setIsSuccess(true);
                 localStorage.setItem("user_id", response.user_id);
-                navigate("/dob");
+                navigate("/about-yourself");
             } else {
                 setMessage(response.message || "Sign up failed. Please try again.");
                 setIsSuccess(false);
