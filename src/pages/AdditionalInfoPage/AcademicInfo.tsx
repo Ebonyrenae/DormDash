@@ -31,7 +31,7 @@ const [customMajorText, setCustomMajorText] = useState(savedCustom);
   const years = ["Freshman", "Sophomore", "Junior", "Senior"];
 
   useEffect(() => {
-  fetch("https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/GetMajors.php",)
+  fetch("https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/GetMajors.php",)
     .then(res => res.json())
     .then(data => setMajors(data))
     .catch(err => console.error(err));
@@ -49,7 +49,7 @@ const [customMajorText, setCustomMajorText] = useState(savedCustom);
 
     try {
       const response = await fetch(
-        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/AcademicInfo.php",
+        "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/AcademicInfo.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

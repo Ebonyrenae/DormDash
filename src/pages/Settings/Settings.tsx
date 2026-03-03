@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 
 
 // API Configuration - UPDATE THESE VALUES
-const API_BASE_URL = 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api'; // UPDATE THIS to your actual API path
-const ME_API_URL = 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php';
+const API_BASE_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api'; // UPDATE THIS to your actual API path
+const ME_API_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php';
 
 // SVG Icon Components
 const UserIcon = () => (
