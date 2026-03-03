@@ -309,7 +309,7 @@ function Settings() {
         navigate('/signin'); // React Router navigation, no full-page reload
       }
     } catch (err) {
-      console.error('Failed to fetch current user:', err);
+      //console.error('Failed to fetch current user:', err);
       setIsLoading(false);
       navigate('/signin');
     }finally {
@@ -339,7 +339,7 @@ const fetchUserSettings = async (uid: number) => {
     const payload = root?.settings ?? root?.data ?? root ?? {};
 
     if (root?.success === false) {
-      console.error("Failed to fetch user settings:", root);
+      //console.error("Failed to fetch user settings:", root);
       return;
     }
 
@@ -370,7 +370,7 @@ const fetchUserSettings = async (uid: number) => {
       dataSharing: toBool(ps.dataSharing ?? ps.data_sharing),
     });
   } catch (err) {
-    console.error("Error fetching user settings:", err);
+    //console.error("Error fetching user settings:", err);
   } finally {
     setIsLoadingSettings(false);
   }
@@ -404,8 +404,8 @@ const fetchUserSettings = async (uid: number) => {
   return false;
 }
 }catch (error) {
-      console.error('Error updating email:', error);
-      alert('Failed to update email');
+     // console.error('Error updating email:', error);
+      //alert('Failed to update email');
       return false;
     }
   };
@@ -425,12 +425,10 @@ const fetchUserSettings = async (uid: number) => {
         setPhone(newPhone);
         return true;
       } else {
-        alert('Failed to update phone: ' + result.message);
         return false;
       }
     } catch (error) {
-      console.error('Error updating phone:', error);
-      alert('Failed to update phone number');
+      //console.error('Error updating phone:', error);
       return false;
     }
   };
@@ -450,12 +448,12 @@ const fetchUserSettings = async (uid: number) => {
         setUniversity(newUniversity);
         return true;
       } else {
-        alert('Failed to update university: ' + result.message);
+        //alert('Failed to update university: ' + result.message);
         return false;
       }
     } catch (error) {
-      console.error('Error updating university:', error);
-      alert('Failed to update university');
+      //console.error('Error updating university:', error);
+      //alert('Failed to update university');
       return false;
     }
   };
@@ -475,11 +473,11 @@ const fetchUserSettings = async (uid: number) => {
         setNotificationsEnabled(newSettings);
         return true;
       } else {
-        alert('Failed to update notification settings: ' + result.message);
+       // alert('Failed to update notification settings: ' + result.message);
         return false;
       }
     } catch (error) {
-      console.error('Error updating notification settings:', error);
+    //  console.error('Error updating notification settings:', error);
       return false;
     }
   };
@@ -499,11 +497,11 @@ const fetchUserSettings = async (uid: number) => {
         setPrivacySettings(newSettings);
         return true;
       } else {
-        alert('Failed to update privacy settings: ' + result.message);
+        //alert('Failed to update privacy settings: ' + result.message);
         return false;
       }
     } catch (error) {
-      console.error('Error updating privacy settings:', error);
+     // console.error('Error updating privacy settings:', error);
       return false;
     }
   };
@@ -513,7 +511,7 @@ const fetchUserSettings = async (uid: number) => {
     // Redirect to signin
     navigate('/signin'); // React Router navigation, no full-page reload
   } catch (err) {
-    console.error('Logout failed:', err);
+   // console.error('Logout failed:', err);
     navigate('/signin'); // React Router navigation, no full-page reload
   }
 };
@@ -598,7 +596,7 @@ if (!userId) {
 
   // Main Settings Page
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', display: 'flex', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', display: 'flex', fontFamily: 'Inter, sans-serif' }}>
       {/* Desktop Sidebar */}
      {/* Sidebar Overlay */}
 <div
@@ -1011,7 +1009,7 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
 
     
   if (!tempEmail || !tempEmail.includes('@')) {
-    alert('Please enter a valid email address');
+    //alert('Please enter a valid email address');
     return;
   }
   
@@ -1021,7 +1019,7 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
   
   if (success) {
     setIsEditing(false);
-    alert('Email updated successfully!');
+   // alert('Email updated successfully!');
   }
 };
 
@@ -1029,7 +1027,7 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
   
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '768px', margin: '0 auto', padding: '32px 16px' }}>
         <div style={{ marginBottom: '24px' }}>
           <button
@@ -1192,24 +1190,24 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
 type PhonePageProps = { phone: string; updatePhone: (s: string) => Promise<boolean>; goBack: () => void };
 
 function PhonePage({ phone, updatePhone, goBack }: PhonePageProps) {
+  const navigate = useNavigate();
   const [tempPhone, setTempPhone] = useState(phone);
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSave = async () => {
     if (!tempPhone) {
-      alert('Phone number is required');
       return;
     }
     
     const success = await updatePhone(tempPhone);
     if (success) {
       setIsEditing(false);
-      alert('Phone number updated successfully!');
+      navigate('/settings');
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '768px', margin: '0 auto', padding: '32px 16px' }}>
         <div style={{ marginBottom: '24px' }}>
           <button
@@ -1397,22 +1395,18 @@ function PasswordPage({ goBack, userId }: PasswordPageProps) {
   const handleChangePassword = async () => {
     // Validation
     if (!currentPassword) {
-      alert('Please enter your current password');
       return;
     }
     
     if (!newPassword) {
-      alert('Please enter a new password');
       return;
     }
     
     if (newPassword.length < 8) {
-      alert('New password must be at least 8 characters long');
       return;
     }
     
     if (newPassword !== confirmPassword) {
-      alert('New passwords do not match');
       return;
     }
 
@@ -1431,22 +1425,22 @@ function PasswordPage({ goBack, userId }: PasswordPageProps) {
       const result = await response.json();
       
       if (result.success) {
-        alert('Password updated successfully!');
+       // alert('Password updated successfully!');
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
         goBack();
       } else {
-        alert('Failed to update password: ' + result.message);
+       // alert('Failed to update password: ' + result.message);
       }
     } catch (error) {
-      console.error('Error updating password:', error);
-      alert('Failed to update password');
+     // console.error('Error updating password:', error);
+    //  alert('Failed to update password');
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '768px', margin: '0 auto', padding: '32px 16px' }}>
         <div style={{ marginBottom: '24px' }}>
           <button
@@ -1746,12 +1740,12 @@ function UniversityPage({ university, updateUniversity, goBack }: UniversityPage
   const handleSelect = async (uni: string) => {
     const success = await updateUniversity(uni);
     if (success) {
-      alert(`University changed to ${uni}`);
+     // alert(`University changed to ${uni}`);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '768px', margin: '0 auto', padding: '32px 16px' }}>
         <div style={{ marginBottom: '24px' }}>
           <button
@@ -1926,7 +1920,7 @@ function NotificationsPage({ settings, updateSettings, goBack }: NotificationsPa
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '768px', margin: '0 auto', padding: '32px 16px' }}>
         <div style={{ marginBottom: '24px' }}>
           <button
@@ -2008,7 +2002,7 @@ function PrivacyPage({ settings, updateSettings, goBack, setCurrentPage }: Priva
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '768px', margin: '0 auto', padding: '32px 16px' }}>
         <div style={{ marginBottom: '24px' }}>
           <button
@@ -2463,12 +2457,12 @@ type LogoutPageProps = { goBack: () => void };
 
 function LogoutPage({ goBack }: LogoutPageProps) {
   const handleConfirmLogout = () => {
-    alert('You have been logged out successfully!');
+    //alert('You have been logged out successfully!');
     // Here you would typically:
     // - Clear authentication tokens
     // - Redirect to login page
     // - Clear user data
-    console.log('User logged out');
+   // console.log('User logged out');
     goBack();
   };
 
