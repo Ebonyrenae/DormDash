@@ -12,6 +12,7 @@ import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
 
+
 import { Component } from "react";
 import Settings from "../pages/Settings/SettingsWithBackend";
 import Profile from "../pages/Profile/Profile";
@@ -52,6 +53,11 @@ export const router = createBrowserRouter(
       path: "/signin",
       Component: SignIn,
     },
+
+    {
+      path: "/signup",
+      Component: SignUp,
+    },
   
 
     {
@@ -75,6 +81,11 @@ export const router = createBrowserRouter(
     {
       path: "/settings",
       Component: Settings,
+    },
+
+    {
+      path: "/about-yourself",
+      Component: AboutYourself,
     },
    
 
