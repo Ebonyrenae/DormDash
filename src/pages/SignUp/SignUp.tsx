@@ -1,9 +1,9 @@
-import { useState } from "react";
-import React from "react";
-import "./SignUp.css";
+import React, {useState}from "react";
+import "./signup.css";
 import { FiEdit3 } from "react-icons/fi";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+
 
 export default function SignUp() {
 
@@ -59,20 +59,20 @@ export default function SignUp() {
             setConfirmPasswordError("");
         }
 
-        try {
-            const dataSend = await fetch(
-                "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/SignUp.php",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        email,
-                        password,
-                        confirmPassword,
-                        fullname
-                    })
-                }
-            );
+    try {
+      const dataSend = await fetch(
+        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api_Dob/SignUp.php",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // ⭐ in case we want to set cookies in the future
+          body: JSON.stringify({
+            username: fullname, // ⭐ important
+            email: email,
+            password: password,
+          }),
+        },
+      );
 
             const response = await dataSend.json();
 
@@ -96,14 +96,12 @@ export default function SignUp() {
     return (
         <form onSubmit={handleSubmit}>
             <div className="SignUP-container">
+                {/* Wrap these two so the 'gap' doesn't separate them */}
+            <div className="signup-header-group">
+                <h1 className="signup-heading">DormDash 🏃💨</h1>
+                <p className="text-below">College students helping college students</p>
+                    </div>
 
-                <h2 className="signup-heading">
-                    DORMDASH 🏃‍♂️
-                </h2>
-
-                <p className="text-below">
-                    College students helping college students
-                </p>
 
                 <div className="form-container">
                     <p className="form-textp">Create Account</p>
@@ -130,9 +128,15 @@ export default function SignUp() {
                         type="text"
                         className="form-input"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                            setEmail(e.target.value)
+                            if (allFields) setAllFields("");
+                            if (emailError) setEmailError("");
+                        }}
                         placeholder="you@university.edu"
                     />
+
+                    
 
                     {emailError && (
                         <p className="error-text">{emailError}</p>
@@ -145,7 +149,10 @@ export default function SignUp() {
                             type={showPassword ? "text" : "password"}
                             className="form-inputpassword"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => {
+                                setPassword(e.target.value);
+                                if (passwordError) setPasswordError("");
+                            }}
                             placeholder="Enter your password"
                             onBlur={() => {
                                 if (password.length < 8) {
@@ -175,7 +182,10 @@ export default function SignUp() {
                             type={showConfirmPassword ? "text" : "password"}
                             className="form-inputpassword"
                             value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            onChange={(e) => {
+                                setConfirmPassword(e.target.value);
+                                if (confirmPasswordError) setConfirmPasswordError("");
+                            }}
                             placeholder="Confirm your password"
                             onBlur={() => {
                                 if (confirmPassword !== password) {
@@ -240,7 +250,8 @@ export default function SignUp() {
                         Sign Up
                     </button>
 
-                    <p className="form-loginNav">
+                    <p onClick={() => navigate("/signin")} className="form-loginNav">
+
                         Already have an account? Sign in
                     </p>
                 </div>
