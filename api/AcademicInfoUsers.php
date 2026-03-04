@@ -1,5 +1,19 @@
 <?php
 header('Content-Type: application/json');
+//change made
+$isHttps = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") || 
+           ($_SERVER['SERVER_PORT'] == 443);
+
+session_set_cookie_params([
+  'lifetime' => 0,
+  'path' => '/',
+  'secure'   => $isHttps, 
+  'httponly' => true,
+  'samesite' => $isHttps ? 'None' : 'Lax' 
+]);
+
+// 2. START SESSION: Now it uses the settings above
+session_start();
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
@@ -55,16 +69,18 @@ try {
     $majorName = $row['majorName'];
 
 
-    $sql = "UPDATE account_info 
-            SET college = ?, major_id = ?, year_in_school = ?, custom_major = ?
-            WHERE user_id = ?";
+    // Store academic info on the users row
+    // Note: UI sends `college`; users table uses `university`
+    $sql = "UPDATE users 
+            SET university = ?, major_id = ?, year_in_school = ?
+            WHERE id = ?";
      $stmt = $pdo->prepare($sql);
     $stmt->execute([
         $college,      
         $major_id,     
-        $year_in_school,        
-        $custom_major, 
-        $user_id      ]);
+        $year_in_school,
+        $user_id
+    ]);
    
 
     echo json_encode([

@@ -42,6 +42,13 @@ if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
+// Require .edu (college email), same as sign-up
+$emailLower = strtolower($newEmail);
+if (substr($emailLower, -4) !== '.edu') {
+    echo json_encode(['success' => false, 'message' => 'Please use a college email address (.edu)']);
+    exit;
+}
+
 // Check if the new email already exists (and it's not the current user's email)
 $checkSql = "SELECT * FROM users WHERE email = ? AND id != ?";
 $checkStmt = $pdo->prepare($checkSql);

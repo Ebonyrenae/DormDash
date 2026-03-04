@@ -38,18 +38,33 @@ if (!$id) {
 }
 
 try {
-    // We fetch the profile-specific columns your React code uses
-    $stmt = $pdo->prepare("SELECT id, username, email, university, program, bio, experience, profile_photo FROM users WHERE id = ?");
+    // Username etc. from users; major name from majors via JOIN
+    $stmt = $pdo->prepare("
+        SELECT u.id, u.username, u.email, u.university, u.program, u.bio, u.experience, u.profile_photo, u.major_id,
+               m.majorName
+        FROM users u
+        LEFT JOIN majors m ON u.major_id = m.id
+        WHERE u.id = ?
+    ");
     $stmt->execute([$id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
+        // Use majorName from majors table for display when major_id is set
+        if (!empty($user['majorName'])) {
+            $user['program'] = $user['majorName'];
+        }
+        unset($user['majorName']);
+
         // Handle the 'experience' JSON column so React gets an array, not a string
         if (isset($user['experience']) && is_string($user['experience'])) {
             $user['experience'] = json_decode($user['experience'], true) ?: [];
         } elseif (!isset($user['experience'])) {
             $user['experience'] = [];
         }
+
+        // Front-end expects camelCase profilePhoto
+        $user['profilePhoto'] = $user['profile_photo'] ?? null;
 
         echo json_encode(["success" => true, "user" => $user]);
     } else {

@@ -34,23 +34,21 @@ $receivedData = file_get_contents("php://input");
 $data = json_decode($receivedData, true);
 
 // Extract the data from the request
-$userId = $data['userId'];
-$phoneNumber = $data['phone'];
+$userId = isset($data['userId']) ? (int) $data['userId'] : 0;
+$phoneNumber = isset($data['phone']) ? trim((string) $data['phone']) : '';
+
+if (!$userId) {
+    echo json_encode(['success' => false, 'message' => 'User ID required']);
+    exit;
+}
 
 try {
-    // Update the phone number in the database
-    $sql = "INSERT INTO account_info (id, `phone number`)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE `phone number` = VALUES(`phone number`)";
+    $sql = "UPDATE users SET phone = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$userId, $phoneNumber]);
-    
-    if ($stmt->rowCount() > 0) {
-        echo json_encode(['success' => true, 'message' => 'Phone number updated successfully']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'No changes were made']);
-    } 
-} catch(PDOException $e) {
+    $stmt->execute([$phoneNumber, $userId]);
+
+    echo json_encode(['success' => true, 'message' => 'Phone number updated successfully']);
+} catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 ?>

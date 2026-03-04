@@ -32,24 +32,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
 $receivedData = file_get_contents("php://input");
 $data = json_decode($receivedData, true);
 
-// Extract the data from the request
-$userId = $data['userId'];
-$university = $data['university'];
+$userId = isset($data['userId']) ? (int) $data['userId'] : 0;
+$university = isset($data['university']) ? trim((string) $data['university']) : '';
+
+if (!$userId) {
+    echo json_encode(['success' => false, 'message' => 'User ID required']);
+    exit;
+}
 
 try {
-    // Update the university in the database
-        $sql = "INSERT INTO account_info (id, college)
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE college = VALUES(college)";
+    $sql = "UPDATE users SET university = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$userId, $university]);
-    
-    if ($stmt->rowCount() > 0) {
-        echo json_encode(['success' => true, 'message' => 'University updated successfully']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'No changes were made']);
-    }
-} catch(PDOException $e) {
+    $stmt->execute([$university, $userId]);
+    echo json_encode(['success' => true, 'message' => 'University updated successfully']);
+} catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 ?>

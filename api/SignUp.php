@@ -33,21 +33,12 @@ if (isset($data['username'], $data['email'], $data['password'])) {
     $passwords = password_hash($data['password'], PASSWORD_BCRYPT);
 
     try {
-        // 2. INSERT INTO users table
+        // INSERT INTO users only
         $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
         $stmt->execute([$name, $email, $passwords]);
         $user_id = $pdo->lastInsertId();
 
-        // 3. CREATE HOOK FOR DOB PAGE
-        // This ensures the row exists so DOB.php has something to update later
-        $stmt2 = $pdo->prepare("INSERT INTO account_info (user_id) VALUES (?)");
-        $stmt2->execute([$user_id]);
-
-$fullname = $data['fullname'] ?? null;
-$email    = $data['email'] ?? null;
-$password = $data['password'] ?? null;
-
-        // 5. AUTO-LOGIN (Set session variables exactly like teammates)
+        // AUTO-LOGIN (Set session variables)
     $_SESSION["user_id"] = $user_id;
     $_SESSION["username"] = $name;
     $_SESSION["email"] = $email;

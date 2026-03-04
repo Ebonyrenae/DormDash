@@ -1,6 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import ProtectedRoute from "../components/ProtectedRoute";
 import AcademicInfo from "../pages/AdditionalInfoPage/AcademicInfo";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import SignUp from "../pages/SignUp/SignUp";
@@ -12,7 +11,7 @@ import SignIn from "../pages/SignIn/SignIn";
 import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
-import { Component } from "react";
+import AboutYourself from "../pages/AdditionalInfoPage/AboutYourself";
 import Settings from "../pages/Settings/SettingsWithBackend";
 
 export const router = createBrowserRouter(
@@ -22,79 +21,15 @@ export const router = createBrowserRouter(
     { path: "/signup", Component: SignUp },
     { path: "/signin", Component: SignIn },
 
-    // Protected routes: session checked via api/me.php before rendering
-    {
-      path: "/messages",
-      element: (
-        <ProtectedRoute>
-          <Messages />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/messages/:userId",
-      element: (
-        <ProtectedRoute>
-          <DirectMessage />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/settings",
-      element: (
-        <ProtectedRoute>
-          <Settings />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/academic-info",
-      element: (
-        <ProtectedRoute>
-          <AcademicInfo />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/dashboard",
-      element: (
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/all-jobs",
-      element: (
-        <ProtectedRoute>
-          <AllJobs />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/profile",
-      element: (
-        <ProtectedRoute>
-          <Profile />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/profile/:userId",
-      element: (
-        <ProtectedRoute>
-          <Profile />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/post-job",
-      element: (
-        <ProtectedRoute>
-          <PostJob />
-        </ProtectedRoute>
-      ),
-    },
+    { path: "/messages", Component: Messages },
+    { path: "/messages/:userId", Component: DirectMessage },
+    { path: "/settings", Component: Settings },
+    { path: "/academic-info", Component: AcademicInfo },
+    { path: "/dashboard", Component: Dashboard },
+    { path: "/all-jobs", Component: AllJobs },
+    { path: "/profile", Component: Profile },
+    { path: "/profile/:userId", Component: Profile },
+    { path: "/post-job", Component: PostJob },
     {
       path: "/my-requests",
       Component: MyRequests,

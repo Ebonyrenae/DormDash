@@ -1,5 +1,17 @@
 <?php
 header('Content-Type: application/json');
+$isHttps = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") || 
+           ($_SERVER['SERVER_PORT'] == 443);
+
+session_set_cookie_params([
+  'lifetime' => 0,
+  'path' => '/',
+  'secure'   => $isHttps, 
+  'httponly' => true,
+  'samesite' => $isHttps ? 'None' : 'Lax' 
+]);
+
+session_start();
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
@@ -37,15 +49,10 @@ $dob = $data['dob'] ?? null;
 $gender = $data['gender'] ?? null;
 
 try {
-    // This SQL statement handles both "New User" and "User changing their info"
-    $sql = "INSERT INTO account_info (user_id, `date of birth`, gender) 
-            VALUES (?, ?, ?) 
-            ON DUPLICATE KEY UPDATE 
-            `date of birth` = VALUES(`date of birth`), 
-            gender = VALUES(gender)";
-
+    // Store additional signup info on the users row
+    $sql = "UPDATE users SET date_of_birth = ?, gender = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$user_id, $dob, $gender]);
+    $stmt->execute([$dob, $gender, $user_id]);
 
     echo json_encode(["success" => true, "message" => "Profile updated"]);
 

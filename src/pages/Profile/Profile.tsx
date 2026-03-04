@@ -52,26 +52,24 @@ const MAJORS = [
 function universityMatchesQuery(
   name: string,
   searchTerms: string,
-  filter: string
+  filter: string,
 ): boolean {
   const q = filter.trim().toLowerCase();
   if (!q) return true;
   return (
-    name.toLowerCase().includes(q) ||
-    searchTerms.toLowerCase().includes(q)
+    name.toLowerCase().includes(q) || searchTerms.toLowerCase().includes(q)
   );
 }
 
 function majorMatchesQuery(
   name: string,
   searchTerms: string,
-  filter: string
+  filter: string,
 ): boolean {
   const q = filter.trim().toLowerCase();
   if (!q) return true;
   return (
-    name.toLowerCase().includes(q) ||
-    searchTerms.toLowerCase().includes(q)
+    name.toLowerCase().includes(q) || searchTerms.toLowerCase().includes(q)
   );
 }
 
@@ -122,7 +120,12 @@ const TrashIcon = () => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-    <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path
+      d="M10 11v6M14 11v6"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -132,10 +135,13 @@ type ProfileUser = {
   email?: string;
   university?: string;
   program?: string;
+  major_id?: string | number | null;
   bio?: string;
   experience?: { emoji: string; label: string }[];
   profilePhoto?: string;
 };
+
+type MajorOption = { id: string; field: string };
 
 const PLACEHOLDER_REVIEWS = [
   { stars: 5, text: "Great to work with!", author: "@user1" },
@@ -154,48 +160,60 @@ const Profile = () => {
   const [editUsername, setEditUsername] = useState("");
   const [editUniversity, setEditUniversity] = useState("");
   const [editProgram, setEditProgram] = useState("");
+  const [editMajorId, setEditMajorId] = useState<string>("");
   const [editBio, setEditBio] = useState("");
-  const [editExperience, setEditExperience] = useState<{ emoji: string; label: string }[]>([]);
+  const [editExperience, setEditExperience] = useState<
+    { emoji: string; label: string }[]
+  >([]);
 
+  const [majors, setMajors] = useState<MajorOption[]>([]);
   const [universityFilter, setUniversityFilter] = useState("");
   const [universityDropdownOpen, setUniversityDropdownOpen] = useState(false);
   const [programFilter, setProgramFilter] = useState("");
   const [programDropdownOpen, setProgramDropdownOpen] = useState(false);
   const universityDropdownRef = useRef<HTMLDivElement>(null);
   const programDropdownRef = useRef<HTMLDivElement>(null);
+  const usernameInputRef = useRef<HTMLInputElement>(null);
 
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
+  const [pendingPhotoPreview, setPendingPhotoPreview] = useState<string | null>(
+    null,
+  );
+  const [pendingPhotoRemove, setPendingPhotoRemove] = useState(false);
 
   const isMe = !userId || userId === "me";
 
   const fetchProfile = async () => {
     try {
-      // 1. Determine which endpoint to hit
-      // If we are looking at our own profile, use me.php
-      // If we are looking at someone else (e.g., /profile/12), use get_user.php
-      const endpoint = isMe 
-        ? `${API_BASE}/me3.php` 
-        : `${API_BASE}/get_user.php?id=${userId}`;
+      // Use get_user.php for both own and others' profiles (previous working behavior)
+      const profileId = isMe
+        ? localStorage.getItem("userId") || localStorage.getItem("user_id")
+        : userId;
+      const endpoint = `${API_BASE}/get_user.php?id=${profileId}`;
 
       const res = await fetch(endpoint, { credentials: "include" });
       const data = await res.json();
 
-      // 2. Handle the response
-      // me.php uses { loggedIn: true, user: ... }
-      // get_user.php uses { success: true, user: ... }
       if (data.user) {
         setProfile(data.user);
-        
-        // If we are editing, we should sync the edit state with the new data
-        if (isMe) {
+
+        // Only sync edit state when not in edit mode so we don't overwrite user's unsaved typing
+        if (isMe && !editMode) {
           setEditUsername(data.user.username || "");
           setEditUniversity(data.user.university || "");
           setEditProgram(data.user.program || "");
+          setEditMajorId(
+            data.user.major_id != null ? String(data.user.major_id) : "",
+          );
           setEditBio(data.user.bio || "");
           setEditExperience(data.user.experience || []);
         }
       } else {
-        setProfile({ username: "User not found", isGuest: true } as ProfileUser);
+        setProfile({
+          username: "User not found",
+          isGuest: true,
+        } as ProfileUser);
       }
     } catch (err) {
       console.error("Profile fetch failed", err);
@@ -207,7 +225,12 @@ const Profile = () => {
     fetchProfile();
   }, [userId, isMe]); // Refetch when the URL ID changes
 
-  
+  useEffect(() => {
+    fetch(`${API_BASE}/GetMajors.php`)
+      .then((res) => res.json())
+      .then((data: MajorOption[]) => setMajors(Array.isArray(data) ? data : []))
+      .catch(() => setMajors([]));
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -240,36 +263,81 @@ const Profile = () => {
     setEditUsername(u.username ?? "");
     setEditUniversity(u.university ?? def.university);
     setEditProgram(u.program ?? def.program);
+    setEditMajorId(u.major_id != null ? String(u.major_id) : "");
     setEditBio(u.bio ?? def.bio);
     setEditExperience(
       Array.isArray(u.experience) && u.experience.length > 0
-        ? u.experience.map((e) => ({ emoji: e.emoji ?? "", label: e.label ?? "" }))
-        : [{ emoji: "✓", label: "" }]
+        ? u.experience.map((e) => ({
+            emoji: e.emoji ?? "",
+            label: e.label ?? "",
+          }))
+        : [{ emoji: "✓", label: "" }],
     );
     setSaveError(null);
+    setPendingPhotoFile(null);
+    setPendingPhotoPreview(null);
+    setPendingPhotoRemove(false);
     setEditMode(true);
   };
 
   const cancelEdit = () => {
+    if (pendingPhotoPreview) URL.revokeObjectURL(pendingPhotoPreview);
+    setPendingPhotoFile(null);
+    setPendingPhotoPreview(null);
+    setPendingPhotoRemove(false);
     setEditMode(false);
     setSaveError(null);
   };
 
   const handleSave = async () => {
-    const username = editUsername.trim();
+    // Read from input DOM at click time so we never send stale state
+    const username = (usernameInputRef.current?.value ?? editUsername).trim();
     if (!username) {
       setSaveError("Username is required.");
       return;
     }
     setSaveError(null);
     try {
+      // Apply photo change only on Save: remove or upload
+      if (pendingPhotoRemove) {
+        const res = await fetch(`${API_BASE}/remove_profile_photo.php`, {
+          method: "POST",
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (!data.success) {
+          setSaveError(data.message || "Failed to remove photo.");
+          return;
+        }
+        setProfile((p) => (p ? { ...p, profilePhoto: undefined } : p));
+      } else if (pendingPhotoFile) {
+        const fd = new FormData();
+        fd.append("photo", pendingPhotoFile);
+        const res = await fetch(`${API_BASE}/upload_profile_photo.php`, {
+          method: "POST",
+          credentials: "include",
+          body: fd,
+        });
+        const data = await res.json();
+        if (!data.success || !data.profilePhoto) {
+          setSaveError(data.message || "Photo upload failed.");
+          return;
+        }
+        setProfile((p) => (p ? { ...p, profilePhoto: data.profilePhoto } : p));
+      }
+
+      if (pendingPhotoPreview) URL.revokeObjectURL(pendingPhotoPreview);
+      setPendingPhotoFile(null);
+      setPendingPhotoPreview(null);
+      setPendingPhotoRemove(false);
+
       const payload = {
         username,
         university: editUniversity.trim(),
-        program: editProgram.trim(),
+        major_id: editMajorId || null,
         bio: editBio.trim(),
         experience: editExperience.filter(
-          (e) => e.emoji.trim() !== "" || e.label.trim() !== ""
+          (e) => e.emoji.trim() !== "" || e.label.trim() !== "",
         ),
       };
       const res = await fetch(`${API_BASE}/update_profile.php`, {
@@ -285,7 +353,7 @@ const Profile = () => {
         await fetchProfile();
         if (data.profileColumnsMissing) {
           alert(
-            "Profile saved, but some fields could not be saved. Ensure api/schema_profile.sql has been run on your database."
+            "Profile saved, but some fields could not be saved. Ensure api/schema_profile.sql has been run on your database.",
           );
         }
       } else {
@@ -299,7 +367,7 @@ const Profile = () => {
   const updateExperience = (
     index: number,
     field: "emoji" | "label",
-    value: string
+    value: string,
   ) => {
     const next = [...editExperience];
     if (!next[index]) return;
@@ -315,42 +383,22 @@ const Profile = () => {
     setEditExperience(editExperience.filter((_, i) => i !== index));
   };
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const fd = new FormData();
-    fd.append("photo", file);
-    try {
-      const res = await fetch(`${API_BASE}/upload_profile_photo.php`, {
-        method: "POST",
-        credentials: "include",
-        body: fd,
-      });
-      const data = await res.json();
-      if (data.success && data.profilePhoto) {
-        setProfile((p) => (p ? { ...p, profilePhoto: data.profilePhoto } : p));
-        fetchProfile();
-      }
-    } catch (err) {
-      console.error("Upload failed", err);
-    }
+    if (pendingPhotoPreview) URL.revokeObjectURL(pendingPhotoPreview);
+    const preview = URL.createObjectURL(file);
+    setPendingPhotoPreview(preview);
+    setPendingPhotoFile(file);
+    setPendingPhotoRemove(false);
     e.target.value = "";
   };
 
-  const handleRemovePhoto = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/remove_profile_photo.php`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) {
-        setProfile((p) => (p ? { ...p, profilePhoto: undefined } : p));
-        fetchProfile();
-      }
-    } catch (err) {
-      console.error("Remove photo failed", err);
-    }
+  const handleRemovePhoto = () => {
+    if (pendingPhotoPreview) URL.revokeObjectURL(pendingPhotoPreview);
+    setPendingPhotoPreview(null);
+    setPendingPhotoFile(null);
+    setPendingPhotoRemove(true);
   };
 
   const displayProfile = {
@@ -371,6 +419,12 @@ const Profile = () => {
   const avatarUrl =
     profile?.profilePhoto &&
     `${API_BASE}/get_profile_photo.php?f=${encodeURIComponent(profile.profilePhoto)}`;
+  const displayAvatarUrl =
+    editMode && pendingPhotoPreview
+      ? pendingPhotoPreview
+      : editMode && pendingPhotoRemove
+        ? undefined
+        : avatarUrl;
 
   const renderStars = (count: number) =>
     "⭐".repeat(Math.min(5, Math.round(count)));
@@ -423,8 +477,12 @@ const Profile = () => {
 
         <div className="profile-avatar-wrap">
           <div className="profile-avatar">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="profile-avatar-img" />
+            {displayAvatarUrl ? (
+              <img
+                src={displayAvatarUrl}
+                alt=""
+                className="profile-avatar-img"
+              />
             ) : (
               <AvatarIcon />
             )}
@@ -519,6 +577,7 @@ const Profile = () => {
           <>
             <div className="profile-edit-form">
               <input
+                ref={usernameInputRef}
                 type="text"
                 className="profile-edit-input profile-edit-username"
                 value={editUsername}
@@ -531,7 +590,9 @@ const Profile = () => {
                 <input
                   type="text"
                   className="profile-edit-input profile-edit-dropdown-input"
-                  value={universityDropdownOpen ? universityFilter : editUniversity}
+                  value={
+                    universityDropdownOpen ? universityFilter : editUniversity
+                  }
                   onFocus={() => {
                     setUniversityDropdownOpen(true);
                     setUniversityFilter(editUniversity);
@@ -542,7 +603,11 @@ const Profile = () => {
                 {universityDropdownOpen && (
                   <div className="profile-dropdown-list">
                     {UNIVERSITIES.filter((u) =>
-                      universityMatchesQuery(u.name, u.searchTerms, universityFilter)
+                      universityMatchesQuery(
+                        u.name,
+                        u.searchTerms,
+                        universityFilter,
+                      ),
                     ).map((u) => (
                       <button
                         key={u.name}
@@ -566,32 +631,49 @@ const Profile = () => {
                 <input
                   type="text"
                   className="profile-edit-input profile-edit-dropdown-input"
-                  value={programDropdownOpen ? programFilter : editProgram}
+                  value={
+                    programDropdownOpen
+                      ? programFilter
+                      : editMajorId
+                        ? (majors.find((m) => String(m.id) === editMajorId)
+                            ?.field ?? editProgram)
+                        : editProgram
+                  }
                   onFocus={() => {
                     setProgramDropdownOpen(true);
-                    setProgramFilter(editProgram);
+                    setProgramFilter(
+                      editMajorId
+                        ? (majors.find((m) => String(m.id) === editMajorId)
+                            ?.field ?? editProgram)
+                        : editProgram,
+                    );
                   }}
                   onChange={(e) => setProgramFilter(e.target.value)}
-                  placeholder="Search or type program"
+                  placeholder="Search or select major"
                 />
                 {programDropdownOpen && (
                   <div className="profile-dropdown-list">
-                    {MAJORS.filter((m) =>
-                      majorMatchesQuery(m.name, m.searchTerms, programFilter)
-                    ).map((m) => (
-                      <button
-                        key={m.name}
-                        type="button"
-                        className="profile-dropdown-option"
-                        onClick={() => {
-                          setEditProgram(m.name);
-                          setProgramFilter("");
-                          setProgramDropdownOpen(false);
-                        }}
-                      >
-                        {m.name}
-                      </button>
-                    ))}
+                    {majors
+                      .filter((m) =>
+                        m.field
+                          .toLowerCase()
+                          .includes(programFilter.trim().toLowerCase()),
+                      )
+                      .map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          className="profile-dropdown-option"
+                          onClick={() => {
+                            setEditMajorId(String(m.id));
+                            setEditProgram(m.field);
+                            setProgramFilter("");
+                            setProgramDropdownOpen(false);
+                          }}
+                        >
+                          {m.field}
+                        </button>
+                      ))}
                   </div>
                 )}
               </div>
@@ -665,16 +747,17 @@ const Profile = () => {
                   >
                     Change photo
                   </button>
-                  {profile.profilePhoto && (
-                    <button
-                      type="button"
-                      className="profile-btn-remove-photo"
-                      onClick={handleRemovePhoto}
-                      aria-label="Remove photo"
-                    >
-                      <TrashIcon />
-                    </button>
-                  )}
+                  {(profile.profilePhoto || pendingPhotoFile) &&
+                    !pendingPhotoRemove && (
+                      <button
+                        type="button"
+                        className="profile-btn-remove-photo"
+                        onClick={handleRemovePhoto}
+                        aria-label="Remove photo"
+                      >
+                        <TrashIcon />
+                      </button>
+                    )}
                 </div>
               </div>
 

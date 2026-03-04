@@ -40,7 +40,7 @@ export default function AcademicInfo() {
 
     try {
       const response = await fetch(
-        "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/AcademicInfo.php",
+        "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/AcademicInfoUsers.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
