@@ -43,6 +43,9 @@ if (isset($data['username'], $data['email'], $data['password'])) {
         $stmt2 = $pdo->prepare("INSERT INTO account_info (user_id) VALUES (?)");
         $stmt2->execute([$user_id]);
 
+$fullname = $data['fullname'] ?? null;
+$email    = $data['email'] ?? null;
+$password = $data['password'] ?? null;
 
         // 5. AUTO-LOGIN (Set session variables exactly like teammates)
     $_SESSION["user_id"] = $user_id;

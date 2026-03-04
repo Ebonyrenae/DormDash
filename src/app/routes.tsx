@@ -12,6 +12,7 @@ import SignIn from "../pages/SignIn/SignIn";
 import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
+import { Component } from "react";
 import Settings from "../pages/Settings/SettingsWithBackend";
 
 export const router = createBrowserRouter(
@@ -96,21 +97,25 @@ export const router = createBrowserRouter(
     },
     {
       path: "/my-requests",
-      element: (
-        <ProtectedRoute>
-          <MyRequests />
-        </ProtectedRoute>
-      ),
+      Component: MyRequests,
     },
+
+    {
+      path: "/about-yourself",
+      Component: AboutYourself,
+    },
+
   ],
-  
 
   {
-    // The (import.meta as any) fix bypasses the TS error
-    basename: (import.meta as any).env?.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
-  }
+    basename: import.meta.env.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
+  },
 );
 
 
 
+
+
+    
+ 
 

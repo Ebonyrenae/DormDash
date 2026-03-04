@@ -170,12 +170,32 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch(`${API_BASE}/me.php`, { credentials: "include" });
+      // 1. Determine which endpoint to hit
+      // If we are looking at our own profile, use me.php
+      // If we are looking at someone else (e.g., /profile/12), use get_user.php
+      const endpoint = isMe 
+        ? `${API_BASE}/me3.php` 
+        : `${API_BASE}/get_user.php?id=${userId}`;
+
+      const res = await fetch(endpoint, { credentials: "include" });
       const data = await res.json();
-      if (data.loggedIn && data.user) {
+
+      // 2. Handle the response
+      // me.php uses { loggedIn: true, user: ... }
+      // get_user.php uses { success: true, user: ... }
+      if (data.user) {
         setProfile(data.user);
+        
+        // If we are editing, we should sync the edit state with the new data
+        if (isMe) {
+          setEditUsername(data.user.username || "");
+          setEditUniversity(data.user.university || "");
+          setEditProgram(data.user.program || "");
+          setEditBio(data.user.bio || "");
+          setEditExperience(data.user.experience || []);
+        }
       } else {
-        setProfile({ username: "Guest", isGuest: true } as ProfileUser);
+        setProfile({ username: "User not found", isGuest: true } as ProfileUser);
       }
     } catch (err) {
       console.error("Profile fetch failed", err);
@@ -184,12 +204,10 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    if (isMe) {
-      fetchProfile();
-    } else {
-      setProfile({ username: "Unknown User", id: Number(userId) } as ProfileUser);
-    }
-  }, [userId, isMe]);
+    fetchProfile();
+  }, [userId, isMe]); // Refetch when the URL ID changes
+
+  
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

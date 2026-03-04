@@ -1,6 +1,10 @@
 <?php
 // me.php
 header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: https://www-student.cse.buffalo.edu");
+header("Access-Control-Allow-Credentials: true");
+header("Content-Type: application/json");
+session_start();
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
@@ -22,19 +26,20 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
   exit();
 }
 
-// IMPORTANT: secure cookies only work on HTTPS.
-// For localhost dev, you may be on http. Handle that safely:
-$isHttps = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off");
+// 1. Detect HTTPS environment
+$isHttps = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") || 
+           ($_SERVER['SERVER_PORT'] == 443);
 
-// Replace your current session_set_cookie_params with this:
+// 2. Adaptive Cookie Params
+// On Localhost (HTTP), 'secure' must be false and 'samesite' should be 'Lax'
+// On Buffalo (HTTPS), 'secure' must be true and 'samesite' must be 'None'
 session_set_cookie_params([
   'lifetime' => 0,
   'path' => '/',
-  'secure' => true,      // FORCE to true for aptitude
+  'secure'   => $isHttps, 
   'httponly' => true,
-  'samesite' => 'None'   // Required for cross-origin / Buffalo setup
+  'samesite' => $isHttps ? 'None' : 'Lax' 
 ]);
-
 
 session_start();
 
@@ -50,25 +55,25 @@ $user = [
   "email" => $_SESSION["email"] ?? null,
 ];
 
-// Optional profile columns (only if DB has them via schema_profile.sql / schema_profile_photo.sql)
 try {
   require_once __DIR__ . "/config.php";
   $stmt = $pdo->prepare("SELECT university, program, bio, experience, profile_photo FROM users WHERE id = ?");
   $stmt->execute([$userId]);
   $row = $stmt->fetch(PDO::FETCH_ASSOC);
   if ($row) {
-    if (array_key_exists("university", $row)) $user["university"] = $row["university"] ?? "";
-    if (array_key_exists("program", $row)) $user["program"] = $row["program"] ?? "";
-    if (array_key_exists("bio", $row)) $user["bio"] = $row["bio"] ?? "";
-    if (array_key_exists("experience", $row)) {
+    if (isset($row["university"])) $user["university"] = $row["university"];
+    if (isset($row["program"])) $user["program"] = $row["program"];
+    if (isset($row["bio"])) $user["bio"] = $row["bio"];
+    if (isset($row["experience"])) {
       $user["experience"] = $row["experience"] ? json_decode($row["experience"], true) : [];
       if (!is_array($user["experience"])) $user["experience"] = [];
     }
-    if (array_key_exists("profile_photo", $row) && $row["profile_photo"] !== null && $row["profile_photo"] !== "")
+    if (!empty($row["profile_photo"])) {
       $user["profilePhoto"] = $row["profile_photo"];
+    }
   }
 } catch (Exception $e) {
-  // Profile columns may not exist yet; keep only id, username, email
+  // Gracefully degrade if columns don't exist
 }
 
 echo json_encode(["loggedIn" => true, "user" => $user]);

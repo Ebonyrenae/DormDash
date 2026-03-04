@@ -1,15 +1,29 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Content-Type: application/json");
+header('Content-Type: application/json');
 
+$allowed_origins = [
+  "https://aptitude.cse.buffalo.edu",
+  "https://cattle.cse.buffalo.edu",
+
+  "http://localhost:5173",
+];
+
+$origin = $_SERVER["HTTP_ORIGIN"] ?? "";
+if (in_array($origin, $allowed_origins, true)) {
+  header("Access-Control-Allow-Origin: $origin");
+  header("Access-Control-Allow-Credentials: true");
+  header("Vary: Origin");
+}
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+  http_response_code(200);
+  echo json_encode(["success" => true]);
+  exit();
+}
 
 require_once 'config.php';
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
 // Get raw data from the frontend and decode it from JSON format into a PHP associative array. 
 // The file_get_contents("php://input") function reads the raw data from the request body, and json_decode() converts the 
 // JSON string into a PHP array for easier access to the individual fields.

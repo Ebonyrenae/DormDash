@@ -1,35 +1,27 @@
-import react, { useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
-import "./AcademicInfo.css";
-import schoolData from "../../schools.json";
 import SearchIcon from '@mui/icons-material/Search';
 import InputAdornment from '@mui/material/InputAdornment';
+import schoolData from "../../schools.json";
+import "./AcademicInfo.css";
 
 export default function AcademicInfo() {
   const navigate = useNavigate();
-
   const userId = localStorage.getItem("user_id");
-  const savedMajor = localStorage.getItem("major_id") || "";
-const savedYear = localStorage.getItem("year_in_school") || "";
-const savedCollege = localStorage.getItem("college") || "";
-const savedCustom = localStorage.getItem("custom_major") || "";
- 
 
-  const [major_id, setMajorid] = useState<string | null>(savedMajor);
-  const [year, setYear] = useState(savedYear);
-  const [college, setCollege] = useState(savedCollege);
+  // State initialized from localStorage
+  const [college, setCollege] = useState(localStorage.getItem("college") || "");
+  const [majorId, setMajorId] = useState<string | null>(localStorage.getItem("major_id") || "");
+  const [year, setYear] = useState(localStorage.getItem("year_in_school") || "");
+  const [customMajorText, setCustomMajorText] = useState(localStorage.getItem("custom_major") || "");
   const [majors, setMajors] = useState<{ id: string; field: string }[]>([]);
-  const [selectedMajorId, setSelectedMajorId] = useState("");
-const [customMajorText, setCustomMajorText] = useState(savedCustom);
-
   const [message, setMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
-  
+
   const years = ["Freshman", "Sophomore", "Junior", "Senior"];
 
+  // Fetch majors on mount
   useEffect(() => {
   fetch("https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/GetMajors.php",)
     .then(res => res.json())
@@ -41,8 +33,7 @@ const [customMajorText, setCustomMajorText] = useState(savedCustom);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ✅ Validation
-    if (!major_id || !year || !college) {
+    if (!majorId || !year || !college) {
       alert("Please fill out all academic fields.");
       return;
     }
@@ -54,11 +45,11 @@ const [customMajorText, setCustomMajorText] = useState(savedCustom);
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            major_id: major_id,   
-            year_in_school: year,   
+            major_id: majorId,
+            year_in_school: year,
             college: college,
             user_id: userId,
-            custom_major: customMajorText ? customMajorText : null, // Send custom major if provided
+            custom_major: customMajorText || null,
           }),
         }
       );
@@ -66,26 +57,12 @@ const [customMajorText, setCustomMajorText] = useState(savedCustom);
       const data = await response.json();
 
       if (data.success) {
-        
-        setMessage("Saved successfully!");
-        setIsSuccess(true);
-        console.log("message:", message);
-        localStorage.removeItem("major_id");
-        localStorage.removeItem("year_in_school");
-        localStorage.removeItem("college");
-        localStorage.removeItem("custom_major");
-
-        localStorage.removeItem("dob");
-        localStorage.removeItem("month");
-        localStorage.removeItem("day");
-        localStorage.removeItem("year");
-        localStorage.removeItem("selectedGender");
-    
-        // ✅ Navigate AFTER success
+        // Only clear storage once the final submission is successful
+        const keysToRemove = ["major_id", "year_in_school", "college", "custom_major", "dob", "month", "day", "year", "selectedGender"];
+        keysToRemove.forEach(key => localStorage.removeItem(key));
         navigate("/dashboard");
       } else {
         setMessage(data.message || "Failed to save.");
-        setIsSuccess(false);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -93,185 +70,99 @@ const [customMajorText, setCustomMajorText] = useState(savedCustom);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="Outer-container">
+    <div className="onboarding-bg">
+      <form className="onboarding-card academic-card" onSubmit={handleSubmit}>
+        <h2 className="onboarding-title">Academic Information</h2>
+        <p className="onboarding-subtitle">Find jobs and DormDashers on your campus</p>
 
-        <h2 className="Academic-heading">Academic Information</h2>
-
-        <p className="text-below">
-          Find jobs and DormDashers on your campus
-        </p>
-
-        {/* College */}
-
-       <div className="center-section">
- 
-  <Autocomplete
-    options={schoolData}
-    getOptionLabel={(option) => option.name}
-    value={schoolData.find((s) => s.name === college) || null}
-    onChange={(event, newValue) => {
-      const newCollege = newValue ? newValue.name : "";
-      setCollege(newCollege);
-      localStorage.setItem("college", newCollege);
-    }}
-    
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        className='dropdown-wrapper2'
-        placeholder="Search for your school..."
-        variant="outlined"
-        fullWidth
-        InputProps={{
-          ...params.InputProps,
-          startAdornment: (
-            <InputAdornment position="end">
-              <SearchIcon style={{ color: '#666' }} />
-            </InputAdornment>
-          ),
-        }}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '4px', // Makes it look like a search bar capsule
-            paddingLeft: '15px',
-            backgroundColor: '#ffffff',
-            '& fieldset': { border: '1px solid #000000' },
-            '&:hover fieldset': { borderColor: '#000000' },
-            
-          }
-        }}
-      />
-    )}
-  />
-</div>
-       
-
-        {/* Major */}
-        <div className="center-section">
-            <p className="section-label">Major</p>
-            <Autocomplete
-            options={majors || []}
-            getOptionLabel={(option) => option.field || ""}
-             value={majors.find((m) => m.id === major_id) || null}
-             onChange={(event, newValue) => {const newId = newValue ? newValue.id : "";
-              setMajorid(newId);
-              localStorage.setItem("major_id", newId);
-
-              
-              // Clear text if they change from "Other" to a predefined major
-              if (newId !== "22") setCustomMajorText("");
-              localStorage.setItem("custom_major", ""); 
-             }}
-             renderInput={(params) => (         
-             <TextField
-             {...params}
-             className="dropdown-wrapper"  // 👈 reuse your CSS class
-             placeholder="Select Major"
-             variant="outlined"
-             fullWidth/>)}/>
-
-              {Number(major_id) === 22 && (
-    <div className="custom-major-input">
-      <TextField
-        label="Please type your major"
-        placeholder="e.g. Music"
-       sx={{
-    // 1. Style the label when it's just sitting there (Normal)
-    '& .MuiInputLabel-root': {
-      color: '#010101', 
-      fontSize: '10px',
-      textAlign: 'center',
-      transformOrigin: 'center',
-    },
-    // 2. Style the label when it's "shrunk" (Floating at the top)
-    '& .MuiInputLabel-root.Mui-focused': {
-      color: '#1f2022', // Changes color when you click in
-      fontWeight: 'bold',
-    },
-    // 3. Style the label specifically when it's shrunk (even if not focused)
-    '& .MuiInputLabel-shrink': {
-      transform: 'translate(14px, -6px) scale(0.75)', // Default MUI position
-      letterSpacing: '1px',
-    }
-  }}
-        value={customMajorText}
-        onChange={(e) => {
-          setCustomMajorText(e.target.value);
-          localStorage.setItem("custom_major", e.target.value);
-        }}
-        fullWidth
-        style={{ marginTop: '15px' }} // Adds a little breathing room
-        variant="outlined"
-      />
-    </div>)}
-
-            
-</div>
-
-        {/* Year */}
-        {/* Year */}
-<div className="center-section">
-  <p className="section-label">Year</p>
-  <Autocomplete
-    options={years} // Using your ["Freshman", "Sophomore", ...] array
-    value={year || null}
-    onChange={(event, newValue) => {
-      setYear(newValue || "");
-      localStorage.setItem("year_in_school", newValue || "");
-    }}
-    // This makes it act like a "Select" but with the Searcher style
-    disableClearable={false} 
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        className='dropdown-wrapper'  // Reuse your existing CSS for consistent styling 
-        placeholder="Select your year"
-        variant="outlined"
-        fullWidth
-        sx={{
-    // 1. Style the label when it's just sitting there (Normal)
-    '& .MuiInputLabel-root': {
-      color: '#010101', 
-      fontSize: '10px',
-      textAlign: 'center',
-      transformOrigin: 'center',
-    },
-    // 2. Style the label when it's "shrunk" (Floating at the top)
-    '& .MuiInputLabel-root.Mui-focused': {
-      color: '#1f2022', // Changes color when you click in
-      fontWeight: 'bold',
-    },
-    
-  }}
-        
-      />
-    )}
-  />
-</div>
-
-        {/* Buttons */}
-        <div className="bottom-section">
-          <div className="buttons-row">
-            <p
-              className="previous-text"
-              onClick={() => navigate("/gender")}
-            >
-              Previous
-            </p>
-
-            <button className="button-n" type="submit">
-              Get To Dashing
-            </button>
-          </div>
-
-          
+        {/* College Search */}
+        <div className="input-group">
+          <label className="input-label">Where do you go to school?</label>
+          <Autocomplete
+            options={schoolData}
+            getOptionLabel={(option) => option.name}
+            value={schoolData.find((s) => s.name === college) || null}
+            onChange={(_, newValue) => {
+              const val = newValue ? newValue.name : "";
+              setCollege(val);
+              localStorage.setItem("college", val); // SAVE
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Search for your school..."
+                variant="outlined"
+                InputProps={{
+                  ...params.InputProps,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: '#4CAF50', mr: 1 }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
+          />
         </div>
 
-        {message && <p>{message}</p>}
+        {/* Major Selection */}
+        <div className="input-group">
+          <label className="input-label">What is your major?</label>
+          <Autocomplete
+            options={majors || []}
+            getOptionLabel={(option) => option.field || ""}
+            value={majors.find((m) => m.id === majorId) || null}
+            onChange={(_, newValue) => {
+              const val = newValue ? newValue.id : "";
+              setMajorId(val);
+              localStorage.setItem("major_id", val); // SAVE
+              if (val !== "22") {
+                setCustomMajorText("");
+                localStorage.removeItem("custom_major");
+              }
+            }}
+            renderInput={(params) => <TextField {...params} placeholder="Select Major" variant="outlined" />}
+          />
+          {majorId === "22" && (
+            <TextField
+              sx={{ mt: 2 }}
+              label="Type your major"
+              value={customMajorText}
+              onChange={(e) => {
+                setCustomMajorText(e.target.value);
+                localStorage.setItem("custom_major", e.target.value); // SAVE
+              }}
+              fullWidth
+              variant="outlined"
+            />
+          )}
+        </div>
 
-      </div>
-    </form>
+        {/* Year Selection */}
+        <div className="input-group">
+          <label className="input-label">Current Year</label>
+          <Autocomplete
+            options={years}
+            value={year || null}
+            onChange={(_, newValue) => {
+              const val = newValue || "";
+              setYear(val);
+              localStorage.setItem("year_in_school", val); // SAVE
+            }}
+            renderInput={(params) => <TextField {...params} placeholder="Select your year" variant="outlined" />}
+          />
+        </div>
+
+        <div className="onboarding-footer">
+          <button type="submit" className="next-btn">Get To Dashing</button>
+          <div className="sub-nav-links">
+            <p className="back-link" onClick={() => navigate("/about-yourself")}>Previous</p>
+            <p className="skip-link" onClick={() => navigate("/dashboard")}>Skip for now</p>
+          </div>
+        </div>
+        
+        {message && <p className="error-msg">{message}</p>}
+      </form>
+    </div>
   );
 }
-

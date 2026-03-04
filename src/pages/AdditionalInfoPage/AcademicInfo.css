@@ -1,212 +1,111 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-.Outer-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #f2ffde;
-  font-family: "Inter", sans-serif;
-}
-
-/* Heading */
-.Academic-heading {
-  margin-top: 80px;
-  font-size: 3rem;
-  color: #29AC3D;
-}
-
-/* Subtitle */
-.text-below {
-  font-size: 18px;
-  color: #818b9a;
-  margin-bottom: 40px;
-}
-
-/* Search */
-.search-container {
-  margin-bottom: 50px;
-}
-
-.search-bar {
-  width: 900px;
-  padding: 12px;
-  border: 1px solid black;
-  border-radius: 6px;
-  background-color: white;
-  font-size: 16px;
-}
-
-.search-bar::placeholder {
-  color: #555;
-}
-
-/* Major + Year */
-.center-section {
-  text-align: center;
-  margin-bottom: 0px;
-}
-
-.section-label {
-  font-size: 18px;
-  font-weight: 500;
-  margin-top: 15px;
-  color: #29AC3D;
-}
-
-.dropdown {
-  width: 220px;
-  height: 40px;
-  border: 1px solid #0a0a0a;
-  border-radius: 6px;
-  padding: 5px;
-  font-size: 15px;
-  background: white;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  margin-top: 5px;
-  color: #000000;
-  appearance: none;
-}
-.dropdown2 {
-  width: 220px;
-  height: 40px;
-  border: 1px solid #0a0a0a;
-  border-radius: 6px;
-  padding: 5px;
-  font-size: 15px;
-  background-color: white;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  margin-top: 5px;
-  color: #000000;
-  appearance: none;
-}
-
-/* Bottom Buttons */
-.bottom-section {
-  width: 100%;
-  margin-top: 0px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.buttons-row {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 100px;
-  align-items: center;
-}
-
-/* Previous */
-.previous-text {
-  font-size: 16px;
-  color: #757575;
-  cursor: pointer;
-}
-
-.previous-text:hover {
-  text-decoration: underline;
-}
-
-/* Button */
-.button-n {
-  background-color: #29AC3D;
-  border: none;
-  border-radius: 6px;
-  width: 120px;
-  height: 45px;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-}
-
-.button-n:hover {
-  background-color: #1e8f31;
-}
-
-/* Skip */
-.skip-text {
-  margin-top: 15px;
-  font-size: 16px;
-  color: #757575;
-  cursor: pointer;
-}
-
-.skip-text:hover {
-  text-decoration: underline;
-}
-
-
-.dropdown-wrapper2 {
-  width: 250px;
-  margin-top: 5px;
-  
-  
-}
-.dropdown-wrapper2 .MuiOutlinedInput-root {
-  height: 40px;
-  border-radius: 6px;
-  background: white;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  font-size: 15px;
-  width: 1000px;
-  margin-bottom: 50px;
-  
-}
-
-.dropdown-wrapper2 .MuiOutlinedInput-notchedOutline {
-  border: 1px solid #000000;
-}
-
-
-.dropdown-wrapper {
-  width: 220px;
-  margin-top: 5px;
-  
-}
-
-
-
-.dropdown-wrapper .MuiOutlinedInput-root {
-  height: 40px;
-  border-radius: 6px;
-  background: white;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  font-size: 15px;
-  width: 250px;
-  
-}
-
-.dropdown-wrapper .MuiOutlinedInput-notchedOutline {
-  border: 1px solid #000000;
-}
-
-/* Targets the root of the TextField */
-.custom-major-input {
-    width: 99%;
-    margin-top: 5px !important;
-
-}
-
-/* Targets the actual input area */
-.custom-major-input .MuiOutlinedInput-root {
-    
-    border-radius: 5px;
-    border-color: #000000;
-    height: 40px;
+/* Container styling */
+.onboarding-bg {
+    background-color: #E8F5E9; 
+    min-height: 100vh;
     display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    display: flex;
+    align-items: center; 
     justify-content: center;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
 }
 
-/* Targets the text you type */
-.custom-major-input input {
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    color: #000000;
+.onboarding-card {
+    background: white;
+    width: 100%;
+    max-width: 480px; 
+   padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 6px rgba(0, 0, 0, 0.04);
     
+    /* Use min-height so it stays long, but height: auto lets it grow */
+    min-height: 650px; 
+    height: auto;
+    display: flex;
+    flex-direction: column;
+   
+}
+
+/* Typography Spacing - Bringing the subtitle UP */
+.onboarding-title {
+    color: #2E7D32;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 0px; /* Removed margin entirely */
+    text-align: center;
+    margin-top: 0px; /* Added margin-top to pull it up */ 
+}
+
+.onboarding-subtitle {
+    color: #818b9a;
+    font-size: 14px;
+    margin-top: 0; 
+    margin-bottom: 0px; /* Space before first input box */
+}
+
+/* Input Group Spacing - Tightening the boxes */
+.input-group {
+    text-align: left;
+    margin-bottom: 0px; /* Reduced vertical space between groups */
+   margin-top: 0px; /* Reduced vertical space between groups */
+}
+
+.input-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 0px; /* Label closer to input box */
+    margin-top: 0px; /* Space above label */
+}
+
+/* Navigation Section - Stacking button above links */
+.onboarding-footer {
+    margin-top: 5px; /* Pushes everything to the bottom of the card */
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+    gap: 10px; /* Space between button and links */
+    padding-top: 0px;
+}
+
+.next-btn {
+    width: 100%; 
+    background-color: #4CAF50;
+    color: white;
+    margin-top: 1px;
+ 
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.2);
+}
+
+.next-btn:hover {
+    background-color: #43A047;
+}
+
+/* Links stacked neatly below */
+.sub-nav-links {
+    display: flex;
+    flex-direction: column; /* Stacks Previous and Skip vertically */
+    gap: 8px;
+    width: 100%;
+}
+
+.back-link, .skip-link {
+    display: block;
+    margin-top: 20px;
+    color: #999;
+    font-size: 16px;
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: "Inter", sans-serif;
+}
+
+.back-link:hover, .skip-link:hover {
+    color: #666;
+    text-decoration: underline;
 }

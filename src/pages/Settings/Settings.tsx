@@ -1105,7 +1105,7 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
               <MailIcon />
             </div>
             <div>
-              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px' }}>Primary Email</h3>
+              <h3 style={{ fontWeight: '600', color: '#111827', margin: 0, fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>Primary Email</h3>
               <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>This email is used for all communications</p>
             </div>
           </div>
