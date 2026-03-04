@@ -1,10 +1,9 @@
 <?php
-
 header('Content-Type: application/json');
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
-  "https://cattle.cse.buffalo.edu",
+    "https://cattle.cse.buffalo.edu",
   "http://localhost:5173",
 ];
 
@@ -34,21 +33,23 @@ $receivedData = file_get_contents("php://input");
 $data = json_decode($receivedData, true);
 
 // Extract the data from the request
-$userId = isset($data['userId']) ? (int) $data['userId'] : 0;
-$phoneNumber = isset($data['phone']) ? trim((string) $data['phone']) : '';
-
-if (!$userId) {
-    echo json_encode(['success' => false, 'message' => 'User ID required']);
-    exit;
-}
+$userId = $data['userId'];
+$university = $data['university'];
 
 try {
-    $sql = "UPDATE users SET phone = ? WHERE id = ?";
+    // Update the university in the database
+        $sql = "INSERT INTO account_info (id, college)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE college = VALUES(college)";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$phoneNumber, $userId]);
-
-    echo json_encode(['success' => true, 'message' => 'Phone number updated successfully']);
-} catch (PDOException $e) {
+    $stmt->execute([$userId, $university]);
+    
+    if ($stmt->rowCount() > 0) {
+        echo json_encode(['success' => true, 'message' => 'University updated successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No changes were made']);
+    }
+} catch(PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 ?>

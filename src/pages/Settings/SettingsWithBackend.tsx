@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_BASE } from "../../config";
+import schoolData from "../../schools.json";
 
 const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
@@ -10,11 +12,8 @@ const SIDEBAR_LINKS = [
   { label: "Settings", path: "/settings" },
 ];
 
-
-
-// API Configuration - UPDATE THESE VALUES
-const API_BASE_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api'; // UPDATE THIS to your actual API path
-const ME_API_URL = 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/me.php';
+const API_BASE_URL = API_BASE;
+const ME_API_URL = `${API_BASE}/me.php`;
 
 // SVG Icon Components
 const UserIcon = () => (
@@ -291,7 +290,7 @@ function Settings() {
     fetchCurrentUser();
   }, []);
 
-  // Fetch the currently logged-in user
+  // Fetch the currently logged-in user (me.php first; fallback to get_user with localStorage userId)
   const fetchCurrentUser = async () => {
     try {
       const res = await fetch(ME_API_URL, {
@@ -302,17 +301,49 @@ function Settings() {
       if (data.loggedIn && data.user) {
         setUser(data.user);
         setUserId(data.user.id);
-        // Now fetch their settings
         fetchUserSettings(data.user.id);
-      } else {
-        // Not logged in - redirect to login
-        navigate('/signin'); // React Router navigation, no full-page reload
+        setIsLoading(false);
+        return;
       }
+
+      const storedId = localStorage.getItem("userId") || localStorage.getItem("user_id");
+      if (storedId) {
+        const userRes = await fetch(`${API_BASE_URL}/get_user.php?id=${storedId}`, {
+          credentials: 'include',
+        });
+        const userData = await userRes.json();
+        if (userData.success && userData.user && userData.user.id) {
+          const u = userData.user;
+          setUser({ id: u.id, username: u.username ?? "", email: u.email ?? "" });
+          setUserId(u.id);
+          fetchUserSettings(u.id);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      navigate('/signin');
     } catch (err) {
       console.error('Failed to fetch current user:', err);
-      setIsLoading(false);
+      const storedId = localStorage.getItem("userId") || localStorage.getItem("user_id");
+      if (storedId) {
+        try {
+          const userRes = await fetch(`${API_BASE_URL}/get_user.php?id=${storedId}`, {
+            credentials: 'include',
+          });
+          const userData = await userRes.json();
+          if (userData.success && userData.user && userData.user.id) {
+            const u = userData.user;
+            setUser({ id: u.id, username: u.username ?? "", email: u.email ?? "" });
+            setUserId(u.id);
+            fetchUserSettings(u.id);
+            setIsLoading(false);
+            return;
+          }
+        } catch (_) {}
+      }
       navigate('/signin');
-    }finally {
+    } finally {
       setIsLoading(false);
     }
   };
@@ -1007,16 +1038,17 @@ function EmailPage({ email, updateEmail, goBack }: EmailPageProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSave = async () => {
+    const trimmed = tempEmail.trim();
+    if (!trimmed || !trimmed.includes('@')) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+    if (!trimmed.toLowerCase().endsWith('.edu')) {
+      alert('Please use a college email address (.edu)');
+      return;
+    }
 
-
-    
-  if (!tempEmail || !tempEmail.includes('@')) {
-    alert('Please enter a valid email address');
-    return;
-  }
-  
-
-  const success = await updateEmail(tempEmail);
+    const success = await updateEmail(trimmed);
 
   
   if (success) {
@@ -1730,18 +1762,14 @@ function PasswordPage({ goBack, userId }: PasswordPageProps) {
   );
 }
 
-// University Settings Page
+// University Settings Page — same list as sign-up (AcademicInfo / schools.json)
 type UniversityPageProps = { university: string; updateUniversity: (s: string) => Promise<boolean>; goBack: () => void };
+
+const UNIVERSITY_OPTIONS: string[] = (schoolData as { name: string }[]).map((s) => s.name);
 
 function UniversityPage({ university, updateUniversity, goBack }: UniversityPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const universities = [
-    'University at Buffalo', 'Harvard University', 'Stanford University', 'MIT',
-    'Yale University', 'Princeton University', 'Columbia University', 'Cornell University',
-    'University of California, Berkeley', 'University of Michigan', 'Northwestern University', 'Duke University'
-  ];
-
-  const filteredUniversities = universities.filter(uni =>
+  const filteredUniversities = UNIVERSITY_OPTIONS.filter((uni) =>
     uni.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

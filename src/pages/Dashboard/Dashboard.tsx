@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_BASE } from "../../config";
 import "./dashboard.css";
 
 interface Job {
@@ -155,8 +156,37 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [profileUsername, setProfileUsername] = useState<string | null>(null);
 
-  const userInitials = "JD";
+  useEffect(() => {
+    const userId = localStorage.getItem("userId") || localStorage.getItem("user_id");
+    if (!userId) return;
+    fetch(`${API_BASE}/get_user.php?id=${userId}`, { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.user) {
+          setProfilePhoto(data.user.profilePhoto ?? data.user.profile_photo ?? null);
+          setProfileUsername(data.user.username ?? null);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const userInitials =
+    profileUsername && profileUsername.length >= 2
+      ? profileUsername
+          .split(/\s+/)
+          .map((s) => s[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()
+      : profileUsername
+        ? profileUsername.slice(0, 2).toUpperCase()
+        : "JD";
+  const avatarUrl =
+    profilePhoto &&
+    `${API_BASE}/get_profile_photo.php?f=${encodeURIComponent(profilePhoto)}`;
 
   const handleSidebarLink = (path: string) => {
     setSidebarOpen(false);
@@ -222,7 +252,15 @@ const Dashboard = () => {
             onClick={() => navigate("/profile")}
             title="View profile"
           >
-            {userInitials}
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt=""
+                className="nav-avatar-img"
+              />
+            ) : (
+              userInitials
+            )}
           </div>
         </div>
       </nav>

@@ -37,9 +37,10 @@ try {
             u.id,
             u.username,
             u.email,
-            u.phone,
-            u.university as college
+            a.`phone number` as phone,
+            a.college
           FROM users u
+          LEFT JOIN account_info a ON u.id = a.id
           WHERE u.id = ?";
 
   $stmt = $pdo->prepare($sql);

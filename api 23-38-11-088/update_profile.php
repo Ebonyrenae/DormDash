@@ -45,8 +45,8 @@ if (!is_array($data)) {
   exit;
 }
 
-$profileUsername = isset($data["username"]) ? trim((string)$data["username"]) : "";
-if ($profileUsername === "") {
+$username = isset($data["username"]) ? trim((string)$data["username"]) : "";
+if ($username === "") {
   echo json_encode(["success" => false, "message" => "Username is required"]);
   exit;
 }
@@ -57,22 +57,21 @@ require_once __DIR__ . "/config.php";
 $profileColumnsMissing = false;
 
 try {
-  // Always update username (and session) — use $profileUsername so config.php's $username (DB user) doesn't overwrite it
+  // Always update username (and session)
   $stmt = $pdo->prepare("UPDATE users SET username = ? WHERE id = ?");
-  $stmt->execute([$profileUsername, $userId]);
-  $_SESSION["username"] = $profileUsername;
+  $stmt->execute([$username, $userId]);
+  $_SESSION["username"] = $username;
 
   $user = [
     "id" => $userId,
-    "username" => $profileUsername,
+    "username" => $username,
     "email" => $_SESSION["email"] ?? null,
   ];
 
   // Optional: update profile columns if they exist
   try {
     $university = isset($data["university"]) ? trim((string)$data["university"]) : "";
-    $major_id = isset($data["major_id"]) ? (string)$data["major_id"] : null;
-    if ($major_id === "") $major_id = null;
+    $program = isset($data["program"]) ? trim((string)$data["program"]) : "";
     $bio = isset($data["bio"]) ? trim((string)$data["bio"]) : "";
     $experience = isset($data["experience"]) && is_array($data["experience"])
       ? $data["experience"] : [];
@@ -82,20 +81,11 @@ try {
     }));
     $experienceJson = json_encode($experience);
 
-    $stmt = $pdo->prepare("UPDATE users SET university = ?, major_id = ?, bio = ?, experience = ? WHERE id = ?");
-    $stmt->execute([$university, $major_id, $bio, $experienceJson, $userId]);
+    $stmt = $pdo->prepare("UPDATE users SET university = ?, program = ?, bio = ?, experience = ? WHERE id = ?");
+    $stmt->execute([$university, $program, $bio, $experienceJson, $userId]);
 
     $user["university"] = $university;
-    $user["major_id"] = $major_id;
-    // program (display name) comes from majors.majorName via get_user join
-    if ($major_id) {
-      $selMajor = $pdo->prepare("SELECT majorName FROM majors WHERE id = ?");
-      $selMajor->execute([$major_id]);
-      $rowMajor = $selMajor->fetch(PDO::FETCH_ASSOC);
-      $user["program"] = $rowMajor ? $rowMajor["majorName"] : "";
-    } else {
-      $user["program"] = "";
-    }
+    $user["program"] = $program;
     $user["bio"] = $bio;
     $user["experience"] = $experience;
 

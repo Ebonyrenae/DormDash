@@ -1,40 +1,22 @@
 <?php
-/* =========================
-   1. SESSION COOKIE SETTINGS (MUST BE FIRST)
-   ========================= */
-$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
-           ($_SERVER['SERVER_PORT'] == 443);
-
-session_set_cookie_params([
-  'lifetime' => 0,
-  'path' => '/',
-  'domain' => '',        
-  'secure' => $secure,   
-  'httponly' => true,
-  'samesite' => $secure ? 'None' : 'Lax'
-]);
-
-session_start();
+header("Content-Type: application/json");
 
 /* =========================
-   2. CORS & HEADERS
+   CORS (MUST NOT USE * WITH CREDENTIALS)
    ========================= */
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
   "https://cattle.cse.buffalo.edu",
-  
   "http://localhost:5173"
 ];
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? "";
 if (in_array($origin, $allowed_origins, true)) {
   header("Access-Control-Allow-Origin: $origin");
-} else {
-  header("Access-Control-Allow-Origin: https://www-student.cse.buffalo.edu");
+  header("Access-Control-Allow-Credentials: true");
+  header("Vary: Origin");
 }
 
-header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
@@ -45,7 +27,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 /* =========================
-   3. DB (Your original logic starts here)
+   SESSION COOKIE SETTINGS
+   =========================
+   NOTE:
+   - SameSite=None requires Secure=true (HTTPS).
+   - This will work on aptitude (HTTPS).
+   - For localhost (HTTP), Chrome may block SameSite=None cookies.
+*/
+$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+
+session_set_cookie_params([
+  'lifetime' => 0,
+  'path' => '/',
+  'domain' => '',        // host-only cookie (recommended)
+  'secure' => $secure,   // true on HTTPS
+  'httponly' => true,
+  'samesite' => $secure ? 'None' : 'Lax'
+]);
+
+session_start();
+
+/* =========================
+   DB
    ========================= */
 $host = "localhost";
 $user = "narde";

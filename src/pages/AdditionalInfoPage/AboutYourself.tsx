@@ -29,7 +29,7 @@ export default function AboutYourself() {
 
         try {
             // Updated URL to avoid that 404 error
-            const response = await fetch("https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/AdditionalInfo.php", {
+            const response = await fetch("https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/AdditionalInfoUsers.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
