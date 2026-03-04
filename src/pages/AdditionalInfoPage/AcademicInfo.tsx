@@ -1,9 +1,9 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
-import SearchIcon from '@mui/icons-material/Search';
-import InputAdornment from '@mui/material/InputAdornment';
+import SearchIcon from "@mui/icons-material/Search";
+import InputAdornment from "@mui/material/InputAdornment";
 import schoolData from "../../schools.json";
 import "./AcademicInfo.css";
 
@@ -13,9 +13,15 @@ export default function AcademicInfo() {
 
   // State initialized from localStorage
   const [college, setCollege] = useState(localStorage.getItem("college") || "");
-  const [majorId, setMajorId] = useState<string | null>(localStorage.getItem("major_id") || "");
-  const [year, setYear] = useState(localStorage.getItem("year_in_school") || "");
-  const [customMajorText, setCustomMajorText] = useState(localStorage.getItem("custom_major") || "");
+  const [majorId, setMajorId] = useState<string | null>(
+    localStorage.getItem("major_id") || "",
+  );
+  const [year, setYear] = useState(
+    localStorage.getItem("year_in_school") || "",
+  );
+  const [customMajorText, setCustomMajorText] = useState(
+    localStorage.getItem("custom_major") || "",
+  );
   const [majors, setMajors] = useState<{ id: string; field: string }[]>([]);
   const [message, setMessage] = useState("");
 
@@ -23,12 +29,13 @@ export default function AcademicInfo() {
 
   // Fetch majors on mount
   useEffect(() => {
-  fetch("https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/GetMajors.php",)
-    .then(res => res.json())
-    .then(data => setMajors(data))
-    .catch(err => console.error(err));
-}, []);
-
+    fetch(
+      "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api/GetMajors.php",
+    )
+      .then((res) => res.json())
+      .then((data) => setMajors(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,16 +58,26 @@ export default function AcademicInfo() {
             user_id: userId,
             custom_major: customMajorText || null,
           }),
-        }
+        },
       );
 
       const data = await response.json();
 
       if (data.success) {
         // Only clear storage once the final submission is successful
-        const keysToRemove = ["major_id", "year_in_school", "college", "custom_major", "dob", "month", "day", "year", "selectedGender"];
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        navigate("/dashboard");
+        const keysToRemove = [
+          "major_id",
+          "year_in_school",
+          "college",
+          "custom_major",
+          "dob",
+          "month",
+          "day",
+          "year",
+          "selectedGender",
+        ];
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+        navigate("/signin");
       } else {
         setMessage(data.message || "Failed to save.");
       }
@@ -73,7 +90,9 @@ export default function AcademicInfo() {
     <div className="onboarding-bg">
       <form className="onboarding-card academic-card" onSubmit={handleSubmit}>
         <h2 className="onboarding-title">Academic Information</h2>
-        <p className="onboarding-subtitle">Find jobs and DormDashers on your campus</p>
+        <p className="onboarding-subtitle">
+          Find jobs and DormDashers on your campus
+        </p>
 
         {/* College Search */}
         <div className="input-group">
@@ -96,7 +115,7 @@ export default function AcademicInfo() {
                   ...params.InputProps,
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon sx={{ color: '#4CAF50', mr: 1 }} />
+                      <SearchIcon sx={{ color: "#4CAF50", mr: 1 }} />
                     </InputAdornment>
                   ),
                 }}
@@ -121,7 +140,13 @@ export default function AcademicInfo() {
                 localStorage.removeItem("custom_major");
               }
             }}
-            renderInput={(params) => <TextField {...params} placeholder="Select Major" variant="outlined" />}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Select Major"
+                variant="outlined"
+              />
+            )}
           />
           {majorId === "22" && (
             <TextField
@@ -149,18 +174,33 @@ export default function AcademicInfo() {
               setYear(val);
               localStorage.setItem("year_in_school", val); // SAVE
             }}
-            renderInput={(params) => <TextField {...params} placeholder="Select your year" variant="outlined" />}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Select your year"
+                variant="outlined"
+              />
+            )}
           />
         </div>
 
         <div className="onboarding-footer">
-          <button type="submit" className="next-btn">Get To Dashing</button>
+          <button type="submit" className="next-btn">
+            Get To Dashing
+          </button>
           <div className="sub-nav-links">
-            <p className="back-link" onClick={() => navigate("/about-yourself")}>Previous</p>
-            <p className="skip-link" onClick={() => navigate("/dashboard")}>Skip for now</p>
+            <p
+              className="back-link"
+              onClick={() => navigate("/about-yourself")}
+            >
+              Previous
+            </p>
+            <p className="skip-link" onClick={() => navigate("/dashboard")}>
+              Skip for now
+            </p>
           </div>
         </div>
-        
+
         {message && <p className="error-msg">{message}</p>}
       </form>
     </div>

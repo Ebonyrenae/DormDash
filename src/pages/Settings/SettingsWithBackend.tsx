@@ -270,6 +270,7 @@ function Settings() {
 
   const [user, setUser] = useState<User | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -302,6 +303,10 @@ function Settings() {
         setUser(data.user);
         setUserId(data.user.id);
         fetchUserSettings(data.user.id);
+        fetch(`${API_BASE_URL}/get_user.php?id=${data.user.id}`, { credentials: 'include' })
+          .then((r) => r.json())
+          .then((d) => { if (d.success && d.user) setProfilePhoto(d.user.profile_photo ?? d.user.profilePhoto ?? null); })
+          .catch(() => {});
         setIsLoading(false);
         return;
       }
@@ -316,6 +321,7 @@ function Settings() {
           const u = userData.user;
           setUser({ id: u.id, username: u.username ?? "", email: u.email ?? "" });
           setUserId(u.id);
+          setProfilePhoto(u.profile_photo ?? u.profilePhoto ?? null);
           fetchUserSettings(u.id);
           setIsLoading(false);
           return;
@@ -336,6 +342,7 @@ function Settings() {
             const u = userData.user;
             setUser({ id: u.id, username: u.username ?? "", email: u.email ?? "" });
             setUserId(u.id);
+            setProfilePhoto(u.profile_photo ?? u.profilePhoto ?? null);
             fetchUserSettings(u.id);
             setIsLoading(false);
             return;
@@ -775,7 +782,7 @@ if (!userId) {
               <span>Back to Homepage</span>
             </button>
           </div>
-          {/* Profile Card */}
+          {/* Profile Card - photo/initials like dashboard; click goes to profile */}
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
@@ -784,18 +791,32 @@ if (!userId) {
             padding: '32px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                color: 'white'
-              }}>
-                <UserIcon />
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate('/profile')}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/profile'); } }}
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                  color: 'white',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  flexShrink: 0
+                }}
+                title="View profile"
+              >
+                {profilePhoto ? (
+                  <img src={`${API_BASE_URL}/get_profile_photo.php?f=${encodeURIComponent(profilePhoto)}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: '28px', fontWeight: '600' }}>{user?.username ? (user.username.length >= 2 ? user.username.split(/\s+/).map((s) => s[0]).join('').slice(0, 2).toUpperCase() : user.username.slice(0, 2).toUpperCase()) : ''}</span>
+                )}
               </div>
               <div>
                 <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>
