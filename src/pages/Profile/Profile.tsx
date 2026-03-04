@@ -174,7 +174,7 @@ const Profile = () => {
       // If we are looking at our own profile, use me.php
       // If we are looking at someone else (e.g., /profile/12), use get_user.php
       const endpoint = isMe 
-        ? `${API_BASE}/me.php` 
+        ? `${API_BASE}/me3.php` 
         : `${API_BASE}/get_user.php?id=${userId}`;
 
       const res = await fetch(endpoint, { credentials: "include" });
@@ -207,13 +207,7 @@ const Profile = () => {
     fetchProfile();
   }, [userId, isMe]); // Refetch when the URL ID changes
 
-  useEffect(() => {
-    if (isMe) {
-      fetchProfile();
-    } else {
-      setProfile({ username: "Unknown User", id: Number(userId) } as ProfileUser);
-    }
-  }, [userId, isMe]);
+  
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

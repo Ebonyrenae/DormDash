@@ -1,6 +1,10 @@
 <?php
 // me.php
 header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: https://www-student.cse.buffalo.edu");
+header("Access-Control-Allow-Credentials: true");
+header("Content-Type: application/json");
+session_start();
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",

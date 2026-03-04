@@ -1,22 +1,17 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import AcademicInfo from "../pages/AdditionalInfoPage/AcademicInfo";
-
 import Dashboard from "../pages/Dashboard/Dashboard";
 import SignUp from "../pages/SignUp/SignUp";
 import AllJobs from "../pages/AllJobs/AllJobs";
 import PostJob from "../pages/PostJob/PostJob";
 import Profile from "../pages/Profile/Profile";
 import AboutYourself from "../pages/AdditionalInfoPage/AboutYourself";
-
-
 import Landing from "../pages/Landing/Landing";
 import SignIn from "../pages/SignIn/SignIn";
 import MyRequests from "../pages/MyRequests/MyRequests";
 import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
-
-
 import { Component } from "react";
 import Settings from "../pages/Settings/SettingsWithBackend";
 
