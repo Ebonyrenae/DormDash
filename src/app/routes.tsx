@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createHashRouter } from "react-router-dom";
 
 import AcademicInfo from "../pages/AdditionalInfoPage/AcademicInfo";
 import Dashboard from "../pages/Dashboard/Dashboard";
@@ -14,43 +14,28 @@ import DirectMessage from "../pages/Messages/DirectMessage";
 import AboutYourself from "../pages/AdditionalInfoPage/AboutYourself";
 import Settings from "../pages/Settings/SettingsWithBackend";
 
-export const router = createBrowserRouter(
-  [
-    // Public routes
-    { path: "/", Component: Landing },
-    { path: "/signup", Component: SignUp },
-    { path: "/signin", Component: SignIn },
+export const router = createHashRouter([
+  // Public routes
+  { path: "/", Component: Landing },
+  { path: "/signup", Component: SignUp },
+  { path: "/signin", Component: SignIn },
 
-    { path: "/messages", Component: Messages },
-    { path: "/messages/:userId", Component: DirectMessage },
-    { path: "/settings", Component: Settings },
-    { path: "/academic-info", Component: AcademicInfo },
-    { path: "/dashboard", Component: Dashboard },
-    { path: "/all-jobs", Component: AllJobs },
-    { path: "/profile", Component: Profile },
-    { path: "/profile/:userId", Component: Profile },
-    { path: "/post-job", Component: PostJob },
-    {
-      path: "/my-requests",
-      Component: MyRequests,
-    },
-
-    {
-      path: "/about-yourself",
-      Component: AboutYourself,
-    },
-
-  ],
+  { path: "/messages", Component: Messages },
+  { path: "/messages/:userId", Component: DirectMessage },
+  { path: "/settings", Component: Settings },
+  { path: "/academic-info", Component: AcademicInfo },
+  { path: "/dashboard", Component: Dashboard },
+  { path: "/all-jobs", Component: AllJobs },
+  { path: "/profile", Component: Profile },
+  { path: "/profile/:userId", Component: Profile },
+  { path: "/post-job", Component: PostJob },
+  {
+    path: "/my-requests",
+    Component: MyRequests,
+  },
 
   {
-    basename: import.meta.env.MODE === 'production' ? '/CSE442/2026-Spring/cse-442i/' : '/',
+    path: "/about-yourself",
+    Component: AboutYourself,
   },
-);
-
-
-
-
-
-    
- 
-
+]);
