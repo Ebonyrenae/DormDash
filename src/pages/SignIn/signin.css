@@ -187,6 +187,15 @@
   transform: scale(0.98);
 }
 
+.signin-error {
+  margin: -4px 0 0;
+  color: #d4183d;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
 /* Footer */
 .signin-footer {
   margin-top: 20px;

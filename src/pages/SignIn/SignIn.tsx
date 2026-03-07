@@ -10,8 +10,12 @@ const SignIn = () => {
     email: "",
     password: "",
   });
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (errorMessage) {
+      setErrorMessage("");
+    }
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -20,6 +24,7 @@ const SignIn = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
 
     try {
       const res = await fetch(
@@ -38,7 +43,6 @@ const SignIn = () => {
       );
 
       const data = await res.json();
-      console.log(data);
       if (data.success) {
   // ⭐ SAVE USER DATA TO LOCALSTORAGE AS A BACKUP
   localStorage.setItem("isLoggedIn", "true");
@@ -47,13 +51,18 @@ const SignIn = () => {
   
   navigate("/dashboard");
 } else {
-  alert(data.message);
+  if (data.message === "user not found") {
+    setErrorMessage("User email doesn't exist.");
+  } else if (data.message === "invalid password") {
+    setErrorMessage("Password is incorrect.");
+  } else {
+    setErrorMessage("Unable to sign in. Please try again.");
+  }
 }
 
       
     } catch (err) {
-      console.error(err);
-      alert("login failed");
+      setErrorMessage("Unable to sign in. Please try again.");
     }
   };
 
@@ -148,6 +157,7 @@ const SignIn = () => {
             <button type="submit" className="signin-btn">
               Sign In
             </button>
+            {errorMessage && <p className="signin-error">{errorMessage}</p>}
           </form>
 
           <div className="signin-footer">

@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
-import InputAdornment from "@mui/material/InputAdornment";
 import schoolData from "../../schools.json";
 import "./AcademicInfo.css";
 
@@ -114,9 +113,9 @@ export default function AcademicInfo() {
                 InputProps={{
                   ...params.InputProps,
                   startAdornment: (
-                    <InputAdornment position="start">
+                    <span style={{ display: "flex", alignItems: "center" }}>
                       <SearchIcon sx={{ color: "#4CAF50", mr: 1 }} />
-                    </InputAdornment>
+                    </span>
                   ),
                 }}
               />
