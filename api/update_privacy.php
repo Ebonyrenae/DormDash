@@ -19,44 +19,51 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
   http_response_code(200);
-  echo json_encode(["success" => true]);
   exit();
 }
 
-require_once 'config.php';
+require_once "config.php";
 
-$receivedData = file_get_contents("php://input");
-$data = json_decode($receivedData, true);
+$raw = file_get_contents("php://input");
+$data = json_decode($raw, true);
 
-$userId = $data['userId'] ?? null;
-$settings = $data['settings'] ?? null;
+$userId   = $data["userId"]   ?? null;
+$settings = $data["settings"] ?? null;
 
 if (!$userId || !is_array($settings)) {
-  echo json_encode(['success' => false, 'message' => 'Missing userId or settings']);
-  exit;
+  http_response_code(400);
+  echo json_encode(["success" => false, "message" => "Missing userId or settings"]);
+  exit();
 }
 
-$profileVisible = !empty($settings['profileVisible']) ? 1 : 0;
-$showEmail      = !empty($settings['showEmail']) ? 1 : 0;
-$showPhone      = !empty($settings['showPhone']) ? 1 : 0;
-$dataSharing    = !empty($settings['dataSharing']) ? 1 : 0;
+$profileVisible = !empty($settings["profileVisible"]) ? 1 : 0;
+$showEmail      = !empty($settings["showEmail"]) ? 1 : 0;
+$showPhone      = !empty($settings["showPhone"]) ? 1 : 0;
+$dataSharing    = !empty($settings["dataSharing"]) ? 1 : 0;
 
 try {
-  // 1) Ensure notification_settings row exists (avoid sms_enabled default errors)
-  $sql = "INSERT INTO notification_settings (user_id, sms_enabled, email_enabled, push_enabled)
-          VALUES (?, 0, 1, 1)
-          ON DUPLICATE KEY UPDATE user_id = user_id";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([$userId]);
+  // Provide required NOT NULL columns on INSERT (only used if row doesn't exist yet)
+  $sql = "
+    INSERT INTO notification_settings
+      (user_id, sms_enabled, email_enabled, push_enabled,
+       public_profile_enabled, show_email_enabled, show_phone_enabled, data_sharing_enabled)
+    VALUES
+      (?, 0, 0, 0, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      public_profile_enabled = VALUES(public_profile_enabled),
+      show_email_enabled     = VALUES(show_email_enabled),
+      show_phone_enabled     = VALUES(show_phone_enabled),
+      data_sharing_enabled   = VALUES(data_sharing_enabled),
+      sms_enabled            = sms_enabled,
+      email_enabled          = email_enabled,
+      push_enabled           = push_enabled
+  ";
 
-  // 2) Update ONLY privacy columns
-  $sql = "UPDATE notification_settings
-          SET public_profile_enabled = ?, show_email_enabled = ?, show_phone_enabled = ?, data_sharing_enabled = ?
-          WHERE user_id = ?";
   $stmt = $pdo->prepare($sql);
-  $stmt->execute([$profileVisible, $showEmail, $showPhone, $dataSharing, $userId]);
+  $stmt->execute([$userId, $profileVisible, $showEmail, $showPhone, $dataSharing]);
 
-  echo json_encode(['success' => true, 'message' => 'Privacy settings updated successfully']);
+  echo json_encode(["success" => true, "message" => "Privacy settings updated successfully"]);
 } catch (PDOException $e) {
-  echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+  http_response_code(500);
+  echo json_encode(["success" => false, "message" => "DB error: " . $e->getMessage()]);
 }

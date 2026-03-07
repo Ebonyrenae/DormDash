@@ -2,7 +2,11 @@
   min-height: 100vh;
   background: white;
   padding-bottom: 40px;
+  font-family: "Inter", sans-serif;
+
 }
+
+
 
 .settings-content {
   max-width: 1200px;
@@ -17,7 +21,7 @@
 }
 
 .settings-title {
-  font-family: "Inter", sans-serif;
+
   font-weight: 600;
   font-size: 48px;
   line-height: 56px;
@@ -67,7 +71,6 @@
 }
 
 .profile-name {
-  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 28px;
   line-height: 36px;
@@ -76,7 +79,6 @@
 }
 
 .profile-email {
-  font-family: "Inter", sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
@@ -90,7 +92,6 @@
 }
 
 .section-title {
-  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 20px;
   line-height: 28px;
@@ -158,7 +159,6 @@
 }
 
 .setting-label {
-  font-family: "Inter", sans-serif;
   font-weight: 500;
   font-size: 16px;
   line-height: 24px;
@@ -166,7 +166,6 @@
 }
 
 .setting-value {
-  font-family: "Inter", sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 20px;
@@ -209,7 +208,6 @@
 }
 
 .logout-button span {
-  font-family: "Inter", sans-serif;
   font-weight: 500;
   font-size: 16px;
   line-height: 24px;

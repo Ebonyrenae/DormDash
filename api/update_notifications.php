@@ -1,5 +1,4 @@
 <?php
-
 header('Content-Type: application/json');
 
 $allowed_origins = [
@@ -23,47 +22,69 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
   exit();
 }
 
-require_once 'config.php';
+require_once "config.php";
 
-// Set the response header to indicate that the response will be in JSON format
+// Read JSON body
+$raw = file_get_contents("php://input");
+$data = json_decode($raw, true);
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
+$userId = $data["userId"] ?? null;
+$settings = $data["settings"] ?? null;
 
-// Get the raw POST data and decode it from JSON
-$receivedData = file_get_contents("php://input");
-$data = json_decode($receivedData, true);
+if (!$userId || !is_array($settings)) {
+  http_response_code(400);
+  echo json_encode(["success" => false, "message" => "Missing userId or settings"]);
+  exit();
+}
 
-// Extract the data from the request
-$userId = $data['userId'];
-$settings = $data['settings'];
+// Map frontend settings -> DB columns
+// (If your DB only has these 3, keep these 3)
+$smsEnabled   = !empty($settings["sms"]) ? 1 : 0;
+$emailEnabled = !empty($settings["email"]) ? 1 : 0;
+$pushEnabled  = !empty($settings["push"]) ? 1 : 0;
 
-// Map frontend settings to database columns
-$smsEnabled = $settings['sms'] ? 1 : 0;
-$emailEnabled = $settings['email'] ? 1 : 0;
-$pushEnabled = $settings['push'] ? 1 : 0; // Using 'push' for phone notifications
+// OPTIONAL: if your table also has these columns, uncomment them
+// $deadlinesEnabled = !empty($settings["deadlines"]) ? 1 : 0;
+// $gradesEnabled    = !empty($settings["grades"]) ? 1 : 0;
+// $eventsEnabled    = !empty($settings["events"]) ? 1 : 0;
 
 try {
-    // Check if notification settings already exist for this user
-    $sql = "INSERT INTO notification_settings (user_id, email_enabled, push_enabled, sms_enabled)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE email_enabled = VALUES(email_enabled), push_enabled = VALUES(push_enabled), sms_enabled = VALUES(sms_enabled)";
-    $checkStmt = $pdo->prepare($sql);
-    $checkStmt->execute([$userId, $emailEnabled, $pushEnabled, $smsEnabled]);
-    
-    if ($checkStmt->rowCount() > 0) {
-        // Update existing notification settings
-        $sql = "UPDATE notification_settings SET sms_enabled = ?, email_enabled = ?, push_enabled = ? WHERE user_id = ?";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$smsEnabled, $emailEnabled, $pushEnabled, $userId]);
-    } else {
-        // Insert new notification settings
-        $sql = "INSERT INTO notification_settings (user_id, sms_enabled, email_enabled, push_enabled) VALUES (?, ?, ?, ?)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$userId, $smsEnabled, $emailEnabled, $pushEnabled]);
-    }
-    
-    echo json_encode(['success' => true, 'message' => 'Notification settings updated successfully']);
-} catch(PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+  // ONE write: insert if new, update if exists (requires UNIQUE(user_id))
+  $sql = "
+    INSERT INTO notification_settings (user_id, email_enabled, push_enabled, sms_enabled)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      email_enabled = VALUES(email_enabled),
+      push_enabled  = VALUES(push_enabled),
+      sms_enabled   = VALUES(sms_enabled)
+  ";
+
+  // If you also store deadlines/grades/events, use this instead:
+  /*
+  $sql = "
+    INSERT INTO notification_settings
+      (user_id, email_enabled, push_enabled, sms_enabled, deadlines_enabled, grades_enabled, events_enabled)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      email_enabled      = VALUES(email_enabled),
+      push_enabled       = VALUES(push_enabled),
+      sms_enabled        = VALUES(sms_enabled),
+      deadlines_enabled  = VALUES(deadlines_enabled),
+      grades_enabled     = VALUES(grades_enabled),
+      events_enabled     = VALUES(events_enabled)
+  ";
+  */
+
+  $stmt = $pdo->prepare($sql);
+
+  // Basic version bind:
+  $stmt->execute([$userId, $emailEnabled, $pushEnabled, $smsEnabled]);
+
+  // If using deadlines/grades/events version, bind like this:
+  // $stmt->execute([$userId, $emailEnabled, $pushEnabled, $smsEnabled, $deadlinesEnabled, $gradesEnabled, $eventsEnabled]);
+
+  echo json_encode(["success" => true, "message" => "Notification settings updated"]);
+} catch (PDOException $e) {
+  http_response_code(500);
+  echo json_encode(["success" => false, "message" => "DB error: " . $e->getMessage()]);
 }
-?>
