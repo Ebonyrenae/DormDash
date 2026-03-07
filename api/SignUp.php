@@ -1,69 +1,65 @@
 <?php
+session_start();
+header('Content-Type: application/json');
 
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json");
+// 1. DYNAMIC CORS (Fixes Wildcard + Credentials error)
+$allowed_origins = [
+    "https://aptitude.cse.buffalo.edu",
+    "https://cattle.cse.buffalo.edu",
+    "http://localhost:5173"
+];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Credentials: true");
+    header("Vary: Origin");
+}
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
-require_once 'config.php';
-
-// Handle preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Get raw input
-$receiveddata = file_get_contents("php://input");
-$data = json_decode($receiveddata, true);
+require_once 'config.php';
 
+$data = json_decode(file_get_contents("php://input"), true);
 
+// Check for 'username' because that is what your React code sends
+if (isset($data['username'], $data['email'], $data['password'])) {
+    $name = $data['username']; 
+    $email = $data['email'];
+    $passwords = password_hash($data['password'], PASSWORD_BCRYPT);
 
-$fullname = $data['fullname'];
-$email = $data['email'];
-$password = $data['password'];
+    try {
+        // INSERT INTO users only
+        $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->execute([$name, $email, $passwords]);
+        $user_id = $pdo->lastInsertId();
 
-// 🔥 CHECK IF EMAIL EXISTS
-$checkSql = "SELECT COUNT(*) FROM users WHERE email = ?";
-$checkStmt = $pdo->prepare($checkSql);
-$checkStmt->execute([$email]);
+        // AUTO-LOGIN (Set session variables)
+    $_SESSION["user_id"] = $user_id;
+    $_SESSION["username"] = $name;
+    $_SESSION["email"] = $email;
 
-$emailExists = $checkStmt->fetchColumn();
+        echo json_encode([
+            "success" => true, 
+            "user_id" => $user_id,
+            "message" => "Account created for $name"
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        
 
-if ($emailExists > 0) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Provided email already exists"
-    ]);
-    exit;
+        if ($e->getCode() == 23000) {
+        echo json_encode(["success" => false, "message" => "email is already associated with an account. "]);
+    } else {
+        // This helps you debug if it's a different database issue
+        echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
+    }
+    }
+} else {
+    echo json_encode(["success" => false, "message" => "Missing required fields"]);
 }
-
-// Hash password
-$hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-try {
-
-    $sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$fullname, $email, $hashed_password]);
-    
-
-    // ✅ GET THE NEW USER ID
-    $user_id = $pdo->lastInsertId();
-
-    echo json_encode([
-        "success" => true,
-        "message" => "User registered successfully",
-        "user_id" => $user_id
-    ]);
-
-} catch(PDOException $e) {
-
-    echo json_encode([
-        "success" => false,
-        "message" => "Database Error: " . $e->getMessage()
-    ]);
-}
-
 ?>

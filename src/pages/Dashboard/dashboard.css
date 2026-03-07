@@ -177,6 +177,13 @@
   cursor: pointer;
   transition: all 0.2s;
   border: 2px solid transparent;
+  overflow: hidden;
+}
+
+.nav-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .nav-avatar:hover {

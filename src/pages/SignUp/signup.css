@@ -1,251 +1,213 @@
+
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-.SignUP-container {
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background-color: #f2ffde;
+}
 
+.SignUP-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    width: 100%;
     align-items: center;
     justify-content: flex-start;
-    background-color: #f2ffde;
-    padding-top: 50px;
-   
-
+    padding: 20px 20px; /* Reduced top padding to lift the whole stack */
+    box-sizing: border-box;
+    gap: 10px; /* Reduced gap to pull the white container closer to the header */
 }
 
-/* Header */
+.signup-header-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 70px; /* Reduced from 30px to lift the header */
+}
+
+/* Header Section */
 .signup-heading {
-  text-align: center;
-  margin-bottom: 0px;
-  font-size: 2.5rem;
-  color: #29AC3D;
-  margin-top: 20px;
-}
-
-.text-below{
-    
     text-align: center;
-    color: #4A5565;
-    font-size:16px;
-
+    font-size: 48px;
+    font-weight: 700;
+    color: #29AC3D;
+    margin: 0; 
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.form-container{
-    display:flex;
-    align-items: flex-start;
-    justify-content: flex-start;
+.signup-heading:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+.SignUP-container .text-below {
+    color: #4A5565 !important; /* The !important ensures it overrides any hidden browser/global styles */
+    text-align: center;
+    font-size: 16px;
+    margin-top: -5px; /* Pulls it even closer to DormDash */
+    margin-bottom: 30px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+}
+
+/* Main Card */
+.form-container {
+    display: flex;
+    flex-direction: column;
     background-color: white;
     border-radius: 16px;
-    width: 27%;
-    height: 540px;
-    flex-direction: column;
-    padding-left: 30px; 
-    margin-top: 10px;
-    box-shadow: 
-        0px 20px 25px 0px rgba(0, 0, 0, 0.1), 
-        0px 8px 10px 0px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 480px; 
+    padding: 30px 36px; /* Reduced top padding (32px -> 24px) to bring content up */
+    box-shadow: 0px 20px 25px 0px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
 }
 
 .form-textp {
-    color:black;
-    font-size: 20px;
-    font-weight:600;
-    margin-top:35px;
-    font-family:'Inter', sans-serif;
-    text-align:left;
-    margin-bottom:0%;   
+    color: #101828;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 2px 0; /* Reduced bottom margin */
+    font-family: 'Inter', sans-serif;
 }
 
 .form-texts {
-    color:#4A5565;
-    font-size: 12px;
-    font-weight: 300px;
-    font-family:'Inter', sans-serif;
-    text-align:left;
-
+    color: #4A5565;
+    font-size: 14px;
+    margin-bottom: 12px; /* Reduced from 20px to bring labels up */
+    font-family: 'Inter', sans-serif;
 }
 
+/* ⭐ Spacing for Inputs */
 .form-fullnames {
-    color:#4A5565;
-    font-size: 12px;
+    color: #364153;
+    font-size: 14px;
     font-weight: 500;
-    font-family:'Inter', sans-serif;
-    text-align:left;
-    margin-top: 20px;
-
-    
-
+    font-family: 'Inter', sans-serif;
+    margin: 8px 0 6px 0; /* ⭐ Significantly reduced top margin for the first label */
 }
 
 .form-names {
-    color:#4A5565;
-    font-size: 12px;
+    color: #364153;
+    font-size: 14px;
     font-weight: 500;
-    font-family:'Inter', sans-serif;
-    text-align:left;
-    margin-top: 15px;
-    
-    
-    
-
+    font-family: 'Inter', sans-serif;
+    margin: 18px 0 6px 0; 
 }
 
-.form-error {
-    color:#b1b1b1;
-    font-size: 10px;
-    font-weight: 300px;
-    font-family:'Inter', sans-serif;
-    text-align:left;
-    margin-top: 0px;
-
-}
-
-.form-input {
-
-    width: 93%;
-    padding: 8px;
-    margin-top: 0px;
-    margin-bottom: 5px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
-    box-sizing: border-box;
-    height: 35px;
-    padding-right: 40px; 
-}
-
-.form-inputpassword  {
-
+.form-input, .form-inputpassword {
     width: 100%;
-    padding: 8px;
-    margin-top: 0px;
-    margin-bottom: 5px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
+    height: 42px; 
+    padding: 10px 40px 10px 14px;
+    border: 1px solid #d1d5dc;
+    border-radius: 8px;
     box-sizing: border-box;
-    height: 38px;
-    padding-right: 40px; 
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Green Focus Border */
+.form-input:focus, .form-inputpassword:focus {
+    border-color: #29AC3D;
+    box-shadow: 0 0 0 3px rgba(41, 172, 61, 0.1);
+}
+
+.error-text, .error-text2, .error-text3 {
+    color: #D92D20;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 6px;
+    font-family: 'Inter', sans-serif;
 }
 
 .form-button {
-
-    width: 93%;
-    margin-top: 20px;
-    margin-bottom: 0px;
-    border: 1px;
-    border-radius: 7px;
-    box-sizing: border-box;
-    height: 35px;
+    width: 100%;
+    height: 48px;
+    margin-top: 24px;
+    border: none;
+    border-radius: 8px;
     background-color: #29AC3D;
     color: white;
-    font-weight: 500;
-    font-family:'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
     cursor: pointer;
-    
-    
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 
+.form-button:hover {
+    background-color: #238a33;
+    box-shadow: 0 4px 12px rgba(41, 172, 61, 0.2);
+}
+
+.form-button:active {
+    transform: scale(0.98);
+}
 
 .form-loginNav {
-    color:#29AC3D;
-    font-size: 12px;
+    color: #29AC3D;
+    font-size: 14px;
     font-weight: 500;
     font-family:'Inter', sans-serif;
     text-align:left;
-    cursor: pointer;
     align-self: center;
-
-
+    cursor: pointer;
+    
 
 }
 
 .form-loginNav:hover {
+    opacity: 0.7;
     text-decoration: underline;
 }
 
-.form-containerSecond{
-    display:flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    background-color: rgba(255, 255, 255, 0.3);
-    border-radius: 16px;
-    width: 27%;
-    height: 170px;
+/* Why DormDash Card */
+.form-containerSecond {
+    display: flex;
     flex-direction: column;
-    padding-left: 30px; 
-    margin-top: 15px;
-    margin-bottom: 30px;
-    box-shadow: 
-        0px 20px 25px 0px rgba(0, 0, 0, 0.1), 
-        0px 8px 10px 0px rgba(0, 0, 0, 0.04);
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    padding: 24px 36px;
+    box-shadow: 0px 8px 10px 0px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
 }
 
 .checkMark {
-    color:black;
-    font-size: 12px;
-    font-weight: 300px;
-    font-family:'Inter', sans-serif;
-    text-align:left;
-    flex-direction: row;
     display: flex;
-    gap:5px;
-    
-
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #364153;
 }
-
-.error-text {
-  color: red;
-  font-size: 12px;
-  margin-top: 5px;
-  font-family: 'Inter', sans-serif;
-  
-}
-
-.error-text3 {
-  color: red;
-  font-size: 12px;
-  margin-top: 310px;
-  font-family: 'Inter', sans-serif;
-  margin-bottom: 0px;
-  position: absolute;
-}
-
-.success-text {
-  color: green;
-  font-size: 12px;
-  font-family: 'Inter', sans-serif;
-  text-align: center;
-}
-
-.error-text2 {
-  color: red;
-  font-size: 12px;
-  font-family: 'Inter', sans-serif;
-  text-align: center;
-  margin-bottom: 0px;
-  min-height: 20px;
-}
-
-
-.password-wrapper {
-  position: relative;
-  width: 93%;
-}
-
 
 .eye-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: gray;
+    position: absolute;
+    right: 12px;
+    top: 21px; 
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6a7282;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
 }
 
-.error-container {
+.password-wrapper {
+    position: relative;
+    width: 100%; 
     display: flex;
     flex-direction: column;
-    gap: 0px;
-    width: 100%;
-    justify-content:left;
-    
 }

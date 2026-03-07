@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
+  "https://cattle.cse.buffalo.edu",
   "http://localhost:5173",
 ];
 
@@ -36,10 +37,9 @@ try {
             u.id,
             u.username,
             u.email,
-            a.`phone number` as phone,
-            a.college
+            u.phone,
+            u.university as college
           FROM users u
-          LEFT JOIN account_info a ON u.id = a.id
           WHERE u.id = ?";
 
   $stmt = $pdo->prepare($sql);

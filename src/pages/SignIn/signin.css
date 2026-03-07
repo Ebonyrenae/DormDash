@@ -151,6 +151,36 @@
   box-shadow: 0 0 0 3px rgba(41, 172, 61, 0.1);
 }
 
+.input-wrapper-password input {
+  padding-right: 44px;
+}
+
+.signin-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #6a7282;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signin-password-toggle:hover {
+  color: #374151;
+}
+
+.signin-password-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
 .input-hint {
   font-family: "Inter", sans-serif;
   font-weight: 400;
@@ -185,6 +215,15 @@
 
 .signin-btn:active {
   transform: scale(0.98);
+}
+
+.signin-error {
+  margin: -4px 0 0;
+  color: #d4183d;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
 }
 
 /* Footer */

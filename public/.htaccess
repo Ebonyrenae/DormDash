@@ -1,0 +1,11 @@
+# SPA fallback: serve index.html for routes that are not real files or directories.
+# Required for react-router createBrowserRouter when refreshing or opening deep links.
+RewriteEngine On
+RewriteBase /CSE442/2026-Spring/cse-442i/
+
+# Do not rewrite existing files (e.g. index.html, assets/*.js, assets/*.css)
+RewriteCond %{REQUEST_FILENAME} !-f
+# Do not rewrite existing directories
+RewriteCond %{REQUEST_FILENAME} !-d
+# Send everything else to index.html so the React app can handle the route
+RewriteRule ^ index.html [L]

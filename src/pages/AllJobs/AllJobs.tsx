@@ -12,6 +12,8 @@ interface Job {
   location: string;
   time: string;
   category: string;
+  user_id: string; // Add this
+  username: string; // Add this
 }
 
 const POSTED_JOBS_KEY = "posted_jobs_v1";
@@ -40,7 +42,7 @@ function readPostedJobs(): StoredJob[] {
 
 
 const API_BASE_URL =
-  "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+  "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
 
 type BackendJob = {
   id: number;
@@ -51,6 +53,8 @@ type BackendJob = {
   location: string;
   job_date: string;  // "YYYY-MM-DD"
   job_time: string;  // "HH:MM:SS"
+  user_id: number; // Add this
+  username: string | null; // Add this
 };
 
 function toCategoryLabel(serviceType: string): string {
@@ -74,6 +78,8 @@ const ALL_JOBS: Job[] = [
     location: "North Campus",
     time: "12:30 PM",
     category: "Groceries",
+    user_id: "0",      // Add this
+    username: "system" // Add this
   },
   {
     id: "2",
@@ -83,6 +89,8 @@ const ALL_JOBS: Job[] = [
     location: "Silverman",
     time: "12:30 PM",
     category: "Others",
+    user_id: "0",      // Add this
+    username: "system" // Add this
   },
   {
     id: "3",
@@ -92,6 +100,8 @@ const ALL_JOBS: Job[] = [
     location: "Hadley Village",
     time: "12:30 PM",
     category: "Rides",
+    user_id: "0",      // Add this
+    username: "system" // Add this
   },
   {
     id: "4",
@@ -101,6 +111,8 @@ const ALL_JOBS: Job[] = [
     location: "Ellicot Complex",
     time: "12:30 PM",
     category: "Cleaning",
+    user_id: "0",      // Add this
+    username: "system" // Add this
   },
   {
     id: "5",
@@ -110,6 +122,8 @@ const ALL_JOBS: Job[] = [
     location: "South lake Village",
     time: "12:30 PM",
     category: "Cooking",
+    user_id: "0",      // Add this
+    username: "system" // Add this
   },
   {
     id: "6",
@@ -120,6 +134,8 @@ const ALL_JOBS: Job[] = [
     location: "Ellicot Complex",
     time: "12:30 PM",
     category: "Tutoring",
+    user_id: "0",      // Add this
+    username: "system" // Add this
   },
 ];
 
@@ -219,6 +235,8 @@ useEffect(() => {
         location: j.location,
         time: toTimeLabel(j.job_date, j.job_time),
         category: toCategoryLabel(j.service_type),
+        user_id: String(j.user_id), // Map this
+    username: j.username ?? "User", // Map this
       }));
 
       setJobs(mapped);
@@ -314,7 +332,7 @@ useEffect(() => {
               <div
                 key={job.id}
                 className="alljobs-card"
-                onClick={() => navigate(`/jobs/${job.id}`)}
+                
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) =>
@@ -325,6 +343,14 @@ useEffect(() => {
                   <h3 className="alljobs-card-title">{job.title}</h3>
                   <span className="alljobs-card-price">{job.price}</span>
                 </div>
+                <p className="posted-by-link"onClick={(e) => {
+                   e.stopPropagation(); // Prevents clicking the card from opening the job
+                   navigate(`/profile/${job.user_id}`);
+                   }}
+                   style={{ color: '#29ac3d', cursor: 'pointer', fontSize: '14px', marginBottom: '8px' }}
+>Posted by: @{job.username}
+</p>
+
                 <p className="alljobs-card-description">{job.description}</p>
                 <div className="alljobs-card-meta">
                   <span className="alljobs-meta-item">

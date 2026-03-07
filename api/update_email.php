@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
+  "https://cattle.cse.buffalo.edu",
   "http://localhost:5173",
 ];
 
@@ -38,6 +39,13 @@ $newEmail = $data['email'];
 // Validate email format
 if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(['success' => false, 'message' => 'Invalid email format']);
+    exit;
+}
+
+// Require .edu (college email), same as sign-up
+$emailLower = strtolower($newEmail);
+if (substr($emailLower, -4) !== '.edu') {
+    echo json_encode(['success' => false, 'message' => 'Please use a college email address (.edu)']);
     exit;
 }
 
