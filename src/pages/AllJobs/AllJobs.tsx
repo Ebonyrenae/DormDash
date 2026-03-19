@@ -335,8 +335,9 @@ useEffect(() => {
                 
                 role="button"
                 tabIndex={0}
+                onClick={() =>navigate(`/jobDetails/${job.id}`)}
                 onKeyDown={(e) =>
-                  e.key === "Enter" && navigate(`/jobs/${job.id}`)
+                  e.key === "Enter" && navigate(`/jobDetails/${job.id}`)
                 }
               >
                 <div className="alljobs-card-top">
