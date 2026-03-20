@@ -13,6 +13,7 @@ import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
 import AboutYourself from "../pages/AdditionalInfoPage/AboutYourself";
 import Settings from "../pages/Settings/SettingsWithBackend";
+import YourJobs from "../pages/YourJobs/YourJobs";
 
 export const router = createHashRouter([
   // Public routes
@@ -37,5 +38,9 @@ export const router = createHashRouter([
   {
     path: "/about-yourself",
     Component: AboutYourself,
+  },
+  {
+    path: "/your-jobs",
+    Component: YourJobs,
   },
 ]);

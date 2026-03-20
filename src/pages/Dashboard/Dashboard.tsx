@@ -72,6 +72,7 @@ const SIDEBAR_LINKS = [
   { label: "Profile", path: "/profile" },
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
+  { label: "Your Jobs", path: "/your-jobs" },
 ];
 
 const CheckCircleIcon = () => (
