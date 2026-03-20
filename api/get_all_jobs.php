@@ -29,10 +29,12 @@ try {
   $sql = "SELECT jobs.id, jobs.user_id, jobs.service_type, jobs.title, 
                  jobs.description, jobs.budget, jobs.location, 
                  jobs.job_date, jobs.job_time, jobs.created_at,
-                 users.username
-          FROM jobs
-          LEFT JOIN users ON jobs.user_id = users.id
-          ORDER BY jobs.created_at DESC";
+                 users.username,jobs.status
+
+                 FROM jobs
+                 LEFT JOIN users ON jobs.user_id = users.id   -- JOIN comes first
+                 WHERE jobs.status != 'active' OR jobs.status IS NULL                 -- WHERE comes after
+                 ORDER BY jobs.created_at DESC";
           
   $jobs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
