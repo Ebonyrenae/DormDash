@@ -25,13 +25,15 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 session_start();
 require_once 'config.php';
 
-$userId = $_SESSION['user_id'] ?? null;
+
+$data = json_decode(file_get_contents("php://input"), true);
+$userId = $_SESSION['user_id'] ?? $data['user_id'] ?? null;
 if (!$userId) {
   echo json_encode(['success' => false, 'message' => 'Not logged in']);
   exit;
 }
 
-$data = json_decode(file_get_contents("php://input"), true);
+
 
 $serviceType  = $data['serviceType'] ?? '';
 $title        = $data['title'] ?? '';
@@ -47,10 +49,10 @@ if (!$serviceType || !$title || !$date || !$time || !$budget || !$location) {
 }
 
 try {
-  $sql = "INSERT INTO jobs (user_id, service_type, title, job_date, job_time, budget, location, description)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+  $sql = "INSERT INTO jobs (user_id, service_type, title, job_date, job_time, budget, location, description,status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
   $stmt = $pdo->prepare($sql);
-  $stmt->execute([$userId, $serviceType, $title, $date, $time, $budget, $location, $description]);
+  $stmt->execute([$userId, $serviceType, $title, $date, $time, $budget, $location, $description, 'pending']);
 
   echo json_encode(['success' => true, 'message' => 'Job created successfully']);
 } catch (PDOException $e) {

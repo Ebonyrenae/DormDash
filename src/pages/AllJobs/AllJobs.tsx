@@ -14,6 +14,8 @@ interface Job {
   category: string;
   user_id: string; // Add this
   username: string; // Add this
+  status: string;
+  
 }
 
 const POSTED_JOBS_KEY = "posted_jobs_v1";
@@ -55,6 +57,8 @@ type BackendJob = {
   job_time: string;  // "HH:MM:SS"
   user_id: number; // Add this
   username: string | null; // Add this
+  created_at: string;
+  status: string; // Add this to track job status (e.g.,  "active", "in_progress", "completed")
 };
 
 function toCategoryLabel(serviceType: string): string {
@@ -79,8 +83,13 @@ const ALL_JOBS: Job[] = [
     time: "12:30 PM",
     category: "Groceries",
     user_id: "0",      // Add this
-    username: "system" // Add this
+    username: "system", // Add this
+    status: "active", // Add this to indicate the job is available
+  
+    
+    
   },
+  
   {
     id: "2",
     title: "Library book return",
@@ -90,7 +99,9 @@ const ALL_JOBS: Job[] = [
     time: "12:30 PM",
     category: "Others",
     user_id: "0",      // Add this
-    username: "system" // Add this
+    username: "system", // Add this
+    status: "active", // Add this to indicate the job is available
+    
   },
   {
     id: "3",
@@ -101,7 +112,8 @@ const ALL_JOBS: Job[] = [
     time: "12:30 PM",
     category: "Rides",
     user_id: "0",      // Add this
-    username: "system" // Add this
+    username: "system", // Add this
+    status: "active", // Add this to indicate the job is available
   },
   {
     id: "4",
@@ -112,7 +124,8 @@ const ALL_JOBS: Job[] = [
     time: "12:30 PM",
     category: "Cleaning",
     user_id: "0",      // Add this
-    username: "system" // Add this
+    username: "system", // Add this
+    status: "active", // Add this to indicate the job is available
   },
   {
     id: "5",
@@ -123,7 +136,8 @@ const ALL_JOBS: Job[] = [
     time: "12:30 PM",
     category: "Cooking",
     user_id: "0",      // Add this
-    username: "system" // Add this
+    username: "system", // Add this
+    status: "active", // Add this to indicate the job is available
   },
   {
     id: "6",
@@ -135,7 +149,8 @@ const ALL_JOBS: Job[] = [
     time: "12:30 PM",
     category: "Tutoring",
     user_id: "0",      // Add this
-    username: "system" // Add this
+    username: "system", // Add this
+    status: "pending", // Add this to indicate the job is available
   },
 ];
 
@@ -236,6 +251,7 @@ useEffect(() => {
         time: toTimeLabel(j.job_date, j.job_time),
         category: toCategoryLabel(j.service_type),
         user_id: String(j.user_id), // Map this
+        status: j.status, 
     username: j.username ?? "User", // Map this
       }));
 
@@ -335,8 +351,9 @@ useEffect(() => {
                 
                 role="button"
                 tabIndex={0}
+                onClick={() =>navigate(`/jobDetails/${job.id}`)}
                 onKeyDown={(e) =>
-                  e.key === "Enter" && navigate(`/jobs/${job.id}`)
+                  e.key === "Enter" && navigate(`/jobDetails/${job.id}`)
                 }
               >
                 <div className="alljobs-card-top">
