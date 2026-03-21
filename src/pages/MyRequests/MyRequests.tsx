@@ -54,6 +54,7 @@ type BackendJob = {
   description: string | null;
   budget: string;
   location: string;
+  status: string;
   job_date: string;
   job_time: string;
 };
@@ -227,6 +228,17 @@ useEffect(() => {
       }
 
       const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
+
+        let mappedStatus: StatusType = "Active";
+
+        if (j.status === "active") {
+          mappedStatus = "In Progress";
+        } else if (j.status === "completed") {
+          mappedStatus = "Completed";
+        } else {
+          mappedStatus = "Active";
+  }
+
         const categoryLabel =
           j.service_type?.charAt(0).toUpperCase() + j.service_type.slice(1);
 
@@ -234,10 +246,12 @@ useEffect(() => {
         const dateTime = `${j.job_date}\n${time}`;
 
         return {
+
+         
           id: String(j.id),
           category: categoryLabel,
           categoryEmoji: SERVICE_EMOJI[j.service_type] ?? "🧾",
-          status: "Active",        // for this task: all are Active
+          status: mappedStatus,        // for this task: all are Active
           title: j.title,
           description: j.description ?? "",
           dateTime,
@@ -259,6 +273,10 @@ useEffect(() => {
 }, []);
 
 const postedAsRequests: Request[] = useMemo(() => {
+
+
+
+  
   return postedJobs.map((j) => {
     const dt = j.date && j.time ? new Date(`${j.date}T${j.time}`) : null;
     const prettyDate = dt
