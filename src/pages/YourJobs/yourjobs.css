@@ -21,7 +21,7 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
-  font-family: "Inter";
+  font-family: "Inter", sans-serif;
   outline: none;
 }
 .modal-cancel-btn {
@@ -55,13 +55,13 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  font-family: "Inter";
+  font-family: "Inter", sans-serif;
   transition: background 0.2s ease;
 }
 .complete-btn:hover {
   background: #e6f4ea;
 }
-/* ===== MY REQUESTS PAGE ===== */
+
 .requests-page {
   min-height: 100vh;
   background: #f3f4f6;
@@ -428,4 +428,25 @@
   .requests-page-title {
     font-size: 26px;
   }
+}
+
+
+.postjob-btn-submit {
+  width: 100%;
+  background: #29ac3d;
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.6px;
+  padding: 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.postjob-btn-submit:hover {
+  background: #2bc947;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(41, 172, 61, 0.3);
 }

@@ -13,7 +13,7 @@ if (in_array($origin, $allowed_origins, true)) {
   header("Access-Control-Allow-Credentials: true");
   header("Vary: Origin");
 }
-header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
@@ -25,23 +25,30 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 session_start();
 require_once 'config.php';
 
-$userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
+// Get the raw POST data and decode it from JSON
+$receivedData = file_get_contents("php://input");
+$data = json_decode($receivedData, true);
+
+// Extract the data from the request
+$status= $data['status'] ?? null;
+$jobId = $data['job_id']?? null;
+
+
+
+
+$userId = $_SESSION['user_id'] ?? $data['user_id'] ?? null;
 if (!$userId) {
   echo json_encode(['success' => false, 'message' => 'Not logged in']);
   exit;
 }
 
 try {
-  $sql = "SELECT id, user_id, service_type, title, description, budget, 
-          location, job_date, job_time, created_at, status
-          FROM jobs
-          WHERE accepted_by = ?
-          ORDER BY created_at DESC";
+  $sql = "UPDATE jobs SET status = ? WHERE id = ? AND accepted_by = ?";
   $stmt = $pdo->prepare($sql);
-  $stmt->execute([$userId]);
-  $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $stmt->execute([$status, $jobId, $userId]);
+ 
 
-  echo json_encode(['success' => true, 'jobs' => $jobs]);
+  echo json_encode(['success' => true]);
 } catch (PDOException $e) {
   echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }

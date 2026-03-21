@@ -95,12 +95,10 @@ const YourJobs = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
+  const [ConfirmError,setConfirmError] = useState("");
 
-  // confirmation code modal state
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmCode, setConfirmCode] = useState("");
-  const [confirmError, setConfirmError] = useState("");
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  
+  
 
   // fetch accepted jobs from backend
   useEffect(() => {
@@ -108,7 +106,7 @@ const YourJobs = () => {
       try {
         setLoadError(null);
         const userId = localStorage.getItem("userId")
-        const res = await fetch(`${API_BASE_URL}/get_accepted_jobs.php?user_id=${userId}`, {
+        const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php?user_id=${userId}`, {
              method: "GET",
              credentials: "include",
             });
@@ -143,7 +141,7 @@ const YourJobs = () => {
   }, []);
 
   // mark job as complete
-  const handleMarkComplete = async (jobId: string, code: string) => {
+  const handleMarkComplete = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
         method: "POST",
@@ -151,8 +149,7 @@ const YourJobs = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           job_id: jobId,
-          status: "completed",
-          confirmation_code: code,
+          status: "complete",
           user_id: localStorage.getItem("userId"),
         }),
       });
@@ -160,8 +157,8 @@ const YourJobs = () => {
       const data = await res.json();
 
       if (!data.success) {
-        // wrong confirmation code or other error
-        setConfirmError(data.message || "Invalid confirmation code");
+        // error 
+        setConfirmError(data.message || "Failed to mark job as complete");
         return;
       }
 
@@ -172,16 +169,93 @@ const YourJobs = () => {
         )
       );
 
-      // close the modal
-      setShowConfirmModal(false);
-      setConfirmCode("");
+      
       setConfirmError("");
-      setSelectedJobId(null);
+   
 
     } catch {
       setConfirmError("Network error. Please try again.");
     }
   };
+
+  // mark job as inProgress
+  const handleInProgress = async (jobId: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          job_id: jobId,
+          status: "in_progress",
+          user_id: localStorage.getItem("userId"),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        // error
+        setConfirmError(data.message || "Job not moved to in progress");
+        return;
+      }
+
+      // update the card status locally without refetching
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === jobId ? { ...r, status: "In Progress" as StatusType } : r
+        )
+      );
+
+      
+      setConfirmError("");
+   
+
+    } catch {
+      setConfirmError("Network error. Please try again.");
+    }
+  };
+
+
+  // mark job as pending
+  const handlePending = async (jobId: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          job_id: jobId,
+          status: "pending",
+          user_id: localStorage.getItem("userId"),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        // error
+        setConfirmError(data.message || "Job not moved to pending");
+        return;
+      }
+
+      // update the card status locally without refetching
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === jobId ? { ...r, status: "Pending" as StatusType } : r
+        )
+      );
+
+      
+      setConfirmError("");
+   
+
+    } catch {
+      setConfirmError("Network error. Please try again.");
+    }
+  };
+
+
 
   const handleSidebarLink = (path: string) => {
     setSidebarOpen(false);
@@ -201,58 +275,8 @@ const YourJobs = () => {
   return (
     <div className="requests-page">
 
-      {/* Confirmation Code Modal */}
-      {showConfirmModal && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h3 style={{ fontFamily: "Inter", fontWeight: 500, marginBottom: 8 }}>
-              Enter Confirmation Code
-            </h3>
-            <p style={{ fontSize: 13, color: "grey", fontFamily: "Inter", marginBottom: 16 }}>
-              Enter the code provided by the job poster to confirm completion
-            </p>
-            <input
-              type="text"
-              className="confirm-input"
-              placeholder="Enter code..."
-              value={confirmCode}
-              onChange={(e) => {
-                setConfirmCode(e.target.value);
-                setConfirmError("");
-              }}
-            />
-            {confirmError && (
-              <p style={{ color: "red", fontSize: 12, marginTop: 6, fontFamily: "Inter" }}>
-                {confirmError}
-              </p>
-            )}
-            <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-              <button
-                className="modal-cancel-btn"
-                onClick={() => {
-                  setShowConfirmModal(false);
-                  setConfirmCode("");
-                  setConfirmError("");
-                  setSelectedJobId(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="modal-confirm-btn"
-                onClick={() => {
-                  if (selectedJobId) {
-                    handleMarkComplete(selectedJobId, confirmCode);
-                  }
-                }}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+     
+        
       {/* Sidebar Overlay */}
       <div
         className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
@@ -369,16 +393,40 @@ const YourJobs = () => {
                 </div>
               </div>
 
+
+              {/* show button only for in active jobs */}
+              {req.status === "Active" && (
+                <><button
+                          className="postjob-btn-submit "
+                          onClick={() => {
+                              //MARK JOB AS IN PROGRESS IN backend
+                              handleInProgress(req.id); } }
+                      >
+                          Start Job
+                      </button><button
+                          className="complete-btn"
+                          onClick={() => {
+                              //Mark job as pending 
+                              handleInProgress(req.id);
+                          } }
+                      >
+                              Remove Job From Active Jobs
+                          </button></>
+              )}
+
+
+
               {/* show button only for in progress jobs */}
               {req.status === "In Progress" && (
                 <button
                   className="complete-btn"
                   onClick={() => {
-                    setSelectedJobId(req.id);
-                    setShowConfirmModal(true);
+                    // Handle completion logic
+                    handleMarkComplete(req.id);
+
                   }}
                 >
-                  Enter Confirmation Code
+                  Mark as Complete
                 </button>
               )}
 

@@ -162,7 +162,10 @@ const handleSubmit = async (e: React.FormEvent) => {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form), // <-- uses your exact fields, nothing hardcoded
+      body: JSON.stringify({ 
+    ...form, 
+    user_id: localStorage.getItem("userId") 
+})
     });
 
     const data = await res.json();
