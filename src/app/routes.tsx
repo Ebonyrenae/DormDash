@@ -13,11 +13,8 @@ import Messages from "../pages/Messages/Messages";
 import DirectMessage from "../pages/Messages/DirectMessage";
 import AboutYourself from "../pages/AdditionalInfoPage/AboutYourself";
 import Settings from "../pages/Settings/SettingsWithBackend";
-<<<<<<< HEAD
 import YourJobs from "../pages/YourJobs/YourJobs";
-=======
 import JobDetailsPage from "../pages/JobDetailsPage/JobDetails";
->>>>>>> 5c939c6bbef554786c761be6f926d340c5ab3622
 
 export const router = createHashRouter([
   // Public routes

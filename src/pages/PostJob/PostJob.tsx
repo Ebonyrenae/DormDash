@@ -162,14 +162,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-<<<<<<< HEAD
-      body: JSON.stringify({ 
-    ...form, 
-    user_id: localStorage.getItem("userId") 
-})
-=======
       body: JSON.stringify({ ...form, user_id: localStorage.getItem("userId") }),
->>>>>>> 5c939c6bbef554786c761be6f926d340c5ab3622
     });
 
     const data = await res.json();
