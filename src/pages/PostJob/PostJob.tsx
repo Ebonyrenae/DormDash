@@ -147,7 +147,7 @@ const PostJob = () => {
 
 
 
-  const API_BASE_URL = "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+  const API_BASE_URL = "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
 
 const [submitError, setSubmitError] = useState<string | null>(null);
 const [isSubmitting, setIsSubmitting] = useState(false);

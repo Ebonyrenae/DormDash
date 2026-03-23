@@ -308,7 +308,7 @@ const postedAsRequests: Request[] = useMemo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
+  const [activeFilter, setActiveFilter] = useState<FilterTab>("Active");
 
   const handleSidebarLink = (path: string) => {
     setSidebarOpen(false);
