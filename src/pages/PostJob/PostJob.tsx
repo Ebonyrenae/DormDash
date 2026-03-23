@@ -20,6 +20,7 @@ const SIDEBAR_LINKS = [
   { label: "Profile", path: "/profile" },
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
+  { label: "Your Jobs", path: "/your-jobs" },
 ];
 
 const POSTED_JOBS_KEY = "posted_jobs_v1";

@@ -33,7 +33,7 @@ try {
 
                  FROM jobs
                  LEFT JOIN users ON jobs.user_id = users.id   -- JOIN comes first
-                 WHERE jobs.status != 'active' OR jobs.status IS NULL                 -- WHERE comes after
+                 WHERE jobs.status = 'pending' OR jobs.status IS NULL                 -- WHERE comes after
                  ORDER BY jobs.created_at DESC";
           
   $jobs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);

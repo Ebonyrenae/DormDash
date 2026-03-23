@@ -31,6 +31,8 @@ if (!$userId) {
   exit;
 }
 
+
+
 try {
   $sql = "SELECT id, user_id, service_type, title, description, budget, 
           location, job_date, job_time, created_at, status

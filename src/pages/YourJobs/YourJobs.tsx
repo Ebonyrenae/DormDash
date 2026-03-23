@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./yourjobs.css";
 
@@ -43,10 +43,9 @@ const SERVICE_EMOJI: Record<string, string> = {
   moving: "🚛",
 };
 
-// converts backend status to frontend StatusType
 function toStatusLabel(status: string): StatusType {
   if (status === "in_progress") return "In Progress";
-  if (status === "completed") return "Completed";
+  if (status === "complete") return "Completed";
   return "Active";
 }
 
@@ -86,7 +85,7 @@ const DollarIcon = () => (
   </svg>
 );
 
-type FilterTab = "All" | StatusType;
+type FilterTab = "Active" | "In Progress" | "Completed";
 
 const YourJobs = () => {
   const [requests, setRequests] = useState<Request[]>([]);
@@ -94,22 +93,25 @@ const YourJobs = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
-  const [ConfirmError,setConfirmError] = useState("");
 
-  
-  
+  // default to Active tab when page loads
+  const [activeFilter, setActiveFilter] = useState<FilterTab>("Active");
+  const [confirmError, setConfirmError] = useState("");
+
+  // remove job confirmation modal state
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [selectedRemoveJobId, setSelectedRemoveJobId] = useState<string | null>(null);
 
   // fetch accepted jobs from backend
   useEffect(() => {
     (async () => {
       try {
         setLoadError(null);
-        const userId = localStorage.getItem("userId")
-        const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php?user_id=${userId}`, {
-             method: "GET",
-             credentials: "include",
-            });
+        const userId = localStorage.getItem("userId");
+        const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php?user_id=${userId}&t=${Date.now()}`, {
+          method: "GET",
+          credentials: "include",
+        });
         const data = await res.json();
 
         if (!data.success) {
@@ -124,7 +126,7 @@ const YourJobs = () => {
             id: String(j.id),
             category: j.service_type?.charAt(0).toUpperCase() + j.service_type?.slice(1),
             categoryEmoji: SERVICE_EMOJI[j.service_type] ?? "🧾",
-            status: toStatusLabel(j.status),  // maps backend status to frontend
+            status: toStatusLabel(j.status),
             title: j.title,
             description: j.description ?? "",
             dateTime,
@@ -157,28 +159,23 @@ const YourJobs = () => {
       const data = await res.json();
 
       if (!data.success) {
-        // error 
         setConfirmError(data.message || "Failed to mark job as complete");
         return;
       }
 
-      // update the card status locally without refetching
       setRequests((prev) =>
         prev.map((r) =>
           r.id === jobId ? { ...r, status: "Completed" as StatusType } : r
         )
       );
-
-      
       setConfirmError("");
-   
 
     } catch {
       setConfirmError("Network error. Please try again.");
     }
   };
 
-  // mark job as inProgress
+  // mark job as in progress
   const handleInProgress = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
@@ -195,29 +192,23 @@ const YourJobs = () => {
       const data = await res.json();
 
       if (!data.success) {
-        // error
         setConfirmError(data.message || "Job not moved to in progress");
         return;
       }
 
-      // update the card status locally without refetching
       setRequests((prev) =>
         prev.map((r) =>
           r.id === jobId ? { ...r, status: "In Progress" as StatusType } : r
         )
       );
-
-      
       setConfirmError("");
-   
 
     } catch {
       setConfirmError("Network error. Please try again.");
     }
   };
 
-
-  // mark job as pending
+  // mark job as pending (remove from active)
   const handlePending = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
@@ -234,28 +225,19 @@ const YourJobs = () => {
       const data = await res.json();
 
       if (!data.success) {
-        // error
-        setConfirmError(data.message || "Job not moved to pending");
+        setConfirmError(data.message || "Job not removed from active jobs");
         return;
       }
 
-      // update the card status locally without refetching
-      setRequests((prev) =>
-        prev.map((r) =>
-          r.id === jobId ? { ...r, status: "Pending" as StatusType } : r
-        )
-      );
-
-      
+      setRequests((prev) => prev.filter((r) => r.id !== jobId));
       setConfirmError("");
-   
+      setShowRemoveModal(false);
+      setSelectedRemoveJobId(null);
 
     } catch {
       setConfirmError("Network error. Please try again.");
     }
   };
-
-
 
   const handleSidebarLink = (path: string) => {
     setSidebarOpen(false);
@@ -267,16 +249,48 @@ const YourJobs = () => {
   const inProgressCount = requests.filter((r) => r.status === "In Progress").length;
   const completedCount = requests.filter((r) => r.status === "Completed").length;
 
-  const filtered =
-    activeFilter === "All"
-      ? requests
-      : requests.filter((r) => r.status === activeFilter);
+  // filter by selected tab — no "All" option anymore
+  const filtered = requests.filter((r) => r.status === activeFilter);
 
   return (
     <div className="requests-page">
 
-     
-        
+      {/* Remove Job Confirmation Modal */}
+      {showRemoveModal && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3 style={{ fontFamily: "Inter", fontWeight: 500, marginBottom: 8 }}>
+              Remove Job
+            </h3>
+            <p style={{ fontSize: 14, color: "grey", fontFamily: "Inter", marginBottom: 20, lineHeight: 1.6 }}>
+              Are you sure you want to remove this job from your active jobs?
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                className="modal-cancel-btn"
+                onClick={() => {
+                  setShowRemoveModal(false);
+                  setSelectedRemoveJobId(null);
+                  navigate("/all-jobs");
+                }}
+              >
+                No, go to Jobs
+              </button>
+              <button
+                className="modal-confirm-btn"
+                onClick={() => {
+                  if (selectedRemoveJobId) {
+                    handlePending(selectedRemoveJobId);
+                  }
+                }}
+              >
+                Yes, Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar Overlay */}
       <div
         className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
@@ -324,9 +338,11 @@ const YourJobs = () => {
 
         {/* Stats */}
         <div className="requests-stats-row">
+
+          {/* Active tab */}
           <div
-            className={`stat-card${activeFilter === "Active" || activeFilter === "All" ? " stat-active" : ""}`}
-            onClick={() => setActiveFilter(activeFilter === "Active" ? "All" : "Active")}
+            className={`stat-card${activeFilter === "Active" ? " stat-active" : ""}`}
+            onClick={() => setActiveFilter("Active")}
             role="button"
             tabIndex={0}
           >
@@ -334,9 +350,10 @@ const YourJobs = () => {
             <div className="stat-card-label">Active</div>
           </div>
 
+          {/* In Progress tab */}
           <div
             className={`stat-card${activeFilter === "In Progress" ? " stat-active" : ""}`}
-            onClick={() => setActiveFilter(activeFilter === "In Progress" ? "All" : "In Progress")}
+            onClick={() => setActiveFilter("In Progress")}
             role="button"
             tabIndex={0}
           >
@@ -344,15 +361,17 @@ const YourJobs = () => {
             <div className="stat-card-label">In Progress</div>
           </div>
 
+          {/* Completed tab */}
           <div
             className={`stat-card${activeFilter === "Completed" ? " stat-active" : ""}`}
-            onClick={() => setActiveFilter(activeFilter === "Completed" ? "All" : "Completed")}
+            onClick={() => setActiveFilter("Completed")}
             role="button"
             tabIndex={0}
           >
             <div className="stat-card-number color-gray">{completedCount}</div>
             <div className="stat-card-label">Completed</div>
           </div>
+
         </div>
 
         {loadError && (
@@ -393,38 +412,32 @@ const YourJobs = () => {
                 </div>
               </div>
 
-
-              {/* show button only for in active jobs */}
+              {/* buttons for active jobs */}
               {req.status === "Active" && (
-                <><button
-                          className="postjob-btn-submit "
-                          onClick={() => {
-                              //MARK JOB AS IN PROGRESS IN backend
-                              handleInProgress(req.id); } }
-                      >
-                          Start Job
-                      </button><button
-                          className="complete-btn"
-                          onClick={() => {
-                              //Mark job as pending 
-                              handleInProgress(req.id);
-                          } }
-                      >
-                              Remove Job From Active Jobs
-                          </button></>
+                <>
+                  <button
+                    className="postjob-btn-submit"
+                    onClick={() => handleInProgress(req.id)}
+                  >
+                    Start Job
+                  </button>
+                  <button
+                    className="complete-btn"
+                    onClick={() => {
+                      setSelectedRemoveJobId(req.id);
+                      setShowRemoveModal(true);
+                    }}
+                  >
+                    Remove Job From Active Jobs
+                  </button>
+                </>
               )}
 
-
-
-              {/* show button only for in progress jobs */}
+              {/* button for in progress jobs */}
               {req.status === "In Progress" && (
                 <button
                   className="complete-btn"
-                  onClick={() => {
-                    // Handle completion logic
-                    handleMarkComplete(req.id);
-
-                  }}
+                  onClick={() => handleMarkComplete(req.id)}
                 >
                   Mark as Complete
                 </button>
