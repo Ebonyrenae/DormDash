@@ -15,6 +15,7 @@ import AboutYourself from "../pages/AdditionalInfoPage/AboutYourself";
 import Settings from "../pages/Settings/SettingsWithBackend";
 import YourJobs from "../pages/YourJobs/YourJobs";
 import JobDetailsPage from "../pages/JobDetailsPage/JobDetails";
+import RecentActivities from "../pages/RecentActivities/RecentActivities";
 
 export const router = createHashRouter([
   // Public routes
@@ -28,6 +29,7 @@ export const router = createHashRouter([
   { path: "/settings", Component: Settings },
   { path: "/academic-info", Component: AcademicInfo },
   { path: "/dashboard", Component: Dashboard },
+  { path: "/recent-activities", Component: RecentActivities },
   { path: "/all-jobs", Component: AllJobs },
   { path: "/profile", Component: Profile },
   { path: "/profile/:userId", Component: Profile },

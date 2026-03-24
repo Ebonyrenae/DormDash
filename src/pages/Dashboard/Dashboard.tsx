@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_BASE } from "../../config";
+import {
+  getActivityPrimaryText,
+  getDashboardRecentActivitiesForUser,
+  type RecentActivityItem,
+} from "../../utils/recentActivities";
 import "./dashboard.css";
 
 interface Job {
@@ -10,13 +15,6 @@ interface Job {
   price: number;
   location: string;
   time: string;
-}
-
-interface Activity {
-  id: string;
-  title: string;
-  status: "Completed" | "In Progress" | "Pending";
-  timeAgo: string;
 }
 
 const MOCK_JOBS: Job[] = [
@@ -38,33 +36,6 @@ const MOCK_JOBS: Job[] = [
   },
 ];
 
-const MOCK_ACTIVITIES: Activity[] = [
-  {
-    id: "1",
-    title: "Coffee Delivery",
-    status: "Completed",
-    timeAgo: "3 hours ago",
-  },
-  {
-    id: "2",
-    title: "Package pickup from mailroom",
-    status: "Completed",
-    timeAgo: "Yesterday",
-  },
-  {
-    id: "3",
-    title: "Tutoring Help",
-    status: "Completed",
-    timeAgo: "Yesterday",
-  },
-  {
-    id: "4",
-    title: "Coffee Delivery",
-    status: "Completed",
-    timeAgo: "3 days ago",
-  },
-];
-
 const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
   { label: "View Jobs", path: "/all-jobs" },
@@ -74,25 +45,6 @@ const SIDEBAR_LINKS = [
   { label: "Settings", path: "/settings" },
   { label: "Your Jobs", path: "/your-jobs" }
 ];
-
-const CheckCircleIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M22 11.0857V12.0057C21.9988 14.1621 21.3005 16.2604 20.0093 17.9875C18.7182 19.7147 16.9033 20.9782 14.8354 21.5896C12.7674 22.201 10.5573 22.1276 8.53447 21.3803C6.51168 20.633 4.78465 19.2518 3.61096 17.4428C2.43727 15.6338 1.87979 13.4938 2.02168 11.342C2.16356 9.19029 2.99721 7.14205 4.39828 5.5028C5.79935 3.86354 7.69279 2.72111 9.79619 2.24587C11.8996 1.77063 14.1003 1.98806 16.07 2.86572"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M22 4L12 14.01L9 11.01"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 const LocationIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -159,6 +111,8 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
+  const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([]);
+  const [availableJobIds, setAvailableJobIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const userId = localStorage.getItem("userId") || localStorage.getItem("user_id");
@@ -172,6 +126,25 @@ const Dashboard = () => {
         }
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setRecentActivities(getDashboardRecentActivitiesForUser(4));
+  }, [location.key]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/get_all_jobs.php`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.jobs)) return;
+        setAvailableJobIds(new Set(data.jobs.map((job: { id: number }) => String(job.id))));
+      } catch {
+        // Keep dashboard functional even if status fetch fails.
+      }
+    })();
   }, []);
 
   const userInitials =
@@ -342,32 +315,72 @@ const Dashboard = () => {
               <h2 className="section-heading">Recent Activities</h2>
               <button
                 className="section-link"
-                onClick={() => navigate("/my-requests")}
+                onClick={() => navigate("/recent-activities")}
               >
                 See all →
               </button>
             </div>
 
             <div className="activity-grid">
-              {MOCK_ACTIVITIES.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="activity-card"
-                  onClick={() => navigate(`/my-requests/${activity.id}`)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && navigate(`/my-requests/${activity.id}`)
-                  }
-                >
-                  <div className="activity-icon">
-                    <CheckCircleIcon />
+              {recentActivities.length > 0 ? (
+                recentActivities.map((activity) => {
+                  const isAvailable = availableJobIds.has(activity.jobId);
+                  const isAcceptedByYou = activity.eventType === "accepted_job";
+                  const availabilityLoaded = availableJobIds.size > 0;
+                  const recentAvailability =
+                    availabilityLoaded && !isAvailable && !isAcceptedByYou
+                      ? "picked_by_other"
+                      : "available";
+
+                  return (
+                  <div
+                    key={activity.jobId}
+                    className="activity-card"
+                    onClick={() =>
+                      navigate(`/jobDetails/${activity.jobId}`, {
+                        state: {
+                          fromPath: location.pathname,
+                          recentAvailability,
+                          recentActivity: activity,
+                        },
+                      })
+                    }
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" &&
+                      navigate(`/jobDetails/${activity.jobId}`, {
+                        state: {
+                          fromPath: location.pathname,
+                          recentAvailability,
+                          recentActivity: activity,
+                        },
+                      })
+                    }
+                  >
+                    <div className="activity-top-row">
+                      <p className="activity-title">{activity.title}</p>
+                      {activity.budget ? (
+                        <span className="activity-budget">{activity.budget}</span>
+                      ) : null}
+                    </div>
+                    <p className="activity-time-row">
+                      <span className="activity-icon">
+                        <ClockIcon />
+                      </span>
+                      {getActivityPrimaryText(activity)}
+                    </p>
+                    {activity.location || activity.category ? (
+                      <span className="activity-chip">
+                        {activity.location ?? activity.category}
+                      </span>
+                    ) : null}
                   </div>
-                  <p className="activity-title">{activity.title}</p>
-                  <p className="activity-status">{activity.status}</p>
-                  <p className="activity-time">{activity.timeAgo}</p>
-                </div>
-              ))}
+                  );
+                })
+              ) : (
+                <div className="empty-state">No recent activities</div>
+              )}
             </div>
           </section>
         </div>
