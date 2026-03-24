@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import "./jobdetails.css";
+import { trackJobActivity, trackViewedJob } from "../../utils/recentActivities";
 
 const API_BASE_URL = "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
 
@@ -16,6 +17,7 @@ type BackendJob = {
   user_id: number;
   username: string | null;
   created_at: string;
+  status?: string;
 };
 
 type BackendUser ={
@@ -24,17 +26,46 @@ type BackendUser ={
   email: string;
   profile_picture: string | null;};
 
+type JobRouteState = {
+  fromPath?: string;
+  recentAvailability?: "available" | "picked_by_other";
+  recentActivity?: {
+    title: string;
+    budget?: string;
+    location?: string;
+    category?: string;
+    eventType?: "viewed_job" | "accepted_job";
+  };
+};
+
+type CtaState = "available" | "picked_by_other" | "picked_by_you" | "your_post";
+
 const JobDetails = () => {
   const { jobId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [job, setJob] = useState<BackendJob | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [loggedUser, setLoggedUser] = useState<BackendUser | null>(null);
-  const userId = localStorage.getItem("userId");
-  const username = localStorage.getItem("username");
-  const loggedInUserId = Number(localStorage.getItem("userId"))
+  const loggedInUserId = Number(
+    localStorage.getItem("userId") || localStorage.getItem("user_id") || 0
+  );
   const [isSuccess, setIsSuccess] = useState(false);
+  const routeState = (location.state as JobRouteState | null) ?? null;
+  const fromPath = routeState?.fromPath;
+  const recentAvailability = (
+    location.state as { recentAvailability?: "available" | "picked_by_other" } | null
+  )?.recentAvailability;
+  const backPath = fromPath === "/dashboard" || fromPath === "/recent-activities"
+    ? fromPath
+    : "/all-jobs";
+
+  const findById = (items: BackendJob[] | undefined, id: number): BackendJob | null => {
+    if (!Array.isArray(items)) return null;
+    return items.find((j) => j.id === id) ?? null;
+  };
+
+  const [ctaState, setCtaState] = useState<CtaState>("available");
 
 
 
@@ -57,6 +88,14 @@ const JobDetails = () => {
 
         if (data.success) {
             console.log("Job accepted!")
+            trackJobActivity({
+              jobId: String(job.id),
+              title: job.title,
+              eventType: "accepted_job",
+              budget: job.budget,
+              location: job.location,
+              category: job.service_type,
+            });
             setIsSuccess(true);
         } else {
             console.log("Failed to accept job")
@@ -70,26 +109,89 @@ const JobDetails = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/get_all_jobs.php`, {
+        const targetJobId = Number(jobId);
+        let foundJob: BackendJob | null = null;
+        let foundSource: "all" | "accepted" | "my" | "fallback" = "fallback";
+
+        const allJobsRes = await fetch(`${API_BASE_URL}/get_all_jobs.php`, {
           credentials: "include",
         });
-        const data = await res.json();
-
-        if (!data.success) {
-          setError(data.message || "Job not found");
-          return;
+        const allJobsData = await allJobsRes.json();
+        if (allJobsData.success) {
+          foundJob = findById(allJobsData.jobs, targetJobId);
+          if (foundJob) foundSource = "all";
         }
 
-        const foundJob = data.jobs.find(
-          (j: BackendJob) => j.id === Number(jobId)
-        );
+        if (!foundJob && loggedInUserId) {
+          const acceptedRes = await fetch(
+            `${API_BASE_URL}/get_accepted_Jobs.php?user_id=${loggedInUserId}&t=${Date.now()}`,
+            { credentials: "include" }
+          );
+          const acceptedData = await acceptedRes.json();
+          if (acceptedData.success) {
+            foundJob = findById(acceptedData.jobs, targetJobId);
+            if (foundJob) foundSource = "accepted";
+          }
+        }
+
+        if (!foundJob && loggedInUserId) {
+          const myJobsRes = await fetch(`${API_BASE_URL}/get_my_jobs.php`, {
+            credentials: "include",
+          });
+          const myJobsData = await myJobsRes.json();
+          if (myJobsData.success) {
+            foundJob = findById(myJobsData.jobs, targetJobId);
+            if (foundJob) foundSource = "my";
+          }
+        }
 
         if (!foundJob) {
-          setError("Job not found");
-          return;
+          if (routeState?.recentActivity) {
+            foundJob = {
+              id: targetJobId,
+              service_type: routeState.recentActivity.category ?? "Other",
+              title: routeState.recentActivity.title,
+              description: "This job is no longer available in the active feed.",
+              budget: routeState.recentActivity.budget ?? "",
+              location: routeState.recentActivity.location ?? "",
+              job_date: "",
+              job_time: "",
+              user_id: 0,
+              username: "User",
+              created_at: "",
+              status: "active",
+            };
+            foundSource = "fallback";
+          } else {
+            setError("Job not found");
+            return;
+          }
+        }
+        setJob(foundJob);
+
+        if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
+          setCtaState("your_post");
+        } else if (
+          foundSource === "accepted" ||
+          routeState?.recentActivity?.eventType === "accepted_job"
+        ) {
+          setCtaState("picked_by_you");
+        } else if (
+          recentAvailability === "picked_by_other" ||
+          (foundJob.status ?? "pending") !== "pending"
+        ) {
+          setCtaState("picked_by_other");
+        } else {
+          setCtaState("available");
         }
 
-        setJob(foundJob);
+        trackViewedJob({
+          jobId: String(foundJob.id),
+          title: foundJob.title,
+          budget: foundJob.budget,
+          location: foundJob.location,
+          category: foundJob.service_type,
+        });
 
       } catch {
         setError("Network error loading job.");
@@ -131,8 +233,8 @@ const JobDetails = () => {
         <div className="job-details-page">
 
         {/* Back button */}
-        <button className="back-button" onClick={() => navigate("/all-jobs")}>
-            ← Back to Jobs
+        <button className="back-button" onClick={() => navigate(backPath)}>
+            {backPath === "/all-jobs" ? "← Back to Jobs" : "← Back"}
         </button>
 
         <div className="floating-box">
@@ -210,16 +312,7 @@ const JobDetails = () => {
         
 
             
-        {job.user_id !== loggedInUserId ? (
-        <>
-            <button className="negotiate-btn">
-                Negotiate Price with {job.username ?? "User"}
-            </button>
-            <button className="accept-button" onClick={handleAcceptJob}>
-                Accept Job
-            </button>
-        </>
-    ) : (
+        {ctaState === "your_post" ? (
         <p style={{ textAlign: "center", color: "grey", fontSize: 14, fontFamily: "Inter", marginTop: 20 }}>
         This is your job posting.{" "}
         <span 
@@ -229,6 +322,28 @@ const JobDetails = () => {
             Manage your posting from your My Request Page
         </span>
     </p>
+    ) : ctaState === "available" ? (
+      <>
+        <button className="negotiate-btn">
+            Negotiate Price with {job.username ?? "User"}
+        </button>
+        <button className="accept-button" onClick={handleAcceptJob}>
+            Accept Job
+        </button>
+      </>
+    ) : ctaState === "picked_by_you" ? (
+      job.user_id > 0 ? (
+        <button
+          className="accept-button"
+          onClick={() => navigate(`/messages/${job.user_id}`)}
+        >
+          Message Poster
+        </button>
+      ) : (
+        <p className="job-unavailable-note">Open Your Jobs to message the poster</p>
+      )
+    ) : (
+      <p className="job-unavailable-note">Someone else picked this one up</p>
     )}
 
         </div>

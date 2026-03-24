@@ -157,6 +157,18 @@ background: #e6f4ea;
   background: #e6f4ea;
 }
 
+.job-unavailable-note {
+  margin-top: 24px;
+  text-align: center;
+  color: #4b5563;
+  font-size: 14px;
+  font-family: "Inter", sans-serif;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
 /* Full screen blur background */
 .success-screen {
   position: fixed;
