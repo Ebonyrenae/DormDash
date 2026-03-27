@@ -19,7 +19,7 @@ interface Request {
 }
 
 const API_BASE_URL =
-  "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+  "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
 
 type BackendJob = {
   id: number;
@@ -95,12 +95,13 @@ const YourJobs = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // default to Active tab when page loads
-  const [activeFilter, setActiveFilter] = useState<FilterTab>("Active");
-  const [confirmError, setConfirmError] = useState("");
-
-  // remove job confirmation modal state
-  const [showRemoveModal, setShowRemoveModal] = useState(false);
-  const [selectedRemoveJobId, setSelectedRemoveJobId] = useState<string | null>(null);
+    const [activeFilter, setActiveFilter] = useState<FilterTab>("Active");
+    const [confirmError, setConfirmError] = useState("");
+    const [code, setCode] = useState<Record<string, string> | null>({});
+  
+    // remove job confirmation modal state
+    const [showRemoveModal, setShowRemoveModal] = useState(false);
+    const [selectedRemoveJobId, setSelectedRemoveJobId] = useState<string | null>(null);
 
   // fetch accepted jobs from backend
   useEffect(() => {
@@ -435,12 +436,20 @@ const YourJobs = () => {
 
               {/* button for in progress jobs */}
               {req.status === "In Progress" && (
-                <button
-                  className="complete-btn"
-                  onClick={() => handleMarkComplete(req.id)}
-                >
-                  Mark as Complete
-                </button>
+                <div className="in-progress-actions">
+                  <input type="text" 
+                    className="completion-code-input" 
+                    value={code?.[req.id] || ""} 
+                    onChange={(e) => setCode(prev => ({ ...prev, [req.id]: e.target.value }))} 
+                    placeholder="Enter completion code" />
+                    
+                  <button
+                    className="complete-btn"
+                    onClick={() => handleMarkComplete(req.id)}
+                  >
+                    Mark as Complete
+                  </button>
+                </div>
               )}
 
             </div>

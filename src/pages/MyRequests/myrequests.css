@@ -340,6 +340,38 @@
   white-space: nowrap;
 }
 
+.cancel-btn{
+  background: #e13333;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  margin-left: 0;
+  margin-right: 10px;
+}
+
+.unassign-btn {
+  background: #f97316;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  margin-right : 10px;
+} 
+.cancel-btn:hover {
+  background: #dc2626;
+}
+
 .btn-view-details:hover {
   background: #2bc947;
   transform: translateY(-1px);

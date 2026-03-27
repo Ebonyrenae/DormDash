@@ -32,7 +32,7 @@ if (!$userId) {
 }
 
 try {
-  $sql = "SELECT id, user_id, service_type, title, description, budget, location, job_date, job_time, status, created_at
+  $sql = "SELECT id, user_id, service_type, title, description, budget, location, job_date, job_time, status, created_at, completion_code
           FROM jobs
           WHERE user_id = ?
           ORDER BY created_at DESC";
