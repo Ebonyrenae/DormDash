@@ -28,9 +28,10 @@ require_once 'config.php';
 $receivedData = file_get_contents("php://input");
 $data = json_decode($receivedData, true);
 
-$status       = $data['status']       ?? null;
-$jobId        = $data['job_id']       ?? null;
+$status       = $data['status'] ?? null;
+$jobId        = $data['job_id'] ?? null;
 $completed_at = $data['completed_at'] ?? null;
+$completion_code = $data['completion_code'] ?? null;
 
 $userId = $_SESSION['user_id'] ?? $data['user_id'] ?? null;
 if (!$userId) {
@@ -39,20 +40,44 @@ if (!$userId) {
 }
 
 try {
-  if ($status === 'complete' && $completed_at) {
-    $dt = new DateTime($completed_at);
-    $mysql_completed_at = $dt->format('Y-m-d H:i:s');
+    // If marking complete, check completion code first
+    if ($status === "complete") {
+        $stmt = $pdo->prepare("SELECT completion_code FROM jobs WHERE id = ?");
+        $stmt->execute([$jobId]);
+        $job = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $sql = "UPDATE jobs SET status = ?, completed_at = ? WHERE id = ? AND accepted_by = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$status, $mysql_completed_at, $jobId, $userId]);
-  } else {
-    $sql = "UPDATE jobs SET status = ? WHERE id = ? AND accepted_by = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$status, $jobId, $userId]);
-  }
+        if (!$job) {
+            echo json_encode(["success" => false, "message" => "Job not found"]);
+            exit;
+        }
 
-  echo json_encode(['success' => true]);
+        if ($job['completion_code'] !== $completion_code) {
+            echo json_encode(["success" => false, "message" => "Incorrect completion code"]);
+            exit;
+        }
+
+        // If completed_at was sent, format it for MySQL
+        if ($completed_at) {
+            $dt = new DateTime($completed_at);
+            $mysql_completed_at = $dt->format('Y-m-d H:i:s');
+
+            $sql = "UPDATE jobs SET status = ?, completed_at = ? WHERE id = ? AND accepted_by = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$status, $mysql_completed_at, $jobId, $userId]);
+        } else {
+            // No completed_at sent, just update status
+            $sql = "UPDATE jobs SET status = ? WHERE id = ? AND accepted_by = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$status, $jobId, $userId]);
+        }
+    } else {
+        // For other statuses (in_progress, pending, etc.)
+        $sql = "UPDATE jobs SET status = ? WHERE id = ? AND accepted_by = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$status, $jobId, $userId]);
+    }
+
+    echo json_encode(['success' => true]);
 } catch (PDOException $e) {
-  echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }

@@ -12,48 +12,83 @@ $origin = $_SERVER["HTTP_ORIGIN"] ?? "";
 if (in_array($origin, $allowed_origins, true)) {
     header("Access-Control-Allow-Origin: $origin");
     header("Access-Control-Allow-Credentials: true");
-    header("Access-Control-Allow-Methods: POST, OPTIONS"); // Use POST here
+    header("Access-Control-Allow-Methods: POST, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type");
 }
 
-// 2. Handle Preflight
+// 2. Handle preflight request
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     http_response_code(200);
     exit();
 }
 
-// 3. Only allow POST requests
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    echo json_encode(["success" => false, "message" => "Invalid request method"]);
-    exit();
+// 3. Only allow POST
+$method = $_SERVER["REQUEST_METHOD"];
+
+if ($method !== "POST") {
+    // TEMP: allow debugging
+    // comment this out for now
+    // exit();
 }
+    
+
 
 require_once 'config.php';
 
 try {
-    // 4. Get the JSON body
-    $body = json_decode(file_get_contents("php://input"), true);
-    $job_id = $body["job_id"] ?? null;
-    $accepted_by = $body["accepted_by"] ?? null;
 
-    if (!$job_id) {
-        echo json_encode(["success" => false, "message" => "Job ID is missing"]);
+    // 4. Read JSON body properly
+    $raw = file_get_contents("php://input");
+    $body = json_decode($raw, true);
+
+    if (!$body) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Invalid JSON"
+        ]);
         exit();
     }
 
-    // 5. Update the job status
-    // Note: In a real app, you'd also want to save WHO accepted it (worker_id)
-    $sql = "UPDATE jobs SET status = 'active', accepted_by = ? WHERE id = ?";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$accepted_by, $job_id]);
+    $job_id = $body["job_id"] ?? null;
+    $accepted_by = $body["accepted_by"] ?? null;
 
+    // 5. Validate input
+    if (!$job_id || !$accepted_by) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Missing data"
+        ]);
+        exit();
+    }
+
+    $code = rand(100000, 999999);
+
+
+    // 6. Update job
+    $sql = "UPDATE jobs 
+            SET status = 'active', accepted_by = ?, completion_code = ?
+            WHERE id = ?";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$accepted_by, $code, $job_id]);
+
+    // 7. Check result
     if ($stmt->rowCount() > 0) {
-        echo json_encode(["success" => true, "message" => "Job accepted!"]);
+        echo json_encode([
+            "success" => true,
+            "code" => $code,
+            "message" => "Job accepted!"
+        ]);
     } else {
-        echo json_encode(["success" => false, "message" => "Job not found or already active"]);
+        echo json_encode([
+            "success" => false,
+            "message" => "Job not found or already active"
+        ]);
     }
 
 } catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Database error: " . $e->getMessage()
+    ]);
 }

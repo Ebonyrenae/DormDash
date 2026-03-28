@@ -1,6 +1,4 @@
-import React from "react";
-import { useState } from "react";
-import { useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./myrequests.css";
 
@@ -17,6 +15,7 @@ interface Request {
   location: string;
   budget: string;
   offersCount: number;
+  completionCode?:  string | null;
 }
 
 const POSTED_JOBS_KEY = "posted_jobs_v1";
@@ -233,9 +232,12 @@ useEffect(() => {
 
         if (j.status === "active") {
           mappedStatus = "In Progress";
+        }
+        if (j.status === "in_progress") {
+          mappedStatus = "In Progress";
         } else if (j.status === "completed") {
           mappedStatus = "Completed";
-        } else {
+        } else if (j.status === "pending") {
           mappedStatus = "Active";
   }
 
@@ -257,6 +259,7 @@ useEffect(() => {
           dateTime,
           location: j.location,
           budget: j.budget,
+          completionCode: (j as any).completion_code ?? null,
           offersCount: 0,          // not needed yet
         };
       });
@@ -301,6 +304,7 @@ const postedAsRequests: Request[] = useMemo(() => {
       location: j.location,
       budget: j.budget?.trim().startsWith("$") ? j.budget.trim() : `$${j.budget}`,
       offersCount: 0,
+      completionCode: null,
     };
   });
 }, [postedJobs]);
@@ -308,12 +312,69 @@ const postedAsRequests: Request[] = useMemo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
+  const [activeFilter, setActiveFilter] = useState<FilterTab>("Active");
 
   const handleSidebarLink = (path: string) => {
     setSidebarOpen(false);
     if (location.pathname === path) return;
     navigate(path);
+  };
+
+  
+
+  const handleCancelRequest = (id: string) => {
+    const CANCEL_JOB = `${API_BASE_URL}/cancel_jobs.php`;
+
+    fetch(CANCEL_JOB, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ job_id: id }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success) {
+          // remove canceled request locally
+          setRequests((prev) => prev.filter((r) => r.id !== id));
+        } else {
+          console.error("Cancel failed", data?.message);
+        }
+      })
+      .catch((err) => {
+        console.error("Network error cancelling job", err);
+      });
+  };
+
+  const handleUnassignRequest = (id: string) => {
+    const UNASSIGN_JOB = `${API_BASE_URL}/unassign_job.php`;
+
+    fetch(UNASSIGN_JOB, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ job_id: id }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success) {
+          // update request status locally          setRequests((prev) =>
+          setRequests((prev) =>
+            prev.map((r) =>
+              r.id === id ? { ...r, status: "Active" } : r
+            )
+          );
+        }
+        else {
+          console.error("Unassign failed", data?.message);
+        }
+      })
+      .catch((err) => {
+        console.error("Network error unassigning job", err);
+      });
   };
 
   const activeCount = requests.filter((r) => r.status === "Active").length;
@@ -488,13 +549,38 @@ const postedAsRequests: Request[] = useMemo(() => {
                   {req.offersCount} {req.offersCount === 1 ? "offer" : "offers"}{" "}
                   received
                 </span>
-                <button
-                  className="btn-view-details"
-                  onClick={() => navigate(`/my-requests/${req.id}`)}
-                >
-                  View Details
-                </button>
-              </div>
+  <button
+    className="btn-view-details"
+    onClick={() => navigate(`/my-requests/${req.id}`)}
+  >
+    View Details
+  </button>
+
+  {(req.status === "Active" ) && (
+    <button
+      className="cancel-btn"
+      onClick={() => handleCancelRequest(req.id)}
+    >
+      Cancel Job
+    </button>
+  )}
+
+  {(req.status === "In Progress") && (
+    <p className ="job-code">
+      Completion Code: <strong>{req.completionCode ?? ""}</strong>
+    </p>
+  )}
+
+  {(req.status === "In Progress") && (
+    <button
+      className="unassign-btn"
+      onClick={() => handleUnassignRequest(req.id)}
+    >
+      Unassign Dasher
+    </button>
+  )}
+  
+            </div>
             </div>
           ))}
         </div>

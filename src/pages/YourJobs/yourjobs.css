@@ -24,6 +24,18 @@
   cursor: pointer;
   font-family: "Inter";
 }
+
+.completion-code-input {
+
+  padding: 10px;
+  border: 1px solid #23ad48;
+  border-radius: 5px;
+  border-width: 2px;
+  margin: 16px 0;
+  font-size: 14px;
+  font-style: normal;
+  
+}
 .modal-confirm-btn {
   flex: 1;
   padding: 12px;
