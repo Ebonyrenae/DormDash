@@ -453,3 +453,24 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(41, 172, 61, 0.3);
 }
+
+
+.view-details-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background-color: transparent;
+  color: #22c55e;
+  border: 2px solid #22c55e;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.view-details-btn:hover {
+  background-color: #22c55e;
+  color: #fff;
+}

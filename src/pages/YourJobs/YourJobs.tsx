@@ -16,6 +16,7 @@ interface Request {
   dateTime: string;
   location: string;
   budget: string;
+  completedAt?: string | null;
 }
 
 const API_BASE_URL =
@@ -31,6 +32,7 @@ type BackendJob = {
   job_date: string;
   job_time: string;
   status: string;
+  completed_at?: string | null;
 };
 
 const SERVICE_EMOJI: Record<string, string> = {
@@ -45,7 +47,7 @@ const SERVICE_EMOJI: Record<string, string> = {
 
 function toStatusLabel(status: string): StatusType {
   if (status === "in_progress") return "In Progress";
-  if (status === "complete") return "Completed";
+  if (status === "completed") return "Completed";
   return "Active";
 }
 
@@ -94,21 +96,18 @@ const YourJobs = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // default to Active tab when page loads
-    const [activeFilter, setActiveFilter] = useState<FilterTab>("Active");
-    const [confirmError, setConfirmError] = useState("");
-    const [code, setCode] = useState<Record<string, string> | null>({});
-  
-    // remove job confirmation modal state
-    const [showRemoveModal, setShowRemoveModal] = useState(false);
-    const [selectedRemoveJobId, setSelectedRemoveJobId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterTab>("Active");
+  const [confirmError, setConfirmError] = useState("");
+  const [code, setCode] = useState<Record<string, string> | null>({});
 
-    // state for completion code modal
-const [showCompletionModal, setShowCompletionModal] = useState(false);
-const [selectedCompletionJobId, setSelectedCompletionJobId] = useState<string | null>(null);
-const [completionInput, setCompletionInput] = useState<string>("");
-const [completionError, setCompletionError] = useState<string>("");
-  // fetch accepted jobs from backend
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [selectedRemoveJobId, setSelectedRemoveJobId] = useState<string | null>(null);
+
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [selectedCompletionJobId, setSelectedCompletionJobId] = useState<string | null>(null);
+  const [completionInput, setCompletionInput] = useState<string>("");
+  const [completionError, setCompletionError] = useState<string>("");
+
   useEffect(() => {
     (async () => {
       try {
@@ -138,6 +137,7 @@ const [completionError, setCompletionError] = useState<string>("");
             dateTime,
             location: j.location,
             budget: j.budget,
+            completedAt: j.completed_at ?? localStorage.getItem(`completed_at_${j.id}`),
           };
         });
 
@@ -148,49 +148,52 @@ const [completionError, setCompletionError] = useState<string>("");
     })();
   }, []);
 
-  // mark job as complete
-      const handleMarkComplete = async (
-        jobId: string,
-        code?: string
-      ): Promise<{ success: boolean; message?: string }> => {
-        try {
-          const body: Record<string, any> = {
-            job_id: jobId,
-            status: "completed",
-            user_id: localStorage.getItem("userId"),
-          };
-          if (code) {
-            body.completion_code = code;
-          }
+  const handleMarkComplete = async (
+    jobId: string,
+    code?: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const completedAt = new Date().toISOString();
 
-          const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-
-          const data = await res.json();
-          console.log("update_job_status response:", data);
-
-          if (!data.success) {
-            const msg = data.message || "Failed to mark job as complete";
-            return { success: false, message: msg };
-          }
-
-          setRequests((prev) =>
-            prev.map((r) =>
-              r.id === jobId ? { ...r, status: "Completed" as StatusType } : r
-            )
-          );
-          return { success: true };
-        } catch (err) {
-          console.error("handleMarkComplete error:", err);
-          return { success: false, message: "Network error. Please try again." };
-        }
+      const body: Record<string, any> = {
+        job_id: jobId,
+        status: "completed",
+        user_id: localStorage.getItem("userId"),
+        completed_at: completedAt,
       };
+      if (code) {
+        body.completion_code = code;
+      }
 
-  // mark job as in progress
+      const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      console.log("update_job_status response:", data);
+
+      if (!data.success) {
+        const msg = data.message || "Failed to mark job as complete";
+        return { success: false, message: msg };
+      }
+
+      localStorage.setItem(`completed_at_${jobId}`, completedAt);
+
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === jobId ? { ...r, status: "Completed" as StatusType, completedAt } : r
+        )
+      );
+      return { success: true };
+    } catch (err) {
+      console.error("handleMarkComplete error:", err);
+      return { success: false, message: "Network error. Please try again." };
+    }
+  };
+
   const handleInProgress = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
@@ -217,13 +220,11 @@ const [completionError, setCompletionError] = useState<string>("");
         )
       );
       setConfirmError("");
-
     } catch {
       setConfirmError("Network error. Please try again.");
     }
   };
 
-  // mark job as pending (remove from active)
   const handlePending = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
@@ -248,7 +249,6 @@ const [completionError, setCompletionError] = useState<string>("");
       setConfirmError("");
       setShowRemoveModal(false);
       setSelectedRemoveJobId(null);
-
     } catch {
       setConfirmError("Network error. Please try again.");
     }
@@ -264,7 +264,6 @@ const [completionError, setCompletionError] = useState<string>("");
   const inProgressCount = requests.filter((r) => r.status === "In Progress").length;
   const completedCount = requests.filter((r) => r.status === "Completed").length;
 
-  // filter by selected tab — no "All" option anymore
   const filtered = requests.filter((r) => r.status === activeFilter);
 
   return (
@@ -300,6 +299,64 @@ const [completionError, setCompletionError] = useState<string>("");
                 }}
               >
                 Yes, Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Completion Code Modal */}
+      {showCompletionModal && selectedCompletionJobId && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Enter Completion Code</h3>
+            <input
+              type="text"
+              value={completionInput}
+              onChange={(e) => setCompletionInput(e.target.value)}
+              placeholder="Enter code given by poster"
+              style={{ width: "100%", padding: 8, marginBottom: 10 }}
+            />
+            {(completionError || confirmError) && (
+              <p style={{ color: "red" }}>{completionError || confirmError}</p>
+            )}
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => {
+                  setShowCompletionModal(false);
+                  setSelectedCompletionJobId(null);
+                  setCompletionInput("");
+                  setCompletionError("");
+                  setConfirmError("");
+                }}
+                className="modal-cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-confirm-btn"
+                onClick={async () => {
+                  if (!completionInput) {
+                    setCompletionError("Please enter the code.");
+                    return;
+                  }
+                  if (!selectedCompletionJobId) {
+                    setCompletionError("Job id missing.");
+                    return;
+                  }
+                  setCompletionError("");
+                  setConfirmError("");
+                  const result = await handleMarkComplete(selectedCompletionJobId, completionInput);
+                  if (result.success) {
+                    setShowCompletionModal(false);
+                    setSelectedCompletionJobId(null);
+                    setCompletionInput("");
+                  } else {
+                    setCompletionError(result.message || "Failed to mark complete.");
+                  }
+                }}
+              >
+                Mark as Complete
               </button>
             </div>
           </div>
@@ -353,8 +410,6 @@ const [completionError, setCompletionError] = useState<string>("");
 
         {/* Stats */}
         <div className="requests-stats-row">
-
-          {/* Active tab */}
           <div
             className={`stat-card${activeFilter === "Active" ? " stat-active" : ""}`}
             onClick={() => setActiveFilter("Active")}
@@ -365,7 +420,6 @@ const [completionError, setCompletionError] = useState<string>("");
             <div className="stat-card-label">Active</div>
           </div>
 
-          {/* In Progress tab */}
           <div
             className={`stat-card${activeFilter === "In Progress" ? " stat-active" : ""}`}
             onClick={() => setActiveFilter("In Progress")}
@@ -376,7 +430,6 @@ const [completionError, setCompletionError] = useState<string>("");
             <div className="stat-card-label">In Progress</div>
           </div>
 
-          {/* Completed tab */}
           <div
             className={`stat-card${activeFilter === "Completed" ? " stat-active" : ""}`}
             onClick={() => setActiveFilter("Completed")}
@@ -386,14 +439,13 @@ const [completionError, setCompletionError] = useState<string>("");
             <div className="stat-card-number color-gray">{completedCount}</div>
             <div className="stat-card-label">Completed</div>
           </div>
-
         </div>
 
         {loadError && (
           <p style={{ color: "red", fontFamily: "Inter", fontSize: 14 }}>{loadError}</p>
         )}
 
-        {/* Request Cards */}
+        {/* Job Cards */}
         <div className="requests-list">
           {filtered.map((req) => (
             <div key={req.id} className="request-card">
@@ -427,7 +479,7 @@ const [completionError, setCompletionError] = useState<string>("");
                 </div>
               </div>
 
-              {/* buttons for active jobs */}
+              {/* ── Active tab buttons ── */}
               {req.status === "Active" && (
                 <>
                   <button
@@ -436,6 +488,14 @@ const [completionError, setCompletionError] = useState<string>("");
                   >
                     Start Job
                   </button>
+
+                  <button
+                    className="view-details-btn"
+                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
+                  >
+                    View Details
+                  </button>
+
                   <button
                     className="complete-btn"
                     onClick={() => {
@@ -448,77 +508,64 @@ const [completionError, setCompletionError] = useState<string>("");
                 </>
               )}
 
-              {/* button for in progress jobs */}
+              {/* ── In Progress tab buttons ── */}
               {req.status === "In Progress" && (
-          <button
-            className="complete-btn"
-            onClick={() => {
-              setSelectedCompletionJobId(req.id);
-                  setCompletionInput(""); // reset input each time
-                  setCompletionError("");
-                  setConfirmError("");
-              setShowCompletionModal(true);
-            }}
-          >
-            Mark as Complete
-          </button>
-        )}
+                <>
+                  <button
+                    className="view-details-btn"
+                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "In Progress" } })}
+                  >
+                    View Details
+                  </button>
 
-        {/* Completion Code Modal */}
-{showCompletionModal && selectedCompletionJobId && (
-  <div className="modal-overlay">
-      <div className="modal-box">
-      <h3>Enter Completion Code</h3>
-      <input
-        type="text"
-        value={completionInput}
-        onChange={(e) => setCompletionInput(e.target.value)}
-        placeholder="Enter code given by poster"
-        style={{ width: "100%", padding: 8, marginBottom: 10 }}
-      />
-      {(completionError || confirmError) && <p style={{ color: "red" }}>{completionError || confirmError}</p>}
-      <div style={{ display: "flex", gap: 10 }}>
-        <button
-          onClick={() => {
-            setShowCompletionModal(false);
-            setSelectedCompletionJobId(null);
-            setCompletionInput("");
-            setCompletionError("");
-            setConfirmError("");
-          }}
-          className="modal-cancel-btn"
-        >
-          Cancel
-        </button>
-        <button
-          className="modal-confirm-btn"
-          onClick={async () => {
-            if (!completionInput) {
-              setCompletionError("Please enter the code.");
-              return;
-            }
-            if (!selectedCompletionJobId) {
-              setCompletionError("Job id missing.");
-              return;
-            }
-            setCompletionError("");
-            setConfirmError("");
-            const success = await handleMarkComplete(selectedCompletionJobId, completionInput);
-            if (success) {
-              setShowCompletionModal(false);
-              setSelectedCompletionJobId(null);
-              setCompletionInput("");
-            } else {
-              setCompletionError(confirmError || "Failed to mark complete.");
-            }
-          }}
-        >
-          Mark as Complete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                  <button
+                    className="complete-btn"
+                    onClick={() => {
+                      setSelectedCompletionJobId(req.id);
+                      setCompletionInput("");
+                      setCompletionError("");
+                      setConfirmError("");
+                      setShowCompletionModal(true);
+                    }}
+                  >
+                    Mark as Complete
+                  </button>
+                </>
+              )}
+
+              {/* ── Completed tab ── */}
+              {req.status === "Completed" && (
+                <>
+                  {req.completedAt && (
+                    <div style={{
+                      marginTop: 12,
+                      padding: "10px 14px",
+                      backgroundColor: "#f0fdf4",
+                      borderRadius: 10,
+                      border: "1px solid #bbf7d0",
+                      fontFamily: "Inter",
+                    }}>
+                      <p style={{ fontSize: 12, color: "grey", fontWeight: 500, marginBottom: 4 }}>
+                        Completed On
+                      </p>
+                      <p style={{ fontSize: 14, color: "#16a34a", fontWeight: 500 }}>
+                        ✅ {new Date(req.completedAt).toLocaleDateString("en-US", {
+                          month: "long", day: "numeric", year: "numeric",
+                        })} at {new Date(req.completedAt).toLocaleTimeString("en-US", {
+                          hour: "numeric", minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    className="view-details-btn"
+                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Completed" } })}
+                  >
+                    View Details
+                  </button>
+                </>
+              )}
 
             </div>
           ))}
