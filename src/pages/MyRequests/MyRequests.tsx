@@ -232,9 +232,12 @@ useEffect(() => {
 
         if (j.status === "active") {
           mappedStatus = "In Progress";
+        }
+        if (j.status === "in_progress") {
+          mappedStatus = "In Progress";
         } else if (j.status === "completed") {
           mappedStatus = "Completed";
-        } else {
+        } else if (j.status === "pending") {
           mappedStatus = "Active";
   }
 

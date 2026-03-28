@@ -61,7 +61,7 @@ try {
         exit();
     }
 
-    $code = rand(1000, 9999);
+    $code = rand(100000, 999999);
 
 
     // 6. Update job

@@ -29,7 +29,6 @@ if ($job['completion_code'] != $code) {
 }
 
 $update = $pdo->prepare("UPDATE jobs SET status = 'completed' WHERE id = ?");
-status = 'completed' WHERE id = ?");
 $update->execute([$jobId]);
 
 echo json_encode(["success" => true, "message" => "Job marked as completed"]);

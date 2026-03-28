@@ -149,42 +149,46 @@ const [completionError, setCompletionError] = useState<string>("");
   }, []);
 
   // mark job as complete
-    const handleMarkComplete = async (jobId: string, code?: string) => {
-      try {
-        const body: Record<string, any> = {
-          job_id: jobId,
-          status: "complete",
-          user_id: localStorage.getItem("userId"),
-        };
-        if (code) {
-          body.completion_code = code;
+      const handleMarkComplete = async (
+        jobId: string,
+        code?: string
+      ): Promise<{ success: boolean; message?: string }> => {
+        try {
+          const body: Record<string, any> = {
+            job_id: jobId,
+            status: "completed",
+            user_id: localStorage.getItem("userId"),
+          };
+          if (code) {
+            body.completion_code = code;
+          }
+
+          const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          const data = await res.json();
+          console.log("update_job_status response:", data);
+
+          if (!data.success) {
+            const msg = data.message || "Failed to mark job as complete";
+            return { success: false, message: msg };
+          }
+
+          setRequests((prev) =>
+            prev.map((r) =>
+              r.id === jobId ? { ...r, status: "Completed" as StatusType } : r
+            )
+          );
+          return { success: true };
+        } catch (err) {
+          console.error("handleMarkComplete error:", err);
+          return { success: false, message: "Network error. Please try again." };
         }
-  
-        const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-  
-        const data = await res.json();
-  
-        if (!data.success) {
-          setConfirmError(data.message || "Failed to mark job as complete");
-          return;
-        }
-  
-        setRequests((prev) =>
-          prev.map((r) =>
-            r.id === jobId ? { ...r, status: "Completed" as StatusType } : r
-          )
-        );
-        setConfirmError("");
-  
-      } catch {
-        setConfirmError("Network error. Please try again.");
-      }
-    };
+      };
 
   // mark job as in progress
   const handleInProgress = async (jobId: string) => {
@@ -450,8 +454,9 @@ const [completionError, setCompletionError] = useState<string>("");
             className="complete-btn"
             onClick={() => {
               setSelectedCompletionJobId(req.id);
-              setCompletionInput(""); // reset input each time
-              setCompletionError("");
+                  setCompletionInput(""); // reset input each time
+                  setCompletionError("");
+                  setConfirmError("");
               setShowCompletionModal(true);
             }}
           >
@@ -462,7 +467,7 @@ const [completionError, setCompletionError] = useState<string>("");
         {/* Completion Code Modal */}
 {showCompletionModal && selectedCompletionJobId && (
   <div className="modal-overlay">
-    <div className="modal-box">
+      <div className="modal-box">
       <h3>Enter Completion Code</h3>
       <input
         type="text"
@@ -471,23 +476,41 @@ const [completionError, setCompletionError] = useState<string>("");
         placeholder="Enter code given by poster"
         style={{ width: "100%", padding: 8, marginBottom: 10 }}
       />
-      {completionError && <p style={{ color: "red" }}>{completionError}</p>}
+      {(completionError || confirmError) && <p style={{ color: "red" }}>{completionError || confirmError}</p>}
       <div style={{ display: "flex", gap: 10 }}>
         <button
-          onClick={() => setShowCompletionModal(false)}
+          onClick={() => {
+            setShowCompletionModal(false);
+            setSelectedCompletionJobId(null);
+            setCompletionInput("");
+            setCompletionError("");
+            setConfirmError("");
+          }}
           className="modal-cancel-btn"
         >
           Cancel
         </button>
         <button
           className="modal-confirm-btn"
-          onClick={() => {
+          onClick={async () => {
             if (!completionInput) {
               setCompletionError("Please enter the code.");
               return;
             }
-            handleMarkComplete(selectedCompletionJobId, completionInput);
-            setShowCompletionModal(false);
+            if (!selectedCompletionJobId) {
+              setCompletionError("Job id missing.");
+              return;
+            }
+            setCompletionError("");
+            setConfirmError("");
+            const success = await handleMarkComplete(selectedCompletionJobId, completionInput);
+            if (success) {
+              setShowCompletionModal(false);
+              setSelectedCompletionJobId(null);
+              setCompletionInput("");
+            } else {
+              setCompletionError(confirmError || "Failed to mark complete.");
+            }
           }}
         >
           Mark as Complete
