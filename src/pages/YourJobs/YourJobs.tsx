@@ -17,6 +17,8 @@ interface Request {
   location: string;
   budget: string;
   completedAt?: string | null;
+  jobDate: string;
+  jobTime: string;
 }
 
 const API_BASE_URL =
@@ -49,6 +51,13 @@ function toStatusLabel(status: string): StatusType {
   if (status === "in_progress") return "In Progress";
   if (status === "completed") return "Completed";
   return "Active";
+}
+
+// Returns true if the job's date and time has arrived
+function isJobReady(jobDate: string, jobTime: string): boolean {
+  if (!jobDate || !jobTime) return true;
+  const jobDateTime = new Date(`${jobDate}T${jobTime}`);
+  return new Date() >= jobDateTime;
 }
 
 const SIDEBAR_LINKS = [
@@ -108,6 +117,9 @@ const YourJobs = () => {
   const [completionInput, setCompletionInput] = useState<string>("");
   const [completionError, setCompletionError] = useState<string>("");
 
+  // tracks which job IDs have had the "not ready" message shown
+  const [earlyStartIds, setEarlyStartIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     (async () => {
       try {
@@ -138,7 +150,19 @@ const YourJobs = () => {
             location: j.location,
             budget: j.budget,
             completedAt: j.completed_at ?? localStorage.getItem(`completed_at_${j.id}`),
+            jobDate: j.job_date,
+            jobTime: j.job_time?.slice(0, 5),
           };
+        });
+
+        // Sort active jobs: ready ones first, not-ready ones last
+        mapped.sort((a, b) => {
+          if (a.status !== "Active" || b.status !== "Active") return 0;
+          const aReady = isJobReady(a.jobDate, a.jobTime);
+          const bReady = isJobReady(b.jobDate, b.jobTime);
+          if (aReady && !bReady) return -1;
+          if (!aReady && bReady) return 1;
+          return 0;
         });
 
         setRequests(mapped);
@@ -447,128 +471,156 @@ const YourJobs = () => {
 
         {/* Job Cards */}
         <div className="requests-list">
-          {filtered.map((req) => (
-            <div key={req.id} className="request-card">
-              <div className="request-card-top">
-                <div className="category-badge">
-                  <span className="category-badge-emoji">{req.categoryEmoji}</span>
-                  <span>{req.category}</span>
-                </div>
-                <span className={`status-badge ${statusClass[req.status]}`}>
-                  {req.status}
-                </span>
-              </div>
+          {filtered.map((req) => {
+            const ready = isJobReady(req.jobDate, req.jobTime);
+            const showEarlyMsg = earlyStartIds.has(req.id);
 
-              <h3 className="request-card-title">{req.title}</h3>
-              <p className="request-card-description">{req.description}</p>
-
-              <div className="request-card-meta">
-                <div className="request-meta-item">
-                  <span className="request-meta-key"><ClockIcon /> Date &amp; Time</span>
-                  <span className="request-meta-value" style={{ whiteSpace: "pre-line" }}>
-                    {req.dateTime}
+            return (
+              <div key={req.id} className="request-card">
+                <div className="request-card-top">
+                  <div className="category-badge">
+                    <span className="category-badge-emoji">{req.categoryEmoji}</span>
+                    <span>{req.category}</span>
+                  </div>
+                  <span className={`status-badge ${statusClass[req.status]}`}>
+                    {req.status}
                   </span>
                 </div>
-                <div className="request-meta-item">
-                  <span className="request-meta-key"><LocationIcon /> Location</span>
-                  <span className="request-meta-value">{req.location}</span>
+
+                <h3 className="request-card-title">{req.title}</h3>
+                <p className="request-card-description">{req.description}</p>
+
+                <div className="request-card-meta">
+                  <div className="request-meta-item">
+                    <span className="request-meta-key"><ClockIcon /> Date &amp; Time</span>
+                    <span className="request-meta-value" style={{ whiteSpace: "pre-line" }}>
+                      {req.dateTime}
+                    </span>
+                  </div>
+                  <div className="request-meta-item">
+                    <span className="request-meta-key"><LocationIcon /> Location</span>
+                    <span className="request-meta-value">{req.location}</span>
+                  </div>
+                  <div className="request-meta-item">
+                    <span className="request-meta-key"><DollarIcon /> Budget</span>
+                    <span className="request-meta-value budget-value">{req.budget}</span>
+                  </div>
                 </div>
-                <div className="request-meta-item">
-                  <span className="request-meta-key"><DollarIcon /> Budget</span>
-                  <span className="request-meta-value budget-value">{req.budget}</span>
-                </div>
+
+                {/* ── Active tab buttons ── */}
+                {req.status === "Active" && (
+                  <>
+                    <button
+                      className="postjob-btn-submit"
+                      style={!ready ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                      onClick={() => {
+                        if (!ready) {
+                          setEarlyStartIds((prev) => new Set(prev).add(req.id));
+                          return;
+                        }
+                        handleInProgress(req.id);
+                      }}
+                    >
+                      Start Job
+                    </button>
+
+                    {/* Early start message */}
+                    {showEarlyMsg && !ready && (
+                      <p style={{
+                        fontSize: 13,
+                        color: "#b45309",
+                        fontFamily: "Inter",
+                        backgroundColor: "#fffbeb",
+                        border: "1px solid #fde68a",
+                        borderRadius: 8,
+                        padding: "8px 12px",
+                        marginTop: 8,
+                      }}>
+                        ⏳ The date and time hasn't come yet for this job.
+                      </p>
+                    )}
+
+                    <button
+                      className="view-details-btn"
+                      onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
+                    >
+                      View Details
+                    </button>
+
+                    <button
+                      className="complete-btn"
+                      onClick={() => {
+                        setSelectedRemoveJobId(req.id);
+                        setShowRemoveModal(true);
+                      }}
+                    >
+                      Remove Job From Active Jobs
+                    </button>
+                  </>
+                )}
+
+                {/* ── In Progress tab buttons ── */}
+                {req.status === "In Progress" && (
+                  <>
+                    <button
+                      className="view-details-btn"
+                      onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "In Progress" } })}
+                    >
+                      View Details
+                    </button>
+
+                    <button
+                      className="complete-btn"
+                      onClick={() => {
+                        setSelectedCompletionJobId(req.id);
+                        setCompletionInput("");
+                        setCompletionError("");
+                        setConfirmError("");
+                        setShowCompletionModal(true);
+                      }}
+                    >
+                      Mark as Complete
+                    </button>
+                  </>
+                )}
+
+                {/* ── Completed tab ── */}
+                {req.status === "Completed" && (
+                  <>
+                    {req.completedAt && (
+                      <div style={{
+                        marginTop: 12,
+                        padding: "10px 14px",
+                        backgroundColor: "#f0fdf4",
+                        borderRadius: 10,
+                        border: "1px solid #bbf7d0",
+                        fontFamily: "Inter",
+                      }}>
+                        <p style={{ fontSize: 12, color: "grey", fontWeight: 500, marginBottom: 4 }}>
+                          Completed On
+                        </p>
+                        <p style={{ fontSize: 14, color: "#16a34a", fontWeight: 500 }}>
+                          ✅ {new Date(req.completedAt).toLocaleDateString("en-US", {
+                            month: "long", day: "numeric", year: "numeric",
+                          })} at {new Date(req.completedAt).toLocaleTimeString("en-US", {
+                            hour: "numeric", minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    )}
+
+                    <button
+                      className="view-details-btn"
+                      onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Completed" } })}
+                    >
+                      View Details
+                    </button>
+                  </>
+                )}
+
               </div>
-
-              {/* ── Active tab buttons ── */}
-              {req.status === "Active" && (
-                <>
-                  <button
-                    className="postjob-btn-submit"
-                    onClick={() => handleInProgress(req.id)}
-                  >
-                    Start Job
-                  </button>
-
-                  <button
-                    className="view-details-btn"
-                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
-                  >
-                    View Details
-                  </button>
-
-                  <button
-                    className="complete-btn"
-                    onClick={() => {
-                      setSelectedRemoveJobId(req.id);
-                      setShowRemoveModal(true);
-                    }}
-                  >
-                    Remove Job From Active Jobs
-                  </button>
-                </>
-              )}
-
-              {/* ── In Progress tab buttons ── */}
-              {req.status === "In Progress" && (
-                <>
-                  <button
-                    className="view-details-btn"
-                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "In Progress" } })}
-                  >
-                    View Details
-                  </button>
-
-                  <button
-                    className="complete-btn"
-                    onClick={() => {
-                      setSelectedCompletionJobId(req.id);
-                      setCompletionInput("");
-                      setCompletionError("");
-                      setConfirmError("");
-                      setShowCompletionModal(true);
-                    }}
-                  >
-                    Mark as Complete
-                  </button>
-                </>
-              )}
-
-              {/* ── Completed tab ── */}
-              {req.status === "Completed" && (
-                <>
-                  {req.completedAt && (
-                    <div style={{
-                      marginTop: 12,
-                      padding: "10px 14px",
-                      backgroundColor: "#f0fdf4",
-                      borderRadius: 10,
-                      border: "1px solid #bbf7d0",
-                      fontFamily: "Inter",
-                    }}>
-                      <p style={{ fontSize: 12, color: "grey", fontWeight: 500, marginBottom: 4 }}>
-                        Completed On
-                      </p>
-                      <p style={{ fontSize: 14, color: "#16a34a", fontWeight: 500 }}>
-                        ✅ {new Date(req.completedAt).toLocaleDateString("en-US", {
-                          month: "long", day: "numeric", year: "numeric",
-                        })} at {new Date(req.completedAt).toLocaleTimeString("en-US", {
-                          hour: "numeric", minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                  )}
-
-                  <button
-                    className="view-details-btn"
-                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Completed" } })}
-                  >
-                    View Details
-                  </button>
-                </>
-              )}
-
-            </div>
-          ))}
+            );
+          })}
 
           {filtered.length === 0 && (
             <p style={{ fontFamily: "Inter", fontSize: 14, color: "grey", textAlign: "center", marginTop: 40 }}>
