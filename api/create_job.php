@@ -54,7 +54,12 @@ try {
   $stmt = $pdo->prepare($sql);
   $stmt->execute([$userId, $serviceType, $title, $date, $time, $budget, $location, $description, 'pending']);
 
-  echo json_encode(['success' => true, 'message' => 'Job created successfully']);
+  $newId = (int) $pdo->lastInsertId();
+  echo json_encode([
+    'success' => true,
+    'message' => 'Job created successfully',
+    'job_id' => $newId,
+  ]);
 } catch (PDOException $e) {
   echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }

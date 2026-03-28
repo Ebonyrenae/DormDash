@@ -433,6 +433,17 @@
   box-shadow: 0 0 0 3px rgba(41, 172, 61, 0.1);
 }
 
+.postjob-submit-error {
+  color: #e13333;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  padding: 12px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+}
+
 /* ── Action Buttons ── */
 .postjob-actions {
   display: flex;

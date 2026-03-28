@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_BASE } from "../../config";
 import "./myrequests.css";
 
 type StatusType = "Active" | "In Progress" | "Completed";
@@ -12,10 +13,12 @@ interface Request {
   title: string;
   description: string;
   dateTime: string;
+  jobDate: string;
+  jobTime: string;
   location: string;
   budget: string;
   offersCount: number;
-  completionCode?:  string | null;
+  completionCode?: string | null;
 }
 
 const POSTED_JOBS_KEY = "posted_jobs_v1";
@@ -43,8 +46,7 @@ function readPostedJobs(): StoredJob[] {
 
 
 
-const API_BASE_URL =
-  "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+const API_BASE_URL = API_BASE;
 
 type BackendJob = {
   id: number;
@@ -81,6 +83,8 @@ const MY_REQUESTS: Request[] = [
     title: "Ride to Airport",
     description: "I need a ride to the airport for spring break",
     dateTime: "Sat, Feb 14, 2026\n14:30",
+    jobDate: "2026-02-14",
+    jobTime: "14:30",
     location: "Hadley Village → Airport",
     budget: "$25",
     offersCount: 3,
@@ -93,6 +97,8 @@ const MY_REQUESTS: Request[] = [
     title: "Bathroom Cleaning",
     description: "Need someone to deep clean a shared bathroom",
     dateTime: "Sat, Feb 14, 2026\n14:30",
+    jobDate: "2026-02-14",
+    jobTime: "14:30",
     location: "Ellicot Complex",
     budget: "$25",
     offersCount: 1,
@@ -106,6 +112,8 @@ const MY_REQUESTS: Request[] = [
     description:
       "I need someone to pick up my lunch from the commons at Dancing Chop Sticks",
     dateTime: "Sat, Feb 14, 2026\n14:30",
+    jobDate: "2026-02-14",
+    jobTime: "14:30",
     location: "UB commons → Flint Village",
     budget: "$5",
     offersCount: 5,
@@ -118,6 +126,8 @@ const MY_REQUESTS: Request[] = [
     title: "Math Tutoring",
     description: "Need help with Calculus 2 homework",
     dateTime: "Sun, Feb 15, 2026\n16:00",
+    jobDate: "2026-02-15",
+    jobTime: "16:00",
     location: "Library Study Room 3",
     budget: "$30",
     offersCount: 2,
@@ -210,6 +220,14 @@ const MyRequests = () => {
 
 const [requests, setRequests] = useState<Request[]>([]);
 const [loadError, setLoadError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+  const [editTime, setEditTime] = useState("");
+  const [editBudget, setEditBudget] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
 
 useEffect(() => {
   (async () => {
@@ -244,7 +262,7 @@ useEffect(() => {
         const categoryLabel =
           j.service_type?.charAt(0).toUpperCase() + j.service_type.slice(1);
 
-        const time = j.job_time?.slice(0, 5); // "HH:MM"
+        const time = j.job_time?.slice(0, 5) ?? ""; // "HH:MM"
         const dateTime = `${j.job_date}\n${time}`;
 
         return {
@@ -257,6 +275,8 @@ useEffect(() => {
           title: j.title,
           description: j.description ?? "",
           dateTime,
+          jobDate: j.job_date ?? "",
+          jobTime: time,
           location: j.location,
           budget: j.budget,
           completionCode: (j as any).completion_code ?? null,
@@ -301,6 +321,8 @@ const postedAsRequests: Request[] = useMemo(() => {
       title: j.title,
       description: j.description,
       dateTime: `${prettyDate}\n${j.time || ""}`.trim(),
+      jobDate: j.date || "",
+      jobTime: j.time?.slice(0, 5) || "",
       location: j.location,
       budget: j.budget?.trim().startsWith("$") ? j.budget.trim() : `$${j.budget}`,
       offersCount: 0,
@@ -320,7 +342,87 @@ const postedAsRequests: Request[] = useMemo(() => {
     navigate(path);
   };
 
-  
+  const beginEdit = (req: Request) => {
+    setEditError(null);
+    setEditingId(req.id);
+    setEditTitle(req.title);
+    setEditDescription(req.description);
+    setEditLocation(req.location);
+    setEditTime(req.jobTime);
+    setEditBudget(req.budget);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditError(null);
+    setSavingEdit(false);
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    const titleTrim = editTitle.trim();
+    const locTrim = editLocation.trim();
+    const timeTrim = editTime.trim();
+    const budgetTrim = editBudget.trim();
+    if (!titleTrim) {
+      setEditError("Title cannot be empty.");
+      return;
+    }
+    if (!locTrim) {
+      setEditError("Location cannot be empty.");
+      return;
+    }
+    if (!timeTrim) {
+      setEditError("Time cannot be empty.");
+      return;
+    }
+    if (!budgetTrim) {
+      setEditError("Budget cannot be empty.");
+      return;
+    }
+    setEditError(null);
+    setSavingEdit(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/update_job.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          job_id: Number(editingId),
+          title: titleTrim,
+          description: editDescription,
+          location: locTrim,
+          time: timeTrim,
+          budget: budgetTrim,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setEditError(data.message || "Could not update job.");
+        return;
+      }
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === editingId
+            ? {
+                ...r,
+                title: titleTrim,
+                description: editDescription,
+                location: locTrim,
+                budget: budgetTrim,
+                jobTime: timeTrim,
+                dateTime: `${r.jobDate}\n${timeTrim}`,
+              }
+            : r,
+        ),
+      );
+      cancelEdit();
+    } catch {
+      setEditError("Network error while updating job.");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const handleCancelRequest = (id: string) => {
     const CANCEL_JOB = `${API_BASE_URL}/cancel_jobs.php`;
@@ -513,74 +615,181 @@ const postedAsRequests: Request[] = useMemo(() => {
                 </span>
               </div>
 
-              <h3 className="request-card-title">{req.title}</h3>
-              <p className="request-card-description">{req.description}</p>
+              {editingId === req.id ? (
+                <div className="request-edit-fields">
+                  <label className="request-edit-label" htmlFor={`edit-title-${req.id}`}>
+                    Title
+                  </label>
+                  <input
+                    id={`edit-title-${req.id}`}
+                    className="request-edit-input"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    disabled={savingEdit}
+                  />
+                  <label className="request-edit-label" htmlFor={`edit-desc-${req.id}`}>
+                    Description
+                  </label>
+                  <textarea
+                    id={`edit-desc-${req.id}`}
+                    className="request-edit-textarea"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    disabled={savingEdit}
+                    rows={3}
+                  />
+                  {req.jobDate ? (
+                    <>
+                      <span className="request-edit-label">Job date</span>
+                      <p className="request-edit-readonly">{req.jobDate}</p>
+                    </>
+                  ) : null}
+                  <label className="request-edit-label" htmlFor={`edit-loc-${req.id}`}>
+                    Location
+                  </label>
+                  <input
+                    id={`edit-loc-${req.id}`}
+                    className="request-edit-input"
+                    value={editLocation}
+                    onChange={(e) => setEditLocation(e.target.value)}
+                    disabled={savingEdit}
+                  />
+                  <label className="request-edit-label" htmlFor={`edit-time-${req.id}`}>
+                    Time
+                  </label>
+                  <input
+                    id={`edit-time-${req.id}`}
+                    type="time"
+                    className="request-edit-input"
+                    value={editTime}
+                    onChange={(e) => setEditTime(e.target.value)}
+                    disabled={savingEdit}
+                  />
+                  <label className="request-edit-label" htmlFor={`edit-budget-${req.id}`}>
+                    Budget
+                  </label>
+                  <input
+                    id={`edit-budget-${req.id}`}
+                    className="request-edit-input"
+                    value={editBudget}
+                    onChange={(e) => setEditBudget(e.target.value)}
+                    disabled={savingEdit}
+                  />
+                  {editError && (
+                    <p className="request-edit-error" role="alert">
+                      {editError}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <h3 className="request-card-title">{req.title}</h3>
+                  <p className="request-card-description">{req.description}</p>
+                </>
+              )}
 
-              <div className="request-card-meta">
-                <div className="request-meta-item">
-                  <span className="request-meta-key">
-                    <ClockIcon /> Date &amp; Time
-                  </span>
-                  <span
-                    className="request-meta-value"
-                    style={{ whiteSpace: "pre-line" }}
-                  >
-                    {req.dateTime}
-                  </span>
+              {editingId !== req.id && (
+                <div className="request-card-meta">
+                  <div className="request-meta-item">
+                    <span className="request-meta-key">
+                      <ClockIcon /> Date &amp; Time
+                    </span>
+                    <span
+                      className="request-meta-value"
+                      style={{ whiteSpace: "pre-line" }}
+                    >
+                      {req.dateTime}
+                    </span>
+                  </div>
+                  <div className="request-meta-item">
+                    <span className="request-meta-key">
+                      <LocationIcon /> Location
+                    </span>
+                    <span className="request-meta-value">{req.location}</span>
+                  </div>
+                  <div className="request-meta-item">
+                    <span className="request-meta-key">
+                      <DollarIcon /> Budget
+                    </span>
+                    <span className="request-meta-value budget-value">
+                      {req.budget}
+                    </span>
+                  </div>
                 </div>
-                <div className="request-meta-item">
-                  <span className="request-meta-key">
-                    <LocationIcon /> Location
-                  </span>
-                  <span className="request-meta-value">{req.location}</span>
-                </div>
-                <div className="request-meta-item">
-                  <span className="request-meta-key">
-                    <DollarIcon /> Budget
-                  </span>
-                  <span className="request-meta-value budget-value">
-                    {req.budget}
-                  </span>
-                </div>
-              </div>
+              )}
 
               <div className="request-card-footer">
                 <span className="request-offers-text">
                   {req.offersCount} {req.offersCount === 1 ? "offer" : "offers"}{" "}
                   received
                 </span>
-  <button
-    className="btn-view-details"
-    onClick={() => navigate(`/my-requests/${req.id}`)}
-  >
-    View Details
-  </button>
+                <div className="request-card-actions">
+                  {!(req.status === "Active" && editingId === req.id) && (
+                    <button
+                      className="btn-view-details"
+                      onClick={() => navigate(`/my-requests/${req.id}`)}
+                    >
+                      View Details
+                    </button>
+                  )}
 
-  {(req.status === "Active" ) && (
-    <button
-      className="cancel-btn"
-      onClick={() => handleCancelRequest(req.id)}
-    >
-      Cancel Job
-    </button>
-  )}
+                  {req.status === "Active" && editingId !== req.id && (
+                    <button
+                      type="button"
+                      className="edit-job-btn"
+                      onClick={() => beginEdit(req)}
+                    >
+                      Edit job
+                    </button>
+                  )}
 
-  {(req.status === "In Progress") && (
-    <p className ="job-code">
-      Completion Code: <strong>{req.completionCode ?? ""}</strong>
-    </p>
-  )}
+                  {req.status === "Active" && editingId === req.id && (
+                    <>
+                      <button
+                        type="button"
+                        className="edit-job-btn"
+                        onClick={() => void saveEdit()}
+                        disabled={savingEdit}
+                      >
+                        {savingEdit ? "Saving…" : "Save changes"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-view-details"
+                        onClick={cancelEdit}
+                        disabled={savingEdit}
+                      >
+                        Discard
+                      </button>
+                    </>
+                  )}
 
-  {(req.status === "In Progress") && (
-    <button
-      className="unassign-btn"
-      onClick={() => handleUnassignRequest(req.id)}
-    >
-      Unassign Dasher
-    </button>
-  )}
-  
-            </div>
+                  {req.status === "Active" && editingId !== req.id && (
+                    <button
+                      className="cancel-btn"
+                      onClick={() => handleCancelRequest(req.id)}
+                    >
+                      Cancel Job
+                    </button>
+                  )}
+
+                  {req.status === "In Progress" && (
+                    <p className="job-code">
+                      Completion Code:{" "}
+                      <strong>{req.completionCode ?? ""}</strong>
+                    </p>
+                  )}
+
+                  {req.status === "In Progress" && (
+                    <button
+                      className="unassign-btn"
+                      onClick={() => handleUnassignRequest(req.id)}
+                    >
+                      Unassign Dasher
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
