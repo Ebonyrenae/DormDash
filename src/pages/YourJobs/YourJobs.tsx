@@ -16,6 +16,7 @@ interface Request {
   dateTime: string;
   location: string;
   budget: string;
+  completedAt?: string | null;
 }
 
 const API_BASE_URL =
@@ -31,6 +32,7 @@ type BackendJob = {
   job_date: string;
   job_time: string;
   status: string;
+  completed_at?: string | null;
 };
 
 const SERVICE_EMOJI: Record<string, string> = {
@@ -94,15 +96,12 @@ const YourJobs = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // default to Active tab when page loads
   const [activeFilter, setActiveFilter] = useState<FilterTab>("Active");
   const [confirmError, setConfirmError] = useState("");
 
-  // remove job confirmation modal state
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedRemoveJobId, setSelectedRemoveJobId] = useState<string | null>(null);
 
-  // fetch accepted jobs from backend
   useEffect(() => {
     (async () => {
       try {
@@ -132,6 +131,7 @@ const YourJobs = () => {
             dateTime,
             location: j.location,
             budget: j.budget,
+            completedAt: j.completed_at ?? localStorage.getItem(`completed_at_${j.id}`),
           };
         });
 
@@ -142,9 +142,10 @@ const YourJobs = () => {
     })();
   }, []);
 
-  // mark job as complete
   const handleMarkComplete = async (jobId: string) => {
     try {
+      const completedAt = new Date().toISOString();
+
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
         method: "POST",
         credentials: "include",
@@ -153,6 +154,7 @@ const YourJobs = () => {
           job_id: jobId,
           status: "complete",
           user_id: localStorage.getItem("userId"),
+          completed_at: completedAt,
         }),
       });
 
@@ -163,19 +165,19 @@ const YourJobs = () => {
         return;
       }
 
+      localStorage.setItem(`completed_at_${jobId}`, completedAt);
+
       setRequests((prev) =>
         prev.map((r) =>
-          r.id === jobId ? { ...r, status: "Completed" as StatusType } : r
+          r.id === jobId ? { ...r, status: "Completed" as StatusType, completedAt } : r
         )
       );
       setConfirmError("");
-
     } catch {
       setConfirmError("Network error. Please try again.");
     }
   };
 
-  // mark job as in progress
   const handleInProgress = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
@@ -202,13 +204,11 @@ const YourJobs = () => {
         )
       );
       setConfirmError("");
-
     } catch {
       setConfirmError("Network error. Please try again.");
     }
   };
 
-  // mark job as pending (remove from active)
   const handlePending = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
@@ -233,7 +233,6 @@ const YourJobs = () => {
       setConfirmError("");
       setShowRemoveModal(false);
       setSelectedRemoveJobId(null);
-
     } catch {
       setConfirmError("Network error. Please try again.");
     }
@@ -249,7 +248,6 @@ const YourJobs = () => {
   const inProgressCount = requests.filter((r) => r.status === "In Progress").length;
   const completedCount = requests.filter((r) => r.status === "Completed").length;
 
-  // filter by selected tab — no "All" option anymore
   const filtered = requests.filter((r) => r.status === activeFilter);
 
   return (
@@ -336,10 +334,8 @@ const YourJobs = () => {
       {/* Main */}
       <main className="requests-main">
 
-        {/* Stats */}
+        {/* Stats / Filter Tabs */}
         <div className="requests-stats-row">
-
-          {/* Active tab */}
           <div
             className={`stat-card${activeFilter === "Active" ? " stat-active" : ""}`}
             onClick={() => setActiveFilter("Active")}
@@ -350,7 +346,6 @@ const YourJobs = () => {
             <div className="stat-card-label">Active</div>
           </div>
 
-          {/* In Progress tab */}
           <div
             className={`stat-card${activeFilter === "In Progress" ? " stat-active" : ""}`}
             onClick={() => setActiveFilter("In Progress")}
@@ -361,7 +356,6 @@ const YourJobs = () => {
             <div className="stat-card-label">In Progress</div>
           </div>
 
-          {/* Completed tab */}
           <div
             className={`stat-card${activeFilter === "Completed" ? " stat-active" : ""}`}
             onClick={() => setActiveFilter("Completed")}
@@ -371,14 +365,13 @@ const YourJobs = () => {
             <div className="stat-card-number color-gray">{completedCount}</div>
             <div className="stat-card-label">Completed</div>
           </div>
-
         </div>
 
         {loadError && (
           <p style={{ color: "red", fontFamily: "Inter", fontSize: 14 }}>{loadError}</p>
         )}
 
-        {/* Request Cards */}
+        {/* Job Cards */}
         <div className="requests-list">
           {filtered.map((req) => (
             <div key={req.id} className="request-card">
@@ -412,7 +405,7 @@ const YourJobs = () => {
                 </div>
               </div>
 
-              {/* buttons for active jobs */}
+              {/* ── Active tab buttons ── */}
               {req.status === "Active" && (
                 <>
                   <button
@@ -421,6 +414,14 @@ const YourJobs = () => {
                   >
                     Start Job
                   </button>
+
+                  <button
+                    className="view-details-btn"
+                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
+                  >
+                    View Details
+                  </button>
+
                   <button
                     className="complete-btn"
                     onClick={() => {
@@ -433,14 +434,57 @@ const YourJobs = () => {
                 </>
               )}
 
-              {/* button for in progress jobs */}
+              {/* ── In Progress tab buttons ── */}
               {req.status === "In Progress" && (
-                <button
-                  className="complete-btn"
-                  onClick={() => handleMarkComplete(req.id)}
-                >
-                  Mark as Complete
-                </button>
+                <>
+                  <button
+                    className="view-details-btn"
+                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "In Progress" } })}
+                  >
+                    View Details
+                  </button>
+
+                  <button
+                    className="complete-btn"
+                    onClick={() => handleMarkComplete(req.id)}
+                  >
+                    Mark as Complete
+                  </button>
+                </>
+              )}
+
+              {/* ── Completed tab ── */}
+              {req.status === "Completed" && (
+                <>
+                  {req.completedAt && (
+                    <div style={{
+                      marginTop: 12,
+                      padding: "10px 14px",
+                      backgroundColor: "#f0fdf4",
+                      borderRadius: 10,
+                      border: "1px solid #bbf7d0",
+                      fontFamily: "Inter",
+                    }}>
+                      <p style={{ fontSize: 12, color: "grey", fontWeight: 500, marginBottom: 4 }}>
+                        Completed On
+                      </p>
+                      <p style={{ fontSize: 14, color: "#16a34a", fontWeight: 500 }}>
+                        ✅ {new Date(req.completedAt).toLocaleDateString("en-US", {
+                          month: "long", day: "numeric", year: "numeric",
+                        })} at {new Date(req.completedAt).toLocaleTimeString("en-US", {
+                          hour: "numeric", minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    className="view-details-btn"
+                    onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Completed" } })}
+                  >
+                    View Details
+                  </button>
+                </>
               )}
 
             </div>
