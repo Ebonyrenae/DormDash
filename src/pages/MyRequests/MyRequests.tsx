@@ -550,7 +550,7 @@ const postedAsRequests: Request[] = useMemo(() => {
                   received
                 </span>
   <button
-    className="btn-view-details"
+    className="btn-view-detail"
     onClick={() => navigate(`/my-request/${req.id}`)}
   >
     View Details

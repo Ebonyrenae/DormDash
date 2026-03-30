@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import "./jobdetails.css";
+import "./myjobdetails.css";
 import { trackJobActivity, trackViewedJob } from "../../utils/recentActivities";
 
 const API_BASE_URL = "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
@@ -17,6 +17,8 @@ type BackendJob = {
   user_id: number;
   username: string | null;
   created_at: string;
+  confirmation_code?: string | null;
+  completion_code?: string | null;
   status?: string;
 };
 
@@ -35,10 +37,13 @@ type JobRouteState = {
     location?: string;
     category?: string;
     eventType?: "viewed_job" | "accepted_job";
+    status?: string;
   };
 };
 
 type CtaState = "available" | "picked_by_other" | "picked_by_you" | "your_post";
+type statusType = "pending" | "accepted" | "completed" | "cancelled";
+
 
 const JobDetails = () => {
   const { jobId } = useParams();
@@ -95,6 +100,8 @@ const JobDetails = () => {
               budget: job.budget,
               location: job.location,
               category: job.service_type,
+
+              
             });
             setIsSuccess(true);
         } else {
@@ -113,28 +120,8 @@ const JobDetails = () => {
         let foundJob: BackendJob | null = null;
         let foundSource: "all" | "accepted" | "my" | "fallback" = "fallback";
 
-        const allJobsRes = await fetch(`${API_BASE_URL}/get_all_jobs.php`, {
-          credentials: "include",
-        });
-        const allJobsData = await allJobsRes.json();
-        if (allJobsData.success) {
-          foundJob = findById(allJobsData.jobs, targetJobId);
-          if (foundJob) foundSource = "all";
-        }
-
-        if (!foundJob && loggedInUserId) {
-          const acceptedRes = await fetch(
-            `${API_BASE_URL}/get_accepted_Jobs.php?user_id=${loggedInUserId}&t=${Date.now()}`,
-            { credentials: "include" }
-          );
-          const acceptedData = await acceptedRes.json();
-          if (acceptedData.success) {
-            foundJob = findById(acceptedData.jobs, targetJobId);
-            if (foundJob) foundSource = "accepted";
-          }
-        }
-
-        if (!foundJob && loggedInUserId) {
+        // Try to fetch jobs that include internal codes first (owner and accepted lists)
+        if (loggedInUserId) {
           const myJobsRes = await fetch(`${API_BASE_URL}/get_my_jobs.php`, {
             credentials: "include",
           });
@@ -142,6 +129,30 @@ const JobDetails = () => {
           if (myJobsData.success) {
             foundJob = findById(myJobsData.jobs, targetJobId);
             if (foundJob) foundSource = "my";
+          }
+
+          if (!foundJob) {
+            const acceptedRes = await fetch(
+              `${API_BASE_URL}/get_accepted_Jobs.php?user_id=${loggedInUserId}&t=${Date.now()}`,
+              { credentials: "include" }
+            );
+            const acceptedData = await acceptedRes.json();
+            if (acceptedData.success) {
+              foundJob = findById(acceptedData.jobs, targetJobId);
+              if (foundJob) foundSource = "accepted";
+            }
+          }
+        }
+
+        // Last, fall back to the public/all jobs feed if still not found
+        if (!foundJob) {
+          const allJobsRes = await fetch(`${API_BASE_URL}/get_all_jobs.php`, {
+            credentials: "include",
+          });
+          const allJobsData = await allJobsRes.json();
+          if (allJobsData.success) {
+            foundJob = findById(allJobsData.jobs, targetJobId);
+            if (foundJob) foundSource = "all";
           }
         }
 
@@ -168,6 +179,7 @@ const JobDetails = () => {
           }
         }
         setJob(foundJob);
+        console.log("Loaded job details (source:", foundSource, "):", foundJob);
 
         if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
           setCtaState("your_post");
@@ -176,8 +188,10 @@ const JobDetails = () => {
           routeState?.recentActivity?.eventType === "accepted_job"
         ) {
           setCtaState("picked_by_you");
-        } else if 
-          (foundJob.status && foundJob.status !== "pending"){
+        } else if (
+          recentAvailability === "picked_by_other" ||
+          (foundJob.status ?? "pending") !== "pending"
+        ) {
           setCtaState("picked_by_other");
         } else {
           setCtaState("available");
@@ -307,8 +321,18 @@ const JobDetails = () => {
             </div>
 
             {/* Buttons */}
-        
 
+            {job.status === "active" && (
+              <div style = {{ fontFamily: "Inter", marginTop: 30 }} className="job-codes">
+
+            <p>
+              <strong style={{fontFamily: "Inter", marginTop: 20 }}>Meet-up Code: </strong>{job.confirmation_code ?? "Not available"}
+              <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 4 }}>
+                Show this code to the Dasher to verify you're meeting the right person </p>
+            </p>
+
+                </div>
+)}
             
         {ctaState === "your_post" ? (
         <p style={{ textAlign: "center", color: "grey", fontSize: 14, fontFamily: "Inter", marginTop: 20 }}>

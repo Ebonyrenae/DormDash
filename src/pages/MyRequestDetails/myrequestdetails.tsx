@@ -321,12 +321,12 @@ const JobDetails = () => {
               <div className="job-codes">
 
             <p>
-              <strong>Meet-up Code: </strong>{job.confirmation_code ?? "Not available"}
+              <strong>Meet-up Code: </strong>{job.confirmation_code }
               <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 4 }}>
                 Show this code to the Dasher to verify you're meeting the right person </p>
             </p>
 
-            <p> <strong>Completion Code: </strong> {job.completion_code ?? "Not available"} </p>
+            <p> <strong>Completion Code: </strong> {job.completion_code } </p>
             <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 4 }} >
                 After the job is complete, give this code to the Dasher to confirm the job is done. </p>
                 </div>
