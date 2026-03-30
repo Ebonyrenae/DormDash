@@ -62,21 +62,24 @@ try {
     }
 
     $code = rand(100000, 999999);
+    $confirmationCode = rand(100000,999999);
+
 
 
     // 6. Update job
     $sql = "UPDATE jobs 
-            SET status = 'active', accepted_by = ?, completion_code = ?
+            SET status = 'active', accepted_by = ?, completion_code = ?, confirmation_code = ?
             WHERE id = ?";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$accepted_by, $code, $job_id]);
+    $stmt->execute([$accepted_by, $code, $confirmationCode, $job_id]);
 
     // 7. Check result
     if ($stmt->rowCount() > 0) {
         echo json_encode([
             "success" => true,
             "code" => $code,
+            "confirmationCode" => $confirmationCode,
             "message" => "Job accepted!"
         ]);
     } else {
