@@ -540,12 +540,12 @@ const YourJobs = () => {
                       </p>
                     )}
 
-                    <button
+                  {/*}  <button
                       className="view-details-btn"
                       onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
                     >
                       View Details
-                    </button>
+                    </button> */}
 
                     <button
                       className="complete-btn"
@@ -570,8 +570,8 @@ const YourJobs = () => {
                 {req.status === "In Progress" && (
                   <>
                     <button
-                      className="view-details-btn"
-                      onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "In Progress" } })}
+                      className="btn-view-details"
+                      onClick={() => navigate(`/my-job/${req.id}`, { state: { fromYourJobsStatus: "In Progress" } })}
                     >
                       View Details
                     </button>

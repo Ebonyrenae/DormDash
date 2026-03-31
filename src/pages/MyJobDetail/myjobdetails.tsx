@@ -322,11 +322,16 @@ const JobDetails = () => {
 
             {/* Buttons */}
 
-            {job.status === "active" && (
-              <div style = {{ fontFamily: "Inter", marginTop: 30 }} className="job-codes">
+            {(job.status === "active" || job.status === "in_progress") && (
+              <div style = {{ fontFamily: "Inter", marginTop: 24,
+                    padding: "16px 20px",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: 12,
+                    border: "1px dashed #d1d5db",
+                    }} className="job-codes">
 
             <p>
-              <strong style={{fontFamily: "Inter", marginTop: 20 }}>Meet-up Code: </strong>{job.confirmation_code ?? "Not available"}
+              <strong style={{fontFamily: "Inter", marginTop: 20, color: "green" }}>Meet-up Code: </strong>{job.confirmation_code ?? "Not available"}
               <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 4 }}>
                 Show this code to your client to verify you're meeting the right person </p>
             </p>
