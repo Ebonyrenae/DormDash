@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_BASE } from "../../config";
 import {
@@ -105,6 +105,42 @@ const ArrowLeftIcon = () => (
   </svg>
 );
 
+const BellIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M15 17H9M18 17V11C18 7.68629 15.3137 5 12 5C8.68629 5 6 7.68629 6 11V17L4.5 18.5V19H19.5V18.5L18 17Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M10 19C10 20.1046 10.8954 21 12 21C13.1046 21 14 20.1046 14 19"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+type NotificationItem = {
+  id: number;
+  type: string;
+  actor_user_id?: number | null;
+  job_id: number | null;
+  message: string;
+  is_read: number | string;
+  created_at: string;
+};
+
+type ToastItem = {
+  id: number;
+  message: string;
+  jobId: number | null;
+  actorUserId: number | null;
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -113,6 +149,9 @@ const Dashboard = () => {
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
   const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([]);
   const [availableJobIds, setAvailableJobIds] = useState<Set<string>>(new Set());
+  const [notificationsUnread, setNotificationsUnread] = useState(0);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const seenNotificationIds = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     const userId = localStorage.getItem("userId") || localStorage.getItem("user_id");
@@ -147,6 +186,84 @@ const Dashboard = () => {
     })();
   }, []);
 
+  const isLoggedIn = useMemo(() => {
+    return Boolean(localStorage.getItem("userId") || localStorage.getItem("user_id"));
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/notifications.php`, {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (!data?.success) return;
+
+        const unreadCount = Number(data.unreadCount || 0);
+        setNotificationsUnread(unreadCount);
+
+        const items: NotificationItem[] = Array.isArray(data.notifications)
+          ? data.notifications
+          : [];
+
+        for (const n of items) {
+          const idNum = Number(n.id);
+          if (!idNum || seenNotificationIds.current.has(idNum)) continue;
+          seenNotificationIds.current.add(idNum);
+
+          const isUnread = String(n.is_read) === "0" || n.is_read === 0;
+          if (!isUnread) continue;
+
+          setToasts((prev) => [
+            ...prev,
+            {
+              id: idNum,
+              message: n.message,
+              jobId: n.job_id ?? null,
+              actorUserId: (n.actor_user_id ?? null) as number | null,
+            },
+          ]);
+        }
+      } catch {
+        // Non-blocking.
+      }
+    };
+
+    void tick();
+    const interval = window.setInterval(() => void tick(), 15000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [isLoggedIn]);
+
+  const dismissToast = (id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const markToastRead = async (id: number) => {
+    try {
+      const res = await fetch(`${API_BASE}/notifications_mark_read.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notification_id: id }),
+      });
+      const data = await res.json();
+      if (!data?.success) return;
+      setNotificationsUnread((c) => (c > 0 ? c - 1 : 0));
+    } catch {
+      // Non-blocking.
+    } finally {
+      dismissToast(id);
+    }
+  };
+
   const userInitials =
     profileUsername && profileUsername.length >= 2
       ? profileUsername
@@ -170,6 +287,59 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-page">
+      <div className="notif-toast-stack" aria-live="polite" aria-relevant="additions">
+        {toasts.map((t) => (
+          <div key={t.id} className="notif-toast">
+            <div className="notif-toast-row">
+              <div className="notif-toast-message">{t.message}</div>
+              <div className="notif-toast-actions">
+                <button
+                  type="button"
+                  className="notif-toast-btn"
+                  onClick={() => void markToastRead(t.id)}
+                >
+                  Mark read
+                </button>
+                <button
+                  type="button"
+                  className="notif-toast-x"
+                  aria-label="Dismiss notification"
+                  onClick={() => dismissToast(t.id)}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="notif-toast-links">
+              {t.actorUserId ? (
+                <button
+                  type="button"
+                  className="notif-toast-link secondary"
+                  onClick={() => {
+                    dismissToast(t.id);
+                    navigate(`/messages/${t.actorUserId}`);
+                  }}
+                >
+                  Message them
+                </button>
+              ) : null}
+              {t.jobId ? (
+                <button
+                  type="button"
+                  className="notif-toast-link"
+                  onClick={() => {
+                    dismissToast(t.id);
+                    navigate(`/Jobdetails/${t.jobId}`);
+                  }}
+                >
+                  View job
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Sidebar Overlay */}
       <div
         className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
@@ -221,20 +391,34 @@ const Dashboard = () => {
             DormDash
           </div>
 
-          <div
-            className="nav-avatar"
-            onClick={() => navigate("/profile")}
-            title="View profile"
-          >
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt=""
-                className="nav-avatar-img"
-              />
-            ) : (
-              userInitials
-            )}
+          <div className="nav-right">
+            <button
+              type="button"
+              className="nav-bell"
+              onClick={() => navigate("/notifications")}
+              aria-label="Open notifications"
+              title="Notifications"
+            >
+              <BellIcon />
+              {notificationsUnread > 0 ? (
+                <span className="nav-bell-badge" aria-label={`${notificationsUnread} unread`} />
+              ) : null}
+            </button>
+            <div
+              className="nav-avatar"
+              onClick={() => navigate("/profile")}
+              title="View profile"
+            >
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="nav-avatar-img"
+                />
+              ) : (
+                userInitials
+              )}
+            </div>
           </div>
         </div>
       </nav>
