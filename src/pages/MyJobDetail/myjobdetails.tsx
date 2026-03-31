@@ -245,8 +245,8 @@ const JobDetails = () => {
         <div className="job-details-page">
 
         {/* Back button */}
-        <button className="back-button" onClick={() => navigate(backPath)}>
-            {backPath === "/all-jobs" ? "← Back to Jobs" : "← Back"}
+        <button className="back-button" onClick={() => navigate(fromPath || "/your-jobs")}>
+            {fromPath === "/your-jobs" ? "← Back to Your Jobs" : "← Back"}
         </button>
 
         <div className="floating-box">
@@ -328,7 +328,7 @@ const JobDetails = () => {
             <p>
               <strong style={{fontFamily: "Inter", marginTop: 20 }}>Meet-up Code: </strong>{job.confirmation_code ?? "Not available"}
               <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 4 }}>
-                Show this code to the Dasher to verify you're meeting the right person </p>
+                Show this code to your client to verify you're meeting the right person </p>
             </p>
 
                 </div>

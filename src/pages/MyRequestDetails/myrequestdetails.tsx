@@ -240,8 +240,8 @@ const JobDetails = () => {
         <div className="job-details-page">
 
         {/* Back button */}
-        <button className="back-button" onClick={() => navigate(backPath)}>
-            {backPath === "/all-jobs" ? "← Back to Jobs" : "← Back"}
+        <button className="back-button" onClick={() => navigate(fromPath || "/my-requests")}>
+            {fromPath === "/my-requests" ? "← Back to My Requests" : "← Back"}
         </button>
 
         <div className="floating-box">
@@ -327,7 +327,7 @@ const JobDetails = () => {
             </p>
 
             <p> <strong>Completion Code: </strong> {job.completion_code } </p>
-            <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 4 }} >
+            <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 2 }} >
                 After the job is complete, give this code to the Dasher to confirm the job is done. </p>
                 </div>
 )}
