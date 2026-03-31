@@ -19,6 +19,7 @@ interface Request {
   completedAt?: string | null;
   jobDate: string;
   jobTime: string;
+  wasUnassigned: boolean;
 }
 
 const API_BASE_URL =
@@ -35,6 +36,7 @@ type BackendJob = {
   job_time: string;
   status: string;
   completed_at?: string | null;
+  was_unassigned: number;
 };
 
 const SERVICE_EMOJI: Record<string, string> = {
@@ -53,7 +55,6 @@ function toStatusLabel(status: string): StatusType {
   return "Active";
 }
 
-// Returns true if the job's date and time has arrived
 function isJobReady(jobDate: string, jobTime: string): boolean {
   if (!jobDate || !jobTime) return true;
   const jobDateTime = new Date(`${jobDate}T${jobTime}`);
@@ -64,6 +65,7 @@ const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
   { label: "View Jobs", path: "/all-jobs" },
   { label: "Post a Job", path: "/post-job" },
+  { label: "Your Jobs", path: "/your-jobs" },
   { label: "Profile", path: "/profile" },
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
@@ -117,60 +119,84 @@ const YourJobs = () => {
   const [completionInput, setCompletionInput] = useState<string>("");
   const [completionError, setCompletionError] = useState<string>("");
 
-  // tracks which job IDs have had the "not ready" message shown
   const [earlyStartIds, setEarlyStartIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    (async () => {
-      try {
-        setLoadError(null);
-        const userId = localStorage.getItem("userId");
-        const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php?user_id=${userId}&t=${Date.now()}`, {
-          method: "GET",
-          credentials: "include",
-        });
-        const data = await res.json();
+  const fetchJobs = async () => {
+    try {
+      setLoadError(null);
+      const userId = localStorage.getItem("userId");
+      const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php?user_id=${userId}&t=${Date.now()}`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
 
-        if (!data.success) {
-          setLoadError(data.message || "Failed to load your jobs.");
-          return;
-        }
-
-        const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
-          const time = j.job_time?.slice(0, 5);
-          const dateTime = `${j.job_date}\n${time}`;
-          return {
-            id: String(j.id),
-            category: j.service_type?.charAt(0).toUpperCase() + j.service_type?.slice(1),
-            categoryEmoji: SERVICE_EMOJI[j.service_type] ?? "🧾",
-            status: toStatusLabel(j.status),
-            title: j.title,
-            description: j.description ?? "",
-            dateTime,
-            location: j.location,
-            budget: j.budget,
-            completedAt: j.completed_at ?? localStorage.getItem(`completed_at_${j.id}`),
-            jobDate: j.job_date,
-            jobTime: j.job_time?.slice(0, 5),
-          };
-        });
-
-        // Sort active jobs: ready ones first, not-ready ones last
-        mapped.sort((a, b) => {
-          if (a.status !== "Active" || b.status !== "Active") return 0;
-          const aReady = isJobReady(a.jobDate, a.jobTime);
-          const bReady = isJobReady(b.jobDate, b.jobTime);
-          if (aReady && !bReady) return -1;
-          if (!aReady && bReady) return 1;
-          return 0;
-        });
-
-        setRequests(mapped);
-      } catch {
-        setLoadError("Network error loading your jobs.");
+      if (!data.success) {
+        setLoadError(data.message || "Failed to load your jobs.");
+        return;
       }
-    })();
-  }, []);
+
+      const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
+        const time = j.job_time?.slice(0, 5);
+        const dateTime = `${j.job_date}\n${time}`;
+        return {
+          id: String(j.id),
+          category: j.service_type?.charAt(0).toUpperCase() + j.service_type?.slice(1),
+          categoryEmoji: SERVICE_EMOJI[j.service_type] ?? "🧾",
+          status: toStatusLabel(j.status),
+          title: j.title,
+          description: j.description ?? "",
+          dateTime,
+          location: j.location,
+          budget: j.budget,
+          completedAt: j.completed_at ?? localStorage.getItem(`completed_at_${j.id}`),
+          jobDate: j.job_date,
+          jobTime: j.job_time?.slice(0, 5),
+          wasUnassigned: j.was_unassigned === 1,
+        };
+      });
+
+      mapped.sort((a, b) => {
+        if (a.status !== "Active" || b.status !== "Active") return 0;
+        const aReady = isJobReady(a.jobDate, a.jobTime);
+        const bReady = isJobReady(b.jobDate, b.jobTime);
+        if (aReady && !bReady) return -1;
+        if (!aReady && bReady) return 1;
+        return 0;
+      });
+
+      setRequests(mapped);
+    } catch {
+      setLoadError("Network error loading your jobs.");
+    }
+  };
+
+  fetchJobs(); // run immediately on mount
+  const interval = setInterval(fetchJobs, 5000); // poll every 5 seconds
+  return () => clearInterval(interval); // cleanup on unmount
+}, []);
+
+  // Called when dasher clicks x on unassigned card
+ const handleDismissUnassigned = async (jobId: string) => {
+  try {
+    const userId = localStorage.getItem("userId");
+    const res = await fetch(`${API_BASE_URL}/dismiss_unassigned_job.php`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_id: jobId, user_id: userId }),  // ✅ added user_id
+    });
+    const data = await res.json();
+    if (data?.success) {
+      setRequests((prev) => prev.filter((r) => r.id !== jobId));
+    } else {
+      console.error("Dismiss failed", data?.message);
+    }
+  } catch (err) {
+    console.error("Network error dismissing job", err);
+  }
+};
 
   const handleMarkComplete = async (
     jobId: string,
@@ -178,7 +204,6 @@ const YourJobs = () => {
   ): Promise<{ success: boolean; message?: string }> => {
     try {
       const completedAt = new Date().toISOString();
-
       const body: Record<string, any> = {
         job_id: jobId,
         status: "completed",
@@ -188,24 +213,17 @@ const YourJobs = () => {
       if (code) {
         body.completion_code = code;
       }
-
       const res = await fetch(`${API_BASE_URL}/update_job_status.php`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
       const data = await res.json();
-      console.log("update_job_status response:", data);
-
       if (!data.success) {
-        const msg = data.message || "Failed to mark job as complete";
-        return { success: false, message: msg };
+        return { success: false, message: data.message || "Failed to mark job as complete" };
       }
-
       localStorage.setItem(`completed_at_${jobId}`, completedAt);
-
       setRequests((prev) =>
         prev.map((r) =>
           r.id === jobId ? { ...r, status: "Completed" as StatusType, completedAt } : r
@@ -213,7 +231,6 @@ const YourJobs = () => {
       );
       return { success: true };
     } catch (err) {
-      console.error("handleMarkComplete error:", err);
       return { success: false, message: "Network error. Please try again." };
     }
   };
@@ -230,14 +247,11 @@ const YourJobs = () => {
           user_id: localStorage.getItem("userId"),
         }),
       });
-
       const data = await res.json();
-
       if (!data.success) {
         setConfirmError(data.message || "Job not moved to in progress");
         return;
       }
-
       setRequests((prev) =>
         prev.map((r) =>
           r.id === jobId ? { ...r, status: "In Progress" as StatusType } : r
@@ -261,14 +275,11 @@ const YourJobs = () => {
           user_id: localStorage.getItem("userId"),
         }),
       });
-
       const data = await res.json();
-
       if (!data.success) {
         setConfirmError(data.message || "Job not removed from active jobs");
         return;
       }
-
       setRequests((prev) => prev.filter((r) => r.id !== jobId));
       setConfirmError("");
       setShowRemoveModal(false);
@@ -510,59 +521,90 @@ const YourJobs = () => {
                 {/* ── Active tab buttons ── */}
                 {req.status === "Active" && (
                   <>
-                    <button
-                      className="postjob-btn-submit"
-                      style={!ready ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-                      onClick={() => {
-                        if (!ready) {
-                          setEarlyStartIds((prev) => new Set(prev).add(req.id));
-                          return;
-                        }
-                        handleInProgress(req.id);
-                      }}
-                    >
-                      Start Job
-                    </button>
+                    {/* If unassigned — show message and x button only */}
+                    {req.wasUnassigned ? (
+                      <div style={{ position: "relative" }}>
+                        {/* X dismiss button */}
+                        <button
+                          onClick={() => handleDismissUnassigned(req.id)}
+                          style={{
+                            position: "absolute",
+                            top: -3,
+                            right: 0,
+                            background: "none",
+                            border: "none",
+                            fontSize: 18,
+                            cursor: "pointer",
+                            color: "#6b7280",
+                            lineHeight: 1,
+                          }}
+                          aria-label="Dismiss card"
+                        >
+                          ✕
+                        </button>
+                        {/* Unassignment message */}
+                        <div style={{
+                          marginTop: 12,
+                          padding: "10px 14px",
+                          backgroundColor: "#fef2f2",
+                          borderRadius: 10,
+                          border: "1px solid #fecaca",
+                          fontFamily: "Inter",
+                        }}>
+                          <p style={{ fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
+                            ⚠️ You have been unassigned from this job.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          className="postjob-btn-submit"
+                          style={!ready ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                          onClick={() => {
+                            if (!ready) {
+                              setEarlyStartIds((prev) => new Set(prev).add(req.id));
+                              return;
+                            }
+                            handleInProgress(req.id);
+                          }}
+                        >
+                          Start Job
+                        </button>
 
-                    {/* Early start message */}
-                    {showEarlyMsg && !ready && (
-                      <p style={{
-                        fontSize: 13,
-                        color: "#b45309",
-                        fontFamily: "Inter",
-                        backgroundColor: "#fffbeb",
-                        border: "1px solid #fde68a",
-                        borderRadius: 8,
-                        padding: "8px 12px",
-                        marginTop: 8,
-                      }}>
-                        ⏳ The date and time hasn't come yet for this job.
-                      </p>
+                        {showEarlyMsg && !ready && (
+                          <p style={{
+                            fontSize: 13,
+                            color: "#b45309",
+                            fontFamily: "Inter",
+                            backgroundColor: "#fffbeb",
+                            border: "1px solid #fde68a",
+                            borderRadius: 8,
+                            padding: "8px 12px",
+                            marginTop: 8,
+                          }}>
+                            ⏳ The date and time hasn't come yet for this job.
+                          </p>
+                        )}
+
+                        <button
+                          className="view-details-btn"
+                          onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
+                        >
+                          View Details
+                        </button>
+
+                        <button
+                          className="complete-btn"
+                          onClick={() => {
+                            setSelectedRemoveJobId(req.id);
+                            setShowRemoveModal(true);
+                          }}
+                        >
+                          Remove Job From Active Jobs
+                        </button>
+                      </>
                     )}
-
-                    <button
-                      className="view-details-btn"
-                      onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
-                    >
-                      View Details
-                    </button>
-
-                    <button
-                      className="complete-btn"
-                      onClick={() => {
-                        setSelectedRemoveJobId(req.id);
-                        setShowRemoveModal(true);
-                      }}
-                    >
-                      Remove Job From Active Jobs
-                    </button>
-                  <button
-                  className="btn-view-details"
-                  onClick={() => navigate(`/my-job/${req.id}`)}
-                >
-                  View Details
-                </button>
-
                   </>
                 )}
 
@@ -575,7 +617,6 @@ const YourJobs = () => {
                     >
                       View Details
                     </button>
-
                     <button
                       className="complete-btn"
                       onClick={() => {
@@ -615,7 +656,6 @@ const YourJobs = () => {
                         </p>
                       </div>
                     )}
-
                     <button
                       className="view-details-btn"
                       onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Completed" } })}
