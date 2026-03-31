@@ -33,7 +33,7 @@ if (!$userId) {
 
 try {
   $sql = "SELECT id, user_id, service_type, title, description, budget, 
-          location, job_date, job_time, created_at, status, completed_at
+          location, job_date, job_time, created_at, status, completion_code, confirmation_code
           FROM jobs
           WHERE accepted_by = ?
           ORDER BY created_at DESC";

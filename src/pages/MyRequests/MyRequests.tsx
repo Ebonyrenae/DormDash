@@ -18,7 +18,8 @@ interface Request {
   location: string;
   budget: string;
   offersCount: number;
-  completionCode?: string | null;
+  completionCode?:  string | null;
+  confirmationCode?: string | null;
 }
 
 const POSTED_JOBS_KEY = "posted_jobs_v1";
@@ -280,6 +281,7 @@ useEffect(() => {
           location: j.location,
           budget: j.budget,
           completionCode: (j as any).completion_code ?? null,
+          confirmationCode: (j as any).confirmation_code ?? null,
           offersCount: 0,          // not needed yet
         };
       });
@@ -516,11 +518,9 @@ const postedAsRequests: Request[] = useMemo(() => {
               {link.label}
             </button>
           ))}
-        </nav>
-      </aside>
-
-      {/* Header */}
-      <header className="requests-header">
+          </nav>
+        </aside>
+        <header className="requests-header">
         <div className="requests-header-inner">
           <button
             className="requests-menu-btn"
@@ -726,8 +726,8 @@ const postedAsRequests: Request[] = useMemo(() => {
                 <div className="request-card-actions">
                   {!(req.status === "Active" && editingId === req.id) && (
                     <button
-                      className="btn-view-details"
-                      onClick={() => navigate(`/my-requests/${req.id}`)}
+                      className="btn-view-detail"
+                      onClick={() => navigate(`/my-request/${req.id}`)}
                     >
                       View Details
                     </button>
@@ -773,12 +773,11 @@ const postedAsRequests: Request[] = useMemo(() => {
                     </button>
                   )}
 
-                  {req.status === "In Progress" && (
-                    <p className="job-code">
-                      Completion Code:{" "}
-                      <strong>{req.completionCode ?? ""}</strong>
-                    </p>
-                  )}
+  {/* {(req.status === "In Progress") && (
+    <p className ="job-code">
+      Completion Code: <strong>{req.completionCode ?? ""}</strong>
+    </p>
+  )} */}
 
                   {req.status === "In Progress" && (
                     <button

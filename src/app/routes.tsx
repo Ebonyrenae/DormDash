@@ -16,6 +16,8 @@ import Settings from "../pages/Settings/SettingsWithBackend";
 import YourJobs from "../pages/YourJobs/YourJobs";
 import JobDetailsPage from "../pages/JobDetailsPage/JobDetails";
 import RecentActivities from "../pages/RecentActivities/RecentActivities";
+import MyRequestDetails from "../pages/MyRequestDetails/myrequestdetails";
+import MyJobDetail from "../pages/MyJobDetail/myjobdetails";
 
 export const router = createHashRouter([
   // Public routes
@@ -34,6 +36,9 @@ export const router = createHashRouter([
   { path: "/profile", Component: Profile },
   { path: "/profile/:userId", Component: Profile },
   { path: "/post-job", Component: PostJob },
+
+  {path: "/my-request/:jobId", Component: MyRequestDetails},
+  {path : "/my-job/:jobId", Component: MyJobDetail},
   {
     path: "/my-requests",
     Component: MyRequests,

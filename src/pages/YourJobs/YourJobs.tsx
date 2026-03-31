@@ -556,6 +556,13 @@ const YourJobs = () => {
                     >
                       Remove Job From Active Jobs
                     </button>
+                  <button
+                  className="btn-view-details"
+                  onClick={() => navigate(`/my-job/${req.id}`)}
+                >
+                  View Details
+                </button>
+
                   </>
                 )}
 
