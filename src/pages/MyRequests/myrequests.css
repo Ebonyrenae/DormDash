@@ -316,8 +316,10 @@
 /* Card Footer */
 .request-card-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   margin-top: 4px;
 }
 
@@ -325,6 +327,14 @@
   font-size: 13px;
   color: #6a7282;
   font-weight: 400;
+}
+
+.request-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .btn-view-details {
@@ -390,6 +400,67 @@
   background: #2bc947;
   transform: translateY(-1px);
   box-shadow: 0 3px 8px rgba(41, 172, 61, 0.3);
+}
+
+.edit-job-btn {
+  background: white;
+  color: #29ac3d;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 1px solid #29ac3d;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.edit-job-btn:hover:not(:disabled) {
+  background: #f0fdf4;
+}
+
+.edit-job-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.request-edit-fields {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.request-edit-label {
+  display: block;
+  font-size: 12px;
+  color: #6a7282;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.request-edit-input,
+.request-edit-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.request-edit-error {
+  color: #e13333;
+  font-size: 13px;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.request-edit-readonly {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: #364153;
+  font-weight: 500;
 }
 
 /* Responsive */

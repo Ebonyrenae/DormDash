@@ -346,6 +346,11 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
 
         {/* POST JOB + CANCEL */}
+        {submitError && (
+          <p className="postjob-submit-error" role="alert">
+            {submitError}
+          </p>
+        )}
         <div className="postjob-actions">
           <button type="submit" className="postjob-btn-submit">
             POST JOB
