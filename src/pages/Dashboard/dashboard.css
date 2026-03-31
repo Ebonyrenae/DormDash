@@ -190,6 +190,142 @@
   border-color: #29ac3d;
 }
 
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-bell {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #364153;
+  position: relative;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.nav-bell:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.nav-bell svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-bell-badge {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e13333;
+  border: 2px solid white;
+}
+
+.notif-toast-stack {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.notif-toast {
+  pointer-events: auto;
+  background: white;
+  border: 1px solid rgba(41, 172, 61, 0.35);
+  border-radius: 14px;
+  padding: 12px 12px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.notif-toast-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.notif-toast-message {
+  font-size: 14px;
+  color: #101828;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.notif-toast-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.notif-toast:hover .notif-toast-actions {
+  opacity: 1;
+}
+
+.notif-toast-btn {
+  background: #f0fdf4;
+  border: 1px solid rgba(41, 172, 61, 0.35);
+  color: #29ac3d;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.notif-toast-x {
+  background: transparent;
+  border: none;
+  color: #6a7282;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.notif-toast-link {
+  margin-top: 10px;
+  width: 100%;
+  background: #29ac3d;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.notif-toast-links {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.notif-toast-link.secondary {
+  background: white;
+  color: #29ac3d;
+  border: 1px solid rgba(41, 172, 61, 0.45);
+}
+
 /* Main Content */
 .dashboard-main {
   max-width: 1280px;
