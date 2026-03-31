@@ -33,12 +33,14 @@ if (!$userId) {
 
 try {
   $sql = "SELECT id, user_id, service_type, title, description, budget, 
-          location, job_date, job_time, created_at, status, completion_code, confirmation_code
-          FROM jobs
-          WHERE accepted_by = ?
-          ORDER BY created_at DESC";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([$userId]);
+        location, job_date, job_time, created_at, status, completion_code, 
+        confirmation_code, was_unassigned
+        FROM jobs
+        WHERE accepted_by = ?
+        OR (unassigned_from = ? AND was_unassigned = 1)
+        ORDER BY created_at DESC";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$userId, $userId]);
   $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
   echo json_encode(['success' => true, 'jobs' => $jobs]);

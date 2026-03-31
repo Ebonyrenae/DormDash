@@ -19,11 +19,9 @@ import RecentActivities from "../pages/RecentActivities/RecentActivities";
 import Notifications from "../pages/Notifications/Notifications";
 
 export const router = createHashRouter([
-  // Public routes
   { path: "/", Component: Landing },
   { path: "/signup", Component: SignUp },
   { path: "/signin", Component: SignIn },
-
   { path: "/messages", Component: Messages },
   { path: "/Jobdetails/:jobId", Component: JobDetailsPage },
   { path: "/messages/:userId", Component: DirectMessage },
@@ -36,20 +34,7 @@ export const router = createHashRouter([
   { path: "/profile", Component: Profile },
   { path: "/profile/:userId", Component: Profile },
   { path: "/post-job", Component: PostJob },
-
-  {path: "/my-request/:jobId", Component: MyRequestDetails},
-  {path : "/my-job/:jobId", Component: MyJobDetail},
-  {
-    path: "/my-requests",
-    Component: MyRequests,
-  },
-
-  {
-    path: "/about-yourself",
-    Component: AboutYourself,
-  },
-  {
-    path: "/your-jobs",
-    Component: YourJobs,
-  },
+  { path: "/my-requests", Component: MyRequests },
+  { path: "/about-yourself", Component: AboutYourself },
+  { path: "/your-jobs", Component: YourJobs },
 ]);

@@ -40,10 +40,11 @@ const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
   { label: "View Jobs", path: "/all-jobs" },
   { label: "Post a Job", path: "/post-job" },
+  { label: "Your Jobs", path: "/your-jobs" },
   { label: "Profile", path: "/profile" },
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
-  { label: "Your Jobs", path: "/your-jobs" }
+  
 ];
 
 const LocationIcon = () => (

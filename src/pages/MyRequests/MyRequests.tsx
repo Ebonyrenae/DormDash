@@ -139,6 +139,7 @@ const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
   { label: "View Jobs", path: "/all-jobs" },
   { label: "Post a Job", path: "/post-job" },
+  { label: "Your Jobs", path: "/your-jobs" },
   { label: "Profile", path: "/profile" },
   { label: "Messages", path: "/messages" },
   { label: "Settings", path: "/settings" },
@@ -231,7 +232,7 @@ const [loadError, setLoadError] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
 
 useEffect(() => {
-  (async () => {
+  const fetchJobs = async () => {
     try {
       setLoadError(null);
       const res = await fetch(`${API_BASE_URL}/get_my_jobs.php`, {
@@ -246,7 +247,6 @@ useEffect(() => {
       }
 
       const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
-
         let mappedStatus: StatusType = "Active";
 
         if (j.status === "active") {
@@ -258,21 +258,19 @@ useEffect(() => {
           mappedStatus = "Completed";
         } else if (j.status === "pending") {
           mappedStatus = "Active";
-  }
+        }
 
         const categoryLabel =
           j.service_type?.charAt(0).toUpperCase() + j.service_type.slice(1);
 
-        const time = j.job_time?.slice(0, 5) ?? ""; // "HH:MM"
+        const time = j.job_time?.slice(0, 5) ?? "";
         const dateTime = `${j.job_date}\n${time}`;
 
         return {
-
-         
           id: String(j.id),
           category: categoryLabel,
           categoryEmoji: SERVICE_EMOJI[j.service_type] ?? "🧾",
-          status: mappedStatus,        // for this task: all are Active
+          status: mappedStatus,
           title: j.title,
           description: j.description ?? "",
           dateTime,
@@ -282,7 +280,7 @@ useEffect(() => {
           budget: j.budget,
           completionCode: (j as any).completion_code ?? null,
           confirmationCode: (j as any).confirmation_code ?? null,
-          offersCount: 0,          // not needed yet
+          offersCount: 0,
         };
       });
 
@@ -290,13 +288,16 @@ useEffect(() => {
     } catch {
       setLoadError("Network error loading your requests.");
     }
-  })();
+  };
+
+  fetchJobs(); // run immediately on mount
+  const interval = setInterval(fetchJobs, 5000); // poll every 5 seconds
+  return () => clearInterval(interval); // cleanup on unmount
 }, []);
 
 useEffect(() => {
   setPostedJobs(readPostedJobs());
 }, []);
-
 const postedAsRequests: Request[] = useMemo(() => {
 
 
@@ -452,34 +453,34 @@ const postedAsRequests: Request[] = useMemo(() => {
   };
 
   const handleUnassignRequest = (id: string) => {
-    const UNASSIGN_JOB = `${API_BASE_URL}/unassign_job.php`;
+  const UNASSIGN_JOB = `${API_BASE_URL}/unassign_job.php`;
 
-    fetch(UNASSIGN_JOB, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ job_id: id }),
+  fetch(UNASSIGN_JOB, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ job_id: id }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data?.success) {
+        // Remove the job from In Progress locally
+        // since status is now pending (no dasher assigned)
+        setRequests((prev) =>
+          prev.map((r) =>
+            r.id === id ? { ...r, status: "Active" as StatusType } : r
+          )
+        );
+      } else {
+        console.error("Unassign failed", data?.message);
+      }
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.success) {
-          // update request status locally          setRequests((prev) =>
-          setRequests((prev) =>
-            prev.map((r) =>
-              r.id === id ? { ...r, status: "Active" } : r
-            )
-          );
-        }
-        else {
-          console.error("Unassign failed", data?.message);
-        }
-      })
-      .catch((err) => {
-        console.error("Network error unassigning job", err);
-      });
-  };
+    .catch((err) => {
+      console.error("Network error unassigning job", err);
+    });
+};
 
   const activeCount = requests.filter((r) => r.status === "Active").length;
   const inProgressCount = requests.filter(

@@ -29,14 +29,15 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 session_start();
 require_once 'config.php';
 
-$userId = $_SESSION['user_id'] ?? null;
+// Read body first so we can use it as fallback for user_id
+$data = json_decode(file_get_contents("php://input"), true);
+$jobId = $data['job_id'] ?? null;
+$userId = $_SESSION['user_id'] ?? $data['user_id'] ?? null;
+
 if (!$userId) {
   echo json_encode(["success" => false, "message" => "Not logged in"]);
   exit;
 }
-
-$data = json_decode(file_get_contents("php://input"), true);
-$jobId = $data['job_id'] ?? null;
 
 if (!$jobId) {
   echo json_encode(["success" => false, "message" => "Missing job id"]);
@@ -44,24 +45,19 @@ if (!$jobId) {
 }
 
 try {
-  // First get the current accepted_by so we can store it in unassigned_from
-  $getStmt = $pdo->prepare("SELECT accepted_by FROM jobs WHERE id = ? AND user_id = ?");
-  $getStmt->execute([$jobId, $userId]);
-  $job = $getStmt->fetch(PDO::FETCH_ASSOC);
-
-  if (!$job) {
-    echo json_encode(["success" => false, "message" => "Job not found"]);
-    exit;
-  }
-
-  $dasherId = $job['accepted_by'];
-
   $stmt = $pdo->prepare("
     UPDATE jobs 
-    SET status = 'pending', accepted_by = NULL, was_unassigned = 1, unassigned_from = ?
-    WHERE id = ? AND user_id = ?
+    SET was_unassigned = 0, unassigned_from = NULL
+    WHERE id = ? AND unassigned_from = ? AND was_unassigned = 1
   ");
-  $stmt->execute([$dasherId, $jobId, $userId]);
+  $stmt->execute([$jobId, $userId]);
+
+  $rowsAffected = $stmt->rowCount();
+
+  if ($rowsAffected === 0) {
+    echo json_encode(["success" => false, "message" => "No matching job found or already dismissed"]);
+    exit;
+  }
 
   echo json_encode(["success" => true]);
 } catch (PDOException $e) {
