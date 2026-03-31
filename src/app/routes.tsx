@@ -36,6 +36,9 @@ export const router = createHashRouter([
   { path: "/profile", Component: Profile },
   { path: "/profile/:userId", Component: Profile },
   { path: "/post-job", Component: PostJob },
+
+  {path: "/my-request/:jobId", Component: MyRequestDetails},
+  {path : "/my-job/:jobId", Component: MyJobDetail},
   {
     path: "/my-requests",
     Component: MyRequests,
