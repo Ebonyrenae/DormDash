@@ -19,6 +19,7 @@ type BackendJob = {
   created_at: string;
   status?: string;
   completed_at?: string | null;
+  unassigned_from?: number | null;
 };
 
 type BackendUser ={
@@ -40,7 +41,7 @@ type JobRouteState = {
   };
 };
 
-type CtaState = "available" | "picked_by_other" | "picked_by_you" | "your_post";
+type CtaState = "available" | "picked_by_other" | "picked_by_you" | "your_post" | "blocked"; // ✅ add blocked
 
 const JobDetails = () => {
   const { jobId } = useParams();
@@ -167,6 +168,7 @@ const JobDetails = () => {
         }
         setJob(foundJob);
 
+                // inside useEffect after setJob(foundJob)
         if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
           setCtaState("your_post");
         } else if (
@@ -174,8 +176,10 @@ const JobDetails = () => {
           routeState?.recentActivity?.eventType === "accepted_job"
         ) {
           setCtaState("picked_by_you");
-        } else if 
-          (foundJob.status && foundJob.status !== "pending"){
+        } else if (Number(foundJob.unassigned_from) === loggedInUserId) {
+          // ✅ block this dasher from re-accepting
+          setCtaState("blocked");
+        } else if (foundJob.status && foundJob.status !== "pending") {
           setCtaState("picked_by_other");
         } else {
           setCtaState("available");
@@ -319,7 +323,19 @@ const JobDetails = () => {
                 Accept Job
               </button>
             </>
-          ) : ctaState === "picked_by_you" ? (
+          ) : ctaState === "blocked" ? (
+          <div style={{
+            marginTop: 20,
+            padding: "12px 16px",
+            backgroundColor: "#fef2f2",
+             borderRadius: 10,
+             border: "1px solid #fecaca",
+             fontFamily: "Inter",
+             textAlign: "center",
+             }}>
+              <p style={{ fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
+                ⚠️ You cannot accept this job as you were previously unassigned from it. </p> </div>)
+                 : ctaState === "picked_by_you" ? (
             job.user_id > 0 ? (
               <>
                 {/* Confirmation Code — only for Active jobs */}
