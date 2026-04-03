@@ -317,17 +317,22 @@ const JobDetails = () => {
 
             {/* Buttons */}
 
-            {job.status === "active" && (
-              <div className="job-codes">
+            {(job.status === "active" || job.status === "in_progress") && (
+              <div style = {{ fontFamily: "Inter", marginTop: 24,
+                    padding: "16px 20px",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: 12,
+                    border: "1px dashed #d1d5db",
+                  }}   className="job-codes">
 
             <p>
-              <strong>Meet-up Code: </strong>{job.confirmation_code }
-              <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 4 }}>
+              <strong style={{fontFamily: "Inter", color: "green" }}>Meet-up Code: </strong>{job.confirmation_code }
+              <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 4, }}>
                 Show this code to the Dasher to verify you're meeting the right person </p>
             </p>
 
-            <p> <strong>Completion Code: </strong> {job.completion_code } </p>
-            <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 2 }} >
+            <p> <strong style={{fontFamily: "Inter", color: "#3b82f6" }}>Completion Code: </strong> {job.completion_code } </p>
+            <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", marginTop: 0 }} >
                 After the job is complete, give this code to the Dasher to confirm the job is done. </p>
                 </div>
 )}

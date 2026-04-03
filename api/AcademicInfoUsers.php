@@ -41,11 +41,16 @@ require_once 'config.php';
 // Get raw data from the frontend and decode it from JSON format into a PHP associative array. 
 // The file_get_contents("php://input") function reads the raw data from the request body, and json_decode() converts the 
 // JSON string into a PHP array for easier access to the individual fields.
+
+function sanitize($data) {
+  return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+} 
+
 $rawData = file_get_contents("php://input");
 $data = json_decode($rawData, true);
 
 // Validate input
-if (!isset($data['user_id'])) {
+if (!isset ($data['user_id'])) {
     echo json_encode([
         "success" => false,
         "message" => "User ID missing: " .( $data['user_id'] ?? "nothing provided")
@@ -54,11 +59,11 @@ if (!isset($data['user_id'])) {
 }
 
 
-$user_id = $data['user_id'];
-$college = $data['college'] ?? null;
-$major_id = $data['major_id'] ?? null;
-$year_in_school = $data['year_in_school'] ?? null;
-$custom_major = $data['custom_major'] ?? null;
+$user_id = sanitize($data['user_id']);
+$college = sanitize($data['college'] ?? null);
+$major_id = sanitize($data['major_id'] ?? null);
+$year_in_school = sanitize($data['year_in_school'] ?? null);
+$custom_major = sanitize($data['custom_major'] ?? null);
 
 try {
 
