@@ -587,12 +587,12 @@ const YourJobs = () => {
                           </p>
                         )}
 
-                  {/*}  <button
-                      className="view-details-btn"
-                      onClick={() => navigate(`/Jobdetails/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
+                    <button
+                      className="btn-view-details"
+                      onClick={() => navigate(`/my-job/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
                     >
                       View Details
-                    </button> */}
+                    </button> 
 
                         <button
                           className="complete-btn"
