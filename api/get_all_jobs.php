@@ -24,20 +24,25 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 
 require_once 'config.php';
 
+// Get logged in user id to check if they were blocked from any job
+$loggedInUserId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? 0;
+
 try {
   $sql = "SELECT jobs.id, jobs.user_id, jobs.service_type, jobs.title, 
-                 jobs.description, jobs.budget, jobs.location, 
-                 jobs.job_date, jobs.job_time, jobs.created_at,
-                 jobs.status, jobs.unassigned_from,
-                 users.username
-          FROM jobs
-          LEFT JOIN users ON jobs.user_id = users.id
-          WHERE jobs.status = 'pending' 
-          OR jobs.status = 'unassigned' 
-          OR jobs.status IS NULL
-          ORDER BY jobs.created_at DESC";
-          
-  $jobs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+               jobs.description, jobs.budget, jobs.location, 
+               jobs.job_date, jobs.job_time, jobs.created_at,
+               jobs.status, jobs.unassigned_from,
+               users.username
+        FROM jobs
+        LEFT JOIN users ON jobs.user_id = users.id
+        WHERE jobs.status = 'pending' 
+        OR jobs.status = 'unassigned' 
+        OR jobs.status IS NULL
+        ORDER BY jobs.created_at DESC";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+$jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
   echo json_encode(['success' => true, 'jobs' => $jobs]);
 } catch (PDOException $e) {

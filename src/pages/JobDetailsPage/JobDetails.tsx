@@ -20,6 +20,7 @@ type BackendJob = {
   status?: string;
   completed_at?: string | null;
   unassigned_from?: number | null;
+  was_blocked?: number;
 };
 
 type BackendUser ={
@@ -111,10 +112,10 @@ const JobDetails = () => {
         const targetJobId = Number(jobId);
         let foundJob: BackendJob | null = null;
         let foundSource: "all" | "accepted" | "my" | "fallback" = "fallback";
-
-        const allJobsRes = await fetch(`${API_BASE_URL}/get_all_jobs.php`, {
+        const userId = localStorage.getItem("userId");
+        const allJobsRes = await fetch(`${API_BASE_URL}/get_all_jobs.php?user_id=${userId}`, {
           credentials: "include",
-        });
+});
         const allJobsData = await allJobsRes.json();
         if (allJobsData.success) {
           foundJob = findById(allJobsData.jobs, targetJobId);
@@ -166,24 +167,21 @@ const JobDetails = () => {
             return;
           }
         }
-        setJob(foundJob);
+      setJob(foundJob);
 
-                // inside useEffect after setJob(foundJob)
-        if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
-          setCtaState("your_post");
-        } else if (
-          foundSource === "accepted" ||
-          routeState?.recentActivity?.eventType === "accepted_job"
-        ) {
-          setCtaState("picked_by_you");
-        } else if (Number(foundJob.unassigned_from) === loggedInUserId) {
-          // ✅ block this dasher from re-accepting
-          setCtaState("blocked");
-        } else if (foundJob.status && foundJob.status !== "pending") {
-          setCtaState("picked_by_other");
-        } else {
-          setCtaState("available");
-        }
+if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
+  setCtaState("your_post");
+} else if (
+  foundSource === "accepted" ||
+  routeState?.recentActivity?.eventType === "accepted_job") {
+    setCtaState("picked_by_you");
+  } else if (Number(foundJob.unassigned_from) === loggedInUserId) {
+    setCtaState("blocked");
+  } else if (foundJob.status && foundJob.status !== "pending") {
+    setCtaState("picked_by_other");
+  } else {
+    setCtaState("available");
+  }
 
         trackViewedJob({
           jobId: String(foundJob.id),

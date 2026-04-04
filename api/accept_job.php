@@ -40,18 +40,16 @@ try {
         exit();
     }
 
-    // Check if this dasher was previously unassigned from this job
-    $checkStmt = $pdo->prepare("SELECT unassigned_from, status FROM jobs WHERE id = ?");
-    $checkStmt->execute([$job_id]);
-    $job = $checkStmt->fetch(PDO::FETCH_ASSOC);
+    // Check if this dasher was EVER unassigned from this job using history table
+    $historyStmt = $pdo->prepare("
+        SELECT COUNT(*) as count 
+        FROM job_unassignments 
+        WHERE job_id = ? AND dasher_id = ?
+    ");
+    $historyStmt->execute([$job_id, $accepted_by]);
+    $result = $historyStmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$job) {
-        echo json_encode(["success" => false, "message" => "Job not found"]);
-        exit();
-    }
-
-    // Block re-acceptance if this dasher was unassigned from this job
-    if ($job["unassigned_from"] !== null && (int)$job["unassigned_from"] === (int)$accepted_by) {
+    if ((int)$result['count'] > 0) {
         echo json_encode([
             "success" => false,
             "message" => "You cannot accept this job again after being unassigned.",
@@ -60,11 +58,24 @@ try {
         exit();
     }
 
-    // Block if already taken by someone else
-    if ($job["status"] === "active") {
-        echo json_encode(["success" => false, "message" => "Job already accepted by someone else."]);
-        exit();
-    }
+    // Check if this dasher was previously unassigned from this job
+$checkStmt = $pdo->prepare("SELECT unassigned_from, status FROM jobs WHERE id = ?");
+$checkStmt->execute([$job_id]);
+$job = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$job) {
+  echo json_encode(["success" => false, "message" => "Job not found"]);
+  exit();
+}
+
+if ($job["unassigned_from"] !== null && (int)$job["unassigned_from"] === (int)$accepted_by) {
+  echo json_encode([
+    "success" => false,
+    "message" => "You cannot accept this job again after being unassigned.",
+    "blocked" => true
+  ]);
+  exit();
+}
 
     $code = rand(100000, 999999);
     $confirmationCode = rand(100000, 999999);
