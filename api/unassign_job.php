@@ -29,14 +29,14 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 session_start();
 require_once 'config.php';
 
-$userId = $_SESSION['user_id'] ?? null;
+$data = json_decode(file_get_contents("php://input"), true);
+$jobId = $data['job_id'] ?? null;
+$userId = $data['user_id'] ?? $_SESSION['user_id'] ?? null;
+
 if (!$userId) {
   echo json_encode(["success" => false, "message" => "Not logged in"]);
   exit;
 }
-
-$data = json_decode(file_get_contents("php://input"), true);
-$jobId = $data['job_id'] ?? null;
 
 if (!$jobId) {
   echo json_encode(["success" => false, "message" => "Missing job id"]);
@@ -44,9 +44,8 @@ if (!$jobId) {
 }
 
 try {
-  // First get the current accepted_by so we can store it in unassigned_from
-  $getStmt = $pdo->prepare("SELECT accepted_by FROM jobs WHERE id = ? AND user_id = ?");
-  $getStmt->execute([$jobId, $userId]);
+  $getStmt = $pdo->prepare("SELECT accepted_by FROM jobs WHERE id = ?");
+  $getStmt->execute([$jobId]);
   $job = $getStmt->fetch(PDO::FETCH_ASSOC);
 
   if (!$job) {
@@ -56,12 +55,17 @@ try {
 
   $dasherId = $job['accepted_by'];
 
+  if (!$dasherId) {
+    echo json_encode(["success" => false, "message" => "No one assigned"]);
+    exit;
+  }
+
   $stmt = $pdo->prepare("
     UPDATE jobs 
     SET status = 'pending', accepted_by = NULL, was_unassigned = 1, unassigned_from = ?
-    WHERE id = ? AND user_id = ?
+    WHERE id = ?
   ");
-  $stmt->execute([$dasherId, $jobId, $userId]);
+  $stmt->execute([$dasherId, $jobId]);
 
   echo json_encode(["success" => true]);
 } catch (PDOException $e) {

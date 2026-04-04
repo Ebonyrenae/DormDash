@@ -19,6 +19,8 @@ type BackendJob = {
   created_at: string;
   status?: string;
   completed_at?: string | null;
+  unassigned_from?: number | null;
+  was_blocked?: number;
 };
 
 type BackendUser ={
@@ -40,7 +42,7 @@ type JobRouteState = {
   };
 };
 
-type CtaState = "available" | "picked_by_other" | "picked_by_you" | "your_post";
+type CtaState = "available" | "picked_by_other" | "picked_by_you" | "your_post" | "blocked"; // ✅ add blocked
 
 const JobDetails = () => {
   const { jobId } = useParams();
@@ -110,10 +112,10 @@ const JobDetails = () => {
         const targetJobId = Number(jobId);
         let foundJob: BackendJob | null = null;
         let foundSource: "all" | "accepted" | "my" | "fallback" = "fallback";
-
-        const allJobsRes = await fetch(`${API_BASE_URL}/get_all_jobs.php`, {
+        const userId = localStorage.getItem("userId");
+        const allJobsRes = await fetch(`${API_BASE_URL}/get_all_jobs.php?user_id=${userId}`, {
           credentials: "include",
-        });
+});
         const allJobsData = await allJobsRes.json();
         if (allJobsData.success) {
           foundJob = findById(allJobsData.jobs, targetJobId);
@@ -165,21 +167,21 @@ const JobDetails = () => {
             return;
           }
         }
-        setJob(foundJob);
+      setJob(foundJob);
 
-        if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
-          setCtaState("your_post");
-        } else if (
-          foundSource === "accepted" ||
-          routeState?.recentActivity?.eventType === "accepted_job"
-        ) {
-          setCtaState("picked_by_you");
-        } else if 
-          (foundJob.status && foundJob.status !== "pending"){
-          setCtaState("picked_by_other");
-        } else {
-          setCtaState("available");
-        }
+if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
+  setCtaState("your_post");
+} else if (
+  foundSource === "accepted" ||
+  routeState?.recentActivity?.eventType === "accepted_job") {
+    setCtaState("picked_by_you");
+  } else if (Number(foundJob.unassigned_from) === loggedInUserId) {
+    setCtaState("blocked");
+  } else if (foundJob.status && foundJob.status !== "pending") {
+    setCtaState("picked_by_other");
+  } else {
+    setCtaState("available");
+  }
 
         trackViewedJob({
           jobId: String(foundJob.id),
@@ -319,7 +321,19 @@ const JobDetails = () => {
                 Accept Job
               </button>
             </>
-          ) : ctaState === "picked_by_you" ? (
+          ) : ctaState === "blocked" ? (
+          <div style={{
+            marginTop: 20,
+            padding: "12px 16px",
+            backgroundColor: "#fef2f2",
+             borderRadius: 10,
+             border: "1px solid #fecaca",
+             fontFamily: "Inter",
+             textAlign: "center",
+             }}>
+              <p style={{ fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
+                ⚠️ You cannot accept this job as you were previously unassigned from it. </p> </div>)
+                 : ctaState === "picked_by_you" ? (
             job.user_id > 0 ? (
               <>
                 {/* Confirmation Code — only for Active jobs */}

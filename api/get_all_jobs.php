@@ -4,7 +4,6 @@ header('Content-Type: application/json');
 $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
   "https://cattle.cse.buffalo.edu",
-
   "http://localhost:5173",
 ];
 
@@ -25,33 +24,27 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 
 require_once 'config.php';
 
+// Get logged in user id to check if they were blocked from any job
+$loggedInUserId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? 0;
+
 try {
   $sql = "SELECT jobs.id, jobs.user_id, jobs.service_type, jobs.title, 
-                 jobs.description, jobs.budget, jobs.location, 
-                 jobs.job_date, jobs.job_time, jobs.created_at,
-                 users.username,jobs.status
+               jobs.description, jobs.budget, jobs.location, 
+               jobs.job_date, jobs.job_time, jobs.created_at,
+               jobs.status, jobs.unassigned_from,
+               users.username
+        FROM jobs
+        LEFT JOIN users ON jobs.user_id = users.id
+        WHERE jobs.status = 'pending' 
+        OR jobs.status = 'unassigned' 
+        OR jobs.status IS NULL
+        ORDER BY jobs.created_at DESC";
 
-                 FROM jobs
-                 LEFT JOIN users ON jobs.user_id = users.id   -- JOIN comes first
-                 WHERE jobs.status = 'pending' OR jobs.status = 'unassigned' OR jobs.status IS NULL                 -- WHERE comes after
-                 ORDER BY jobs.created_at DESC";
-          
-  $jobs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+$jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
   echo json_encode(['success' => true, 'jobs' => $jobs]);
 } catch (PDOException $e) {
   echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
-
-
-
-
- /* $sql = "SELECT id, user_id, service_type, title, description, budget, location, job_date, job_time, created_at
-          FROM jobs
-          ORDER BY created_at DESC";
-  $jobs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-
-  echo json_encode(['success' => true, 'jobs' => $jobs]);
-} catch (PDOException $e) {
-  echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-}*/
