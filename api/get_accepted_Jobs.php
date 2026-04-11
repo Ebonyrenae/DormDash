@@ -13,7 +13,8 @@ if (in_array($origin, $allowed_origins, true)) {
   header("Access-Control-Allow-Credentials: true");
   header("Vary: Origin");
 }
-header("Access-Control-Allow-Methods: GET, OPTIONS");
+
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
@@ -33,14 +34,14 @@ if (!$userId) {
 
 try {
   $sql = "SELECT id, user_id, service_type, title, description, budget, 
-        location, job_date, job_time, created_at, status, completion_code, 
-        confirmation_code, was_unassigned
-        FROM jobs
-        WHERE accepted_by = ?
-        OR (unassigned_from = ? AND was_unassigned = 1)
-        ORDER BY created_at DESC";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$userId, $userId]);
+          location, job_date, job_time, created_at, status, completion_code, 
+          confirmation_code, was_unassigned, proposed_price, price_note, price_status
+          FROM jobs
+          WHERE accepted_by = ?
+          OR (unassigned_from = ? AND was_unassigned = 1)
+          ORDER BY created_at DESC";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([$userId, $userId]);
   $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
   echo json_encode(['success' => true, 'jobs' => $jobs]);
