@@ -27,7 +27,7 @@ interface Request {
 }
 
 const API_BASE_URL =
-  "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
+  "https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i/api";
 
 
 const POSTED_JOBS_KEY = "posted_jobs_v1";
@@ -330,33 +330,42 @@ const MyRequests = () => {
   };
 
   const handleRespondToOffer = async (jobId: string, action: "accept" | "decline") => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/respond_to_offer.php`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: jobId, action }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setRequests((prev) =>
-          prev.map((r) =>
-            r.id === jobId
-              ? {
-                  ...r,
-                  offerStatus: action === "accept" ? "accepted" : "declined",
-                  budget: action === "accept" && r.offeredPrice ? `$${r.offeredPrice}` : r.budget,
-                  offeredPrice: null,
-                  offerNote: null,
-                }
-              : r
-          )
-        );
-      }
-    } catch (err) {
-      console.error(err);
+  try {
+    const res = await fetch(`${API_BASE_URL}/respond_to_offer.php`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_id: jobId, action }),
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      // 1. Update the local state immediately so the banner disappears
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === jobId
+            ? {
+                ...r,
+                offerStatus: action === "accept" ? "accepted" : "declined",
+                // If accepted, we show the new price immediately
+                budget: action === "accept" && r.offeredPrice ? `$${r.offeredPrice}` : r.budget,
+                offeredPrice: null,
+                offerNote: null,
+              }
+            : r
+        )
+      );
+      
+      // 2. FORCE an immediate refresh from the server to sync everything
+      // fetchJobs(); 
+    } else {
+      alert("Server error: " + data.message);
     }
-  };
+  } catch (err) {
+    console.error("Network error:", err);
+  }
+};
 
   const activeCount = requests.filter((r) => r.status === "Active").length;
   const inProgressCount = requests.filter((r) => r.status === "In Progress").length;
