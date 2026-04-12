@@ -479,43 +479,7 @@ const MyRequests = () => {
                 </>
               )}
 
-              {/* ── Price Offer Banner — always visible when offer is pending ── */}
-              {req.offerStatus === "pending" && editingId !== req.id && (
-                <div style={{
-                  marginTop: 10,
-                  padding: "10px 14px",
-                  backgroundColor: "#eff6ff",
-                  border: "1px solid #bfdbfe",
-                  borderRadius: 10,
-                  fontFamily: "Inter",
-                }}>
-                  <p style={{ fontWeight: 500, color: "#2563eb", marginBottom: 6 }}>
-                    💰 New Price Offer from {req.acceptedByName}
-                  </p>
-                  <p style={{ fontSize: 13, color: "#1e40af", marginBottom: 4 }}>
-                    Offered Price: <strong>${req.offeredPrice}</strong>
-                  </p>
-                  {req.offerNote && (
-                    <p style={{ fontSize: 13, color: "#374151", marginBottom: 8 }}>
-                      Note: {req.offerNote}
-                    </p>
-                  )}
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <button
-                      style={{ background: "#16a34a", color: "white", padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "Inter", fontSize: 13 }}
-                      onClick={() => handleRespondToOffer(req.id, "accept")}
-                    >
-                      Accept Offer
-                    </button>
-                    <button
-                      style={{ background: "#dc2626", color: "white", padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "Inter", fontSize: 13 }}
-                      onClick={() => handleRespondToOffer(req.id, "decline")}
-                    >
-                      Decline Offer
-                    </button>
-                  </div>
-                </div>
-              )}
+            
 
               {editingId !== req.id && (
                 <div className="request-card-meta">
@@ -574,6 +538,45 @@ const MyRequests = () => {
                     </button>
                   )}
                 </div>
+                 {/* ── Price Offer Banner — always visible when offer is pending ── */}
+              {req.offerStatus === "pending" && editingId !== req.id && (
+                <div style={{
+                  marginTop: 10,
+                  padding: "10px 14px",
+                  backgroundColor: "#eff6ff",
+                  border: "1px solid #bfdbfe",
+                  borderRadius: 10,
+                  fontFamily: "Inter",
+                  width: "100%",
+                }}>
+                  <p style={{ fontWeight: 500, color: "#2563eb", marginBottom: 6 }}>
+                     New Price Offer From Your DormDasher {req.acceptedByName}
+                  </p>
+                  {req.offerNote && (
+                    <p style={{ fontSize: 13, color: "#374151", marginBottom: 8 ,textAlign: "center"}}>
+                      Note: {req.offerNote}
+                    </p>
+                  )}
+                  <p style={{ fontSize: 13, color: "#1e40af", marginBottom: 4 ,textAlign: "center"}}>
+                    Offered Price: <strong>${req.offeredPrice}</strong>
+                  </p>
+                  
+                  <div style={{ display: "flex", gap: 15, justifyContent: "center", marginTop: 6 }}>
+                    <button
+                      style={{ background: "#16a34a", color: "white", padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "Inter", fontSize: 13 }}
+                      onClick={() => handleRespondToOffer(req.id, "accept")}
+                    >
+                      Accept Offer
+                    </button>
+                    <button
+                      style={{ background: "#dc2626", color: "white", padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "Inter", fontSize: 13 }}
+                      onClick={() => handleRespondToOffer(req.id, "decline")}
+                    >
+                      Decline Offer
+                    </button>
+                  </div>
+                </div>
+              )}
               </div>
             </div>
           ))}

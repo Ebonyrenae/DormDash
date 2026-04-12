@@ -679,7 +679,37 @@ const YourJobs = () => {
                           View Details
                         </button>
 
-                        {/* Offer status feedback to dasher */}
+                       
+                        {/* Propose New Price button — only show if no pending offer */}
+                        {req.offerStatus === "pending" ? (
+                          <button className="complete-btn" disabled style={{ opacity: 0.6, cursor: "not-allowed" }}>
+                            Offer Pending...
+                          </button>
+                        ) : (
+                          <button
+                            className="complete-btn"
+                            onClick={() => {
+                              setSelectedPriceJobId(req.id);
+                              setShowPriceModal(true);
+                            }}
+                          >
+                            Propose New Price
+                          </button>
+                        )}
+
+                        <button
+                          className="complete-btn"
+                          onClick={() => {
+                            setSelectedRemoveJobId(req.id);
+                            setShowRemoveModal(true);
+                          }}
+                        >
+                          Remove Job From Active Jobs
+                        </button>
+                      </>
+                    )}
+
+                     {/* Offer status feedback to dasher */}
                         {req.offerStatus === "accepted" && (
                           <div style={{
                             marginTop: 8,
@@ -710,34 +740,7 @@ const YourJobs = () => {
                           </div>
                         )}
 
-                        {/* Propose New Price button — only show if no pending offer */}
-                        {req.offerStatus === "pending" ? (
-                          <button className="complete-btn" disabled style={{ opacity: 0.6, cursor: "not-allowed" }}>
-                            Offer Pending...
-                          </button>
-                        ) : (
-                          <button
-                            className="complete-btn"
-                            onClick={() => {
-                              setSelectedPriceJobId(req.id);
-                              setShowPriceModal(true);
-                            }}
-                          >
-                            Propose New Price
-                          </button>
-                        )}
 
-                        <button
-                          className="complete-btn"
-                          onClick={() => {
-                            setSelectedRemoveJobId(req.id);
-                            setShowRemoveModal(true);
-                          }}
-                        >
-                          Remove Job From Active Jobs
-                        </button>
-                      </>
-                    )}
                   </>
                 )}
 
