@@ -132,6 +132,16 @@ const MyRequests = () => {
   const [editBudget, setEditBudget] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [reviewJobId, setReviewJobId] = useState<string | null>(null);
+  const [reviewDasherName, setReviewDasherName] = useState<string>("");
+  const [reviewDasherId, setReviewDasherId] = useState<number | null>(null);
+  const [starRating, setStarRating] = useState<number>(0);
+  const [hoveredStar, setHoveredStar] = useState<number>(0);
+  const [reviewText, setReviewText] = useState<string>("");
+  const [reviewError, setReviewError] = useState<string>("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -328,6 +338,25 @@ const MyRequests = () => {
       })
       .catch((err) => console.error("Network error unassigning job", err));
   };
+  const handleSubmitReview = async () => {
+    if (starRating === 0) {
+      setReviewError("Please select a star rating.");
+      return;
+    }
+    setReviewSubmitting(true);
+    // Fake success for frontend testing only
+    setTimeout(() => {
+      setReviewSuccess(true);
+      setTimeout(() => {
+        setShowReviewModal(false);
+        setReviewSuccess(false);
+        setStarRating(0);
+        setReviewText("");
+        setReviewJobId(null);
+        setReviewSubmitting(false);
+      }, 1500);
+    }, 500);
+};
 
   const handleRespondToOffer = async (jobId: string, action: "accept" | "decline") => {
   try {
@@ -375,6 +404,87 @@ const MyRequests = () => {
   const filtered = activeFilter === "All" ? allRequests : allRequests.filter((r) => r.status === activeFilter);
 
   return (
+    <>
+    {showReviewModal && (
+  <div className="review-modal-overlay">
+    <div className="review-modal-box">
+      <button
+        className="review-modal-close"
+        onClick={() => setShowReviewModal(false)}
+      >
+        ✕
+      </button>
+
+      {reviewSuccess ? (
+        <div className="review-success">
+          <div className="review-success-icon">✅</div>
+          <p className="review-success-text">Review Submitted!</p>
+        </div>
+      ) : (
+        <>
+          <div className="review-modal-header">
+            <div className="review-avatar">
+              {reviewDasherName?.charAt(0).toUpperCase()}
+            </div>
+            <h3 className="review-modal-title">
+              Rate Your DormDasher
+            </h3>
+            <p className="review-modal-subtitle">@{reviewDasherName}</p>
+          </div>
+
+          <div className="review-stars-row">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`review-star ${star <= (hoveredStar || starRating) ? "filled" : ""}`}
+                onClick={() => setStarRating(star)}
+                onMouseEnter={() => setHoveredStar(star)}
+                onMouseLeave={() => setHoveredStar(0)}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <p className="review-stars-label">
+            {starRating === 1 && "Poor"}
+            {starRating === 2 && "Fair"}
+            {starRating === 3 && "Good"}
+            {starRating === 4 && "Great"}
+            {starRating === 5 && "Excellent!"}
+          </p>
+
+          <textarea
+            className="review-textarea"
+            placeholder="Leave a comment (optional)..."
+            value={reviewText}
+            onChange={(e) => setReviewText(e.target.value)}
+            rows={3}
+          />
+
+          {reviewError && (
+            <p className="review-error">{reviewError}</p>
+          )}
+
+          <div className="review-modal-actions">
+            <button
+              className="review-cancel-btn"
+              onClick={() => setShowReviewModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="review-submit-btn"
+              onClick={handleSubmitReview}
+              disabled={reviewSubmitting}
+            >
+              {reviewSubmitting ? "Submitting..." : "Submit Rating"}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
     <div className="requests-page">
       {/* Sidebar Overlay */}
       <div
@@ -537,6 +647,23 @@ const MyRequests = () => {
                       Unassign Dasher
                     </button>
                   )}
+                   {req.status === "Completed" && (
+                      <button
+                        className="pulse-button"
+                        onClick={() => {
+                          setReviewJobId(req.id);
+                          setReviewDasherName(req.acceptedByName ?? "Dasher");
+                          {/*setReviewDasherId(req.accepted_by ?? null);*/}
+                          setStarRating(0);
+                          setReviewText("");
+                          setReviewError("");
+                          setReviewSuccess(false);
+                          setShowReviewModal(true);
+                        }}
+                      >
+                        Leave Review for {req.acceptedByName}
+                      </button>
+                    )}
                 </div>
                  {/* ── Price Offer Banner — always visible when offer is pending ── */}
               {req.offerStatus === "pending" && editingId !== req.id && (
@@ -583,7 +710,12 @@ const MyRequests = () => {
         </div>
       </main>
     </div>
+     </>
   );
+  
+   
 };
+    
+
 
 export default MyRequests;

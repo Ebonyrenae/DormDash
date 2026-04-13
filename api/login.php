@@ -23,7 +23,8 @@ $allowed_origins = [
   "https://aptitude.cse.buffalo.edu",
   "https://cattle.cse.buffalo.edu",
   
-  "http://localhost:5173"
+  "http://localhost:5173",
+  "http://localhost:5175"
 ];
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? "";

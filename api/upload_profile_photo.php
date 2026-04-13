@@ -38,7 +38,7 @@ if (!isset($_SESSION["user_id"])) {
 }
 
 if (!isset($_FILES["photo"]) || $_FILES["photo"]["error"] !== UPLOAD_ERR_OK) {
-  echo json_encode(["success" => false, "message" => "No file or upload error"]);
+  echo json_encode(["success" => false, "message" => "Make sure image is selected and less than 5MB and file type is jpg, png, gif, or webp"]);
   exit;
 }
 
