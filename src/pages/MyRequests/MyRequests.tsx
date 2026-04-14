@@ -158,7 +158,7 @@ const MyRequests = () => {
           return;
         }
 
-        const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
+        const mapped: Request[] = (data.jobs as BackendJob[]).filter((j) => j.status !== "cancelled").map((j) => {
           let mappedStatus: StatusType = "Active";
           if (j.status === "active") mappedStatus = "In Progress";
           if (j.status === "in_progress") mappedStatus = "In Progress";

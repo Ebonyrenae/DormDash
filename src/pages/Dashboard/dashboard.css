@@ -405,6 +405,8 @@
   gap: 12px;
 }
 
+
+
 .job-card {
   background: white;
   border-radius: 14px;
@@ -413,6 +415,49 @@
   cursor: pointer;
   transition: all 0.2s;
   border: 1.5px solid transparent;
+}
+
+.nav-calendar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.nav-calendar:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.nav-calendar svg {
+  width: 20px;
+  height: 20px;
+}
+
+.upcoming-job-card {
+  background: white;
+  border-radius: 14px;
+  border: 1.5px solid #2bc947;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid #fcd93d;
+  width : 700px
+}
+
+.upcoming-job-card:hover {
+  border-color: #fcd93d;
+  box-shadow: 0 4px 12px rgba(252, 217, 61, 0.3);
+  transform: translateY(-2px);
 }
 
 .job-card:hover {

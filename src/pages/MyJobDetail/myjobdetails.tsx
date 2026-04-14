@@ -133,7 +133,7 @@ const JobDetails = () => {
 
           if (!foundJob) {
             const acceptedRes = await fetch(
-              `${API_BASE_URL}/get_accepted_Jobs.php?user_id=${loggedInUserId}&t=${Date.now()}`,
+              `${API_BASE_URL}/get_accepted_jobs.php?user_id=${loggedInUserId}&t=${Date.now()}`,
               { credentials: "include" }
             );
             const acceptedData = await acceptedRes.json();
