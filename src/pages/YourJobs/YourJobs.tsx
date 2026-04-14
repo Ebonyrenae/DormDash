@@ -20,6 +20,9 @@ interface Request {
   jobDate: string;
   jobTime: string;
   wasUnassigned: boolean;
+  offerStatus?: "pending" | "accepted" | "declined" | null;
+  offeredPrice?: string | null;
+  offerNote?: string | null;
 }
 
 const API_BASE_URL =
@@ -37,6 +40,9 @@ type BackendJob = {
   status: string;
   completed_at?: string | null;
   was_unassigned: number;
+  proposed_price?: string | null;
+  price_note?: string | null;
+  price_status?: "pending" | "accepted" | "declined" | null;
 };
 
 const SERVICE_EMOJI: Record<string, string> = {
@@ -119,84 +125,123 @@ const YourJobs = () => {
   const [completionInput, setCompletionInput] = useState<string>("");
   const [completionError, setCompletionError] = useState<string>("");
 
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [selectedPriceJobId, setSelectedPriceJobId] = useState<string | null>(null);
+  const [counterPrice, setCounterPrice] = useState("");
+  const [note, setNote] = useState("");
+
   const [earlyStartIds, setEarlyStartIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-  const fetchJobs = async () => {
+  const handleProposePrice = async () => {
+    if (!selectedPriceJobId || !counterPrice) return;
+
     try {
-      setLoadError(null);
-      const userId = localStorage.getItem("userId");
-      const res = await fetch(`${API_BASE_URL}/get_accepted_jobs.php?user_id=${userId}&t=${Date.now()}`, {
-        method: "GET",
+      const res = await fetch(`${API_BASE_URL}/propose_price.php`, {
+        method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          job_id: selectedPriceJobId,
+          proposed_price: counterPrice,
+          price_note: note,
+          user_id: localStorage.getItem("userId"),
+        }),
       });
       const data = await res.json();
-
-      if (!data.success) {
-        setLoadError(data.message || "Failed to load your jobs.");
-        return;
+      if (data.success) {
+        // Update local state so UI reflects pending immediately
+        setRequests((prev) =>
+          prev.map((r) =>
+            r.id === selectedPriceJobId
+              ? { ...r, offerStatus: "pending", offeredPrice: counterPrice, offerNote: note }
+              : r
+          )
+        );
+        setShowPriceModal(false);
+        setCounterPrice("");
+        setNote("");
       }
-
-      const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
-        const time = j.job_time?.slice(0, 5);
-        const dateTime = `${j.job_date}\n${time}`;
-        return {
-          id: String(j.id),
-          category: j.service_type?.charAt(0).toUpperCase() + j.service_type?.slice(1),
-          categoryEmoji: SERVICE_EMOJI[j.service_type] ?? "🧾",
-          status: toStatusLabel(j.status),
-          title: j.title,
-          description: j.description ?? "",
-          dateTime,
-          location: j.location,
-          budget: j.budget,
-          completedAt: j.completed_at ?? localStorage.getItem(`completed_at_${j.id}`),
-          jobDate: j.job_date,
-          jobTime: j.job_time?.slice(0, 5),
-          wasUnassigned: j.was_unassigned === 1,
-        };
-      });
-
-      mapped.sort((a, b) => {
-        if (a.status !== "Active" || b.status !== "Active") return 0;
-        const aReady = isJobReady(a.jobDate, a.jobTime);
-        const bReady = isJobReady(b.jobDate, b.jobTime);
-        if (aReady && !bReady) return -1;
-        if (!aReady && bReady) return 1;
-        return 0;
-      });
-
-      setRequests(mapped);
-    } catch {
-      setLoadError("Network error loading your jobs.");
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  fetchJobs(); // run immediately on mount
-  const interval = setInterval(fetchJobs, 5000); // poll every 5 seconds
-  return () => clearInterval(interval); // cleanup on unmount
-}, []);
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoadError(null);
+        const userId = localStorage.getItem("userId");
+        const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php?user_id=${userId}&t=${Date.now()}`, {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (!data.success) {
+          setLoadError(data.message || "Failed to load your jobs.");
+          return;
+        }
+        const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
+          const time = j.job_time?.slice(0, 5);
+          const dateTime = `${j.job_date}\n${time}`;
+          return {
+            id: String(j.id),
+            category: j.service_type?.charAt(0).toUpperCase() + j.service_type?.slice(1),
+            categoryEmoji: SERVICE_EMOJI[j.service_type] ?? "🧾",
+            status: toStatusLabel(j.status),
+            title: j.title,
+            description: j.description ?? "",
+            dateTime,
+            location: j.location,
+            budget: j.budget,
+            completedAt: j.completed_at ?? localStorage.getItem(`completed_at_${j.id}`),
+            jobDate: j.job_date,
+            jobTime: j.job_time?.slice(0, 5),
+            wasUnassigned: j.was_unassigned === 1,
+            offerStatus: j.price_status ?? null,
+            offeredPrice: j.proposed_price ?? null,
+            offerNote: j.price_note ?? null,
+          };
+        });
 
-  // Called when dasher clicks x on unassigned card
- const handleDismissUnassigned = async (jobId: string) => {
-  try {
-    const userId = localStorage.getItem("userId");
-    const res = await fetch(`${API_BASE_URL}/dismiss_unassigned_job.php`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ job_id: jobId, user_id: userId }),  // ✅ added user_id
-    });
-    const data = await res.json();
-    if (data?.success) {
-      setRequests((prev) => prev.filter((r) => r.id !== jobId));
-    } else {
-      console.error("Dismiss failed", data?.message);
+        mapped.sort((a, b) => {
+          if (a.status !== "Active" || b.status !== "Active") return 0;
+          const aReady = isJobReady(a.jobDate, a.jobTime);
+          const bReady = isJobReady(b.jobDate, b.jobTime);
+          if (aReady && !bReady) return -1;
+          if (!aReady && bReady) return 1;
+          return 0;
+        });
+
+        setRequests(mapped);
+      } catch {
+        setLoadError("Network error loading your jobs.");
+      }
+    };
+
+    fetchJobs();
+    const interval = setInterval(fetchJobs, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleDismissUnassigned = async (jobId: string) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const res = await fetch(`${API_BASE_URL}/dismiss_unassigned_job.php`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job_id: jobId, user_id: userId }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setRequests((prev) => prev.filter((r) => r.id !== jobId));
+      } else {
+        console.error("Dismiss failed", data?.message);
+      }
+    } catch (err) {
+      console.error("Network error dismissing job", err);
     }
-  } catch (err) {
-    console.error("Network error dismissing job", err);
-  }
-};
+  };
 
   const handleMarkComplete = async (
     jobId: string,
@@ -303,6 +348,49 @@ const YourJobs = () => {
 
   return (
     <div className="requests-page">
+
+      {/* Price Proposal Modal */}
+      {showPriceModal && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3 style={{ fontFamily: "Inter", fontWeight: 500, marginBottom: 8 }}>
+              Propose New Price
+            </h3>
+            <input
+              type="number"
+              placeholder="Enter Counter Price ($)"
+              value={counterPrice}
+              onChange={(e) => setCounterPrice(e.target.value)}
+              style={{ width: "100%", padding: 8, marginBottom: 10, boxSizing: "border-box" }}
+            />
+            <textarea
+              placeholder="Leave a note (optional)"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              style={{ width: "100%", padding: 8, marginBottom: 10, boxSizing: "border-box" }}
+              rows={3}
+            />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                className="modal-cancel-btn"
+                onClick={() => {
+                  setShowPriceModal(false);
+                  setCounterPrice("");
+                  setNote("");
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-confirm-btn"
+                onClick={handleProposePrice}
+              >
+                Send Counter Price
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Remove Job Confirmation Modal */}
       {showRemoveModal && (
@@ -521,10 +609,8 @@ const YourJobs = () => {
                 {/* ── Active tab buttons ── */}
                 {req.status === "Active" && (
                   <>
-                    {/* If unassigned — show message and x button only */}
                     {req.wasUnassigned ? (
                       <div style={{ position: "relative" }}>
-                        {/* X dismiss button */}
                         <button
                           onClick={() => handleDismissUnassigned(req.id)}
                           style={{
@@ -542,7 +628,6 @@ const YourJobs = () => {
                         >
                           ✕
                         </button>
-                        {/* Unassignment message */}
                         <div style={{
                           marginTop: 12,
                           padding: "10px 14px",
@@ -587,12 +672,30 @@ const YourJobs = () => {
                           </p>
                         )}
 
-                    <button
-                      className="btn-view-details"
-                      onClick={() => navigate(`/my-job/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
-                    >
-                      View Details
-                    </button> 
+                        <button
+                          className="btn-view-details"
+                          onClick={() => navigate(`/my-job/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}
+                        >
+                          View Details
+                        </button>
+
+                       
+                        {/* Propose New Price button — only show if no pending offer */}
+                        {req.offerStatus === "pending" ? (
+                          <button className="complete-btn" disabled style={{ opacity: 0.6, cursor: "not-allowed" }}>
+                            Offer Pending...
+                          </button>
+                        ) : (
+                          <button
+                            className="complete-btn"
+                            onClick={() => {
+                              setSelectedPriceJobId(req.id);
+                              setShowPriceModal(true);
+                            }}
+                          >
+                            Propose New Price
+                          </button>
+                        )}
 
                         <button
                           className="complete-btn"
@@ -605,6 +708,39 @@ const YourJobs = () => {
                         </button>
                       </>
                     )}
+
+                     {/* Offer status feedback to dasher */}
+                        {req.offerStatus === "accepted" && (
+                          <div style={{
+                            marginTop: 8,
+                            padding: "8px 12px",
+                            backgroundColor: "#f0fdf4",
+                            border: "1px solid #bbf7d0",
+                            borderRadius: 8,
+                            fontFamily: "Inter",
+                          }}>
+                            <p style={{ fontSize: 13, color: "#16a34a", fontWeight: 500 }}>
+                              ✅ Your price offer was accepted! New budget: ${req.offeredPrice}
+                            </p>
+                          </div>
+                        )}
+
+                        {req.offerStatus === "declined" && (
+                          <div style={{
+                            marginTop: 8,
+                            padding: "8px 12px",
+                            backgroundColor: "#fef2f2",
+                            border: "1px solid #fecaca",
+                            borderRadius: 8,
+                            fontFamily: "Inter",
+                          }}>
+                            <p style={{ fontSize: 13, color: "#dc2626", fontWeight: 500 }}>
+                              ❌ Your price offer was declined.
+                            </p>
+                          </div>
+                        )}
+
+
                   </>
                 )}
 
