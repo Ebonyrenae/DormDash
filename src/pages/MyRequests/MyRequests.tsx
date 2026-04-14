@@ -246,7 +246,7 @@ useEffect(() => {
         return;
       }
 
-      const mapped: Request[] = (data.jobs as BackendJob[]).map((j) => {
+      const mapped: Request[] = (data.jobs as BackendJob[]).filter((j) => j.status !== "cancelled").map((j) => {
         let mappedStatus: StatusType = "Active";
 
         if (j.status === "active") {
@@ -452,9 +452,8 @@ const postedAsRequests: Request[] = useMemo(() => {
       });
   };
 
- const handleUnassignRequest = (id: string) => {
+  const handleUnassignRequest = (id: string) => {
   const UNASSIGN_JOB = `${API_BASE_URL}/unassign_job.php`;
-  const userId = localStorage.getItem("userId");
 
   fetch(UNASSIGN_JOB, {
     method: "POST",
@@ -462,11 +461,13 @@ const postedAsRequests: Request[] = useMemo(() => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ job_id: id, user_id: userId }),
+    body: JSON.stringify({ job_id: id }),
   })
     .then((res) => res.json())
     .then((data) => {
       if (data?.success) {
+        // Remove the job from In Progress locally
+        // since status is now pending (no dasher assigned)
         setRequests((prev) =>
           prev.map((r) =>
             r.id === id ? { ...r, status: "Active" as StatusType } : r
@@ -480,7 +481,6 @@ const postedAsRequests: Request[] = useMemo(() => {
       console.error("Network error unassigning job", err);
     });
 };
-
 
   const activeCount = requests.filter((r) => r.status === "Active").length;
   const inProgressCount = requests.filter(

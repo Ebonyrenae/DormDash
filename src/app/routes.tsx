@@ -19,6 +19,7 @@ import RecentActivities from "../pages/RecentActivities/RecentActivities";
 import MyRequestDetails from "../pages/MyRequestDetails/myrequestdetails";
 import MyJobDetail from "../pages/MyJobDetail/myjobdetails";
 import ProtectedRoute from "../components/ProtectedRoute";
+import Calendar from "../pages/Calendar/calendar";
 
 export const router = createHashRouter([
   // Public routes
@@ -53,4 +54,8 @@ export const router = createHashRouter([
     path: "/your-jobs",
     element: (<ProtectedRoute><YourJobs /></ProtectedRoute>),
   },
+  {
+    path: "/calendar",
+    element: (<ProtectedRoute><Calendar /></ProtectedRoute>),
+  },  
 ]);

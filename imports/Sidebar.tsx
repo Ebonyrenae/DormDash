@@ -7,6 +7,7 @@ export default function Sidebar() {
       <p className="absolute left-[72px] top-[577px]">Settings</p>
       <p className="absolute left-[72px] top-[399px]">Profile</p>
       <p className="absolute left-[72px] top-[221px]">View Jobs</p>
+      <p className="absolute left-[72px] top-[666px]">Calendar</p>
     </div>
   );
 }

@@ -126,7 +126,7 @@ const YourJobs = () => {
     try {
       setLoadError(null);
       const userId = localStorage.getItem("userId");
-      const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php?user_id=${userId}&t=${Date.now()}`, {
+      const res = await fetch(`${API_BASE_URL}/get_accepted_jobs.php?user_id=${userId}&t=${Date.now()}`, {
         method: "GET",
         credentials: "include",
       });
