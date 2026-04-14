@@ -2,6 +2,8 @@
   padding: 20px;
   font-family: "Inter", sans-serif;
   background-color: #fff;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Force Inter for all text inside the calendar wrapper */
@@ -20,18 +22,52 @@
 
 .nav-button {
   background-color: #c5c3c3;
+  width: 32px;
+  height: 32px;
   color: black;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  justify-items: center;
+  display: flex;
   border: none;
   border-radius: 200px;
-  padding: 10px 15px;
+  padding: 6px 12px;
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 .nav-button:hover {
-  background-color: #23d93e;
+  background-color: #070807;
+  color: white
 }
+
+
+
+/* Date number */
+.calendar-date {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Container for pills */
+.calendar-pills {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  width: 100%;
+  overflow: hidden;
+  align-items: center;
+  
+}
+
+/* Base pill */
+
+
+/* Colors */
+
 
 .calendar-title {
   font-size: 20px;
@@ -72,7 +108,7 @@
 .requests-header-divider{height:1px;background:#e5e7eb;margin:0 -56px;border:none}
 
 /* Main area for centered calendar */
-.calendar-main{max-width:1200px;margin:0 auto;padding:24px;display:flex;align-items:flex-start;justify-content:center;gap:24px}
+.calendar-main{max-width:1500px;width:100%;margin:0 auto;padding:24px;display:flex;align-items:flex-start;justify-content:flex-start;gap:24px}
 
 /* Page wrapper background to match other pages */
 .calendar-wrapper{
@@ -102,8 +138,14 @@
   font-size: 18px;
   min-height: 60px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: center;
+}
+
+.calendar-column {
+  flex: 1;
+  min-width: 0;
 }
 
 .calendar-cell.header {
@@ -115,8 +157,9 @@
 /* Layout: calendar content with legend */
 .calendar-content{
   /* keep internal flow for calendar itself */
-  width:920px; /* increased width */
+  width:1100px; /* increased width */
   flex-shrink: 0;
+  background: red;
 }
 .calendar-column{width:100%}
 
@@ -138,9 +181,28 @@
   margin-left:12px; /* nudge to the right */
 }
 .legend-item{display:flex;align-items:center;gap:12px;margin-bottom:10px;justify-content:center}
-.pill{display:inline-block;width:18px;height:10px;border-radius:999px}
-.pill-yellow{background:#fcd983}
-.pill-blue{background:#a1c5ff}
+.pill {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pill:hover {
+  box-shadow: 0 2px 8px rgba(104, 55, 55, 0.3);
+  transform: scale(1.2);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.poll{display:inline-block;width:18px;height:10px;border-radius:999px;}
+
+
+.pill-yellow{background:#f1f579}
+.pill-blue{background:#52dcf4}
+
+.poll-yellow{background:#fcd983}
+.poll-blue{background:#a1c5ff}
 
 @media (max-width: 900px){
   .calendar-main{flex-direction:column;align-items:stretch}
