@@ -7,6 +7,7 @@ import {
   type RecentActivityItem,
 } from "../../utils/recentActivities";
 import "./dashboard.css";
+import "../JobDetailsPage/jobdetails.css";
 
 interface Job {
   id: string;
@@ -17,24 +18,20 @@ interface Job {
   time: string;
 }
 
-const MOCK_JOBS: Job[] = [
-  {
-    id: "1",
-    title: "Pick up food from Commons",
-    description: "Need someone to grab my lunch from the dining hall",
-    price: 5,
-    location: "North Campus",
-    time: "12:30 PM",
-  },
-  {
-    id: "2",
-    title: "Library book return",
-    description: "Return 3 books to the main library",
-    price: 10,
-    location: "Silverman",
-    time: "12:30 PM",
-  },
-];
+const SERVICE_EMOJI: Record<string, string> = {
+  rides: "🚗",
+  groceries: "🛒",
+  cleaning: "🧼",
+  tutoring: "📚",
+  handyman: "🧑‍🔧",
+  cooking: "👨‍🍳",
+  moving: "🚛",
+};
+
+const getServiceEmoji = (serviceType?: string | null) => {
+  if (!serviceType) return "🛠️";
+  return SERVICE_EMOJI[serviceType.toLowerCase()] ?? "🛠️";
+};
 
 const SIDEBAR_LINKS = [
   { label: "Home", path: "/dashboard" },
@@ -106,6 +103,44 @@ const ArrowLeftIcon = () => (
   </svg>
 );
 
+const CalendarIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none">
+    <rect
+      x="3"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <line
+      x1="3"
+      y1="10"
+      x2="21"
+      y2="10"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <line
+      x1="8"
+      y1="2"
+      x2="8"
+      y2="6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <line
+      x1="16"
+      y1="2"
+      x2="16"
+      y2="6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+  </svg>
+);
+
 const BellIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
@@ -150,9 +185,11 @@ const Dashboard = () => {
   const [profileUsername, setProfileUsername] = useState<string | null>(null);
   const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([]);
   const [availableJobIds, setAvailableJobIds] = useState<Set<string>>(new Set());
+  const [availableJobs, setAvailableJobs] = useState<Job[]>([]);
   const [notificationsUnread, setNotificationsUnread] = useState(0);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const seenNotificationIds = useRef<Set<number>>(new Set());
+  const [acceptedJobs, setAcceptedJobs] = useState<any[]>([]);
 
   useEffect(() => {
     const userId = localStorage.getItem("userId") || localStorage.getItem("user_id");
@@ -180,7 +217,18 @@ const Dashboard = () => {
         });
         const data = await res.json();
         if (!data.success || !Array.isArray(data.jobs)) return;
-        setAvailableJobIds(new Set(data.jobs.map((job: { id: number }) => String(job.id))));
+
+        const jobs = (data.jobs as any[]).map((job) => ({
+          id: String(job.id),
+          title: job.title ?? "",
+          description: job.description ?? "",
+          price: Number(job.budget ?? job.price ?? 0) || 0,
+          location: job.location ?? "",
+          time: (job.job_time ?? job.time ?? "").slice(0, 5),
+        }));
+
+        setAvailableJobIds(new Set(jobs.map((job) => job.id)));
+        setAvailableJobs(jobs);
       } catch {
         // Keep dashboard functional even if status fetch fails.
       }
@@ -190,6 +238,8 @@ const Dashboard = () => {
   const isLoggedIn = useMemo(() => {
     return Boolean(localStorage.getItem("userId") || localStorage.getItem("user_id"));
   }, []);
+
+  
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -264,6 +314,105 @@ const Dashboard = () => {
       dismissToast(id);
     }
   };
+
+  useEffect(() => {
+    const fetchAcceptedJobs = async () => {
+      try {
+        const userId = localStorage.getItem("userId") || localStorage.getItem("user_id");
+        const res = await fetch(`${API_BASE}/get_accepted_jobs.php?user_id=${userId}`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        console.log('Accepted jobs response:', data);
+        if (data.success && Array.isArray(data.jobs)) {
+          const normalized = (data.jobs as any[])
+            .map((job) => {
+              const dateStr = job.date ?? job.job_date ?? job.jobDate ?? null;
+              const timeStr = job.time ?? job.job_time ?? job.jobTime ?? null;
+              const budget = job.budget ?? job.price ?? job.amount ?? null;
+              const rawStatus = job.status ?? job.job_status ?? job.status_name ?? job.state ?? '';
+              const statusStr = String(rawStatus).toLowerCase();
+              const isActiveOrInProgress = statusStr === 'active' || statusStr === 'in_progress' || statusStr === '1' || statusStr === 'true' || rawStatus === 1;
+
+              return {
+                ...job,
+                job_date: dateStr,
+                job_time: timeStr,
+                date: dateStr,
+                time: timeStr,
+                budget,
+                normalizedStatus: statusStr,
+                _isActiveOrInProgress: isActiveOrInProgress,
+              };
+            })
+            .filter((j) => j._isActiveOrInProgress);
+
+          console.log('normalized jobs:', normalized.map(j => ({ id: j.id, rawStatus: j.status, normalizedStatus: j.normalizedStatus, _isActiveOrInProgress: j._isActiveOrInProgress, date: j.job_date })));
+          console.log('filtered acceptedJobs:', normalized.map(j => ({ id: j.id, normalizedStatus: j.normalizedStatus, date: j.job_date })));
+          setAcceptedJobs(normalized);
+        }
+      } catch (error) {
+        console.error('Error fetching accepted jobs:', error);
+      }
+    };
+
+    fetchAcceptedJobs();
+  } , []);
+
+  const nextJob = useMemo(() => {
+    if (!acceptedJobs.length) return [] as any[];
+    const now = new Date();
+    
+    // Separate in-progress and active jobs
+    const inProgressJobs = acceptedJobs.filter(job => job.normalizedStatus === 'in_progress');
+    const activeJobs: any[] = [];
+
+    console.log('acceptedJobs:', acceptedJobs.map(j => ({ id: j.id, status: j.normalizedStatus, date: j.job_date, time: j.job_time })));
+    console.log('inProgressJobs count:', inProgressJobs.length);
+
+    // For active jobs, only include upcoming ones (dateTime > now)
+    for (const job of acceptedJobs) {
+      if (job.normalizedStatus === 'active') {
+        const dateStr = job.date ?? job.job_date ?? job.jobDate ?? null;
+        const timeStr = job.time ?? job.job_time ?? job.jobTime ?? null;
+        let dateTime: Date | null = null;
+        if (dateStr) {
+          try {
+            dateTime = timeStr ? new Date(`${dateStr}T${timeStr}`) : new Date(dateStr);
+            if (isNaN(dateTime.getTime())) dateTime = null;
+          } catch {
+            dateTime = null;
+          }
+        }
+
+        console.log('active job:', job.id, 'dateStr:', dateStr, 'timeStr:', timeStr, 'dateTime:', dateTime, 'now:', now, 'isFuture:', dateTime ? dateTime > now : false);
+
+        if (dateTime && dateTime > now) {
+          activeJobs.push({ ...job, dateTime });
+        }
+      }
+    }
+
+    // Sort active jobs by earliest time (jobs without dateTime at the end)
+    activeJobs.sort((a, b) => {
+      if (!a.dateTime && !b.dateTime) return 0;
+      if (!a.dateTime) return 1;
+      if (!b.dateTime) return -1;
+      return a.dateTime.getTime() - b.dateTime.getTime();
+    });
+
+    console.log('activeJobs after sort:', activeJobs.map(j => ({ id: j.id, dateTime: j.dateTime })));
+
+    // Combine: all in-progress jobs first, then up to (3 - inProgressJobs.length) active jobs
+    const result = [
+      ...inProgressJobs,
+      ...activeJobs.slice(0, Math.max(0, 3 - inProgressJobs.length))
+    ];
+
+    console.log('final result:', result.map(j => ({ id: j.id, status: j.normalizedStatus })));
+
+    return result.slice(0, 3);
+  }, [acceptedJobs]);
 
   const userInitials =
     profileUsername && profileUsername.length >= 2
@@ -394,6 +543,17 @@ const Dashboard = () => {
 
           <div className="nav-right">
             <button
+            type="button"
+            className="nav-calendar"
+            onClick={() => navigate("/calendar")}
+            aria-label="Open calendar"
+            title="Calendar"
+          >
+            <CalendarIcon />
+          </button>
+                      
+
+            <button
               type="button"
               className="nav-bell"
               onClick={() => navigate("/notifications")}
@@ -442,9 +602,139 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Two-column grid */}
         <div className="dashboard-grid">
-          {/* Available Jobs */}
+
+        <section style={{marginBottom: '80px'}}> 
+          <div className= "next-job-section" style={{marginBottom: '8px'}}>
+          <h2 className="section-heading" style={{marginBottom: "20px", color: "#e2c12b", fontSize: "1.5rem"}}>Your Upcoming Jobs</h2>
+          <h2 className="section-subheading" style={{marginBottom: "0px", color: "#666", fontSize: "14px"}}>You have started this job(s). Mark as complete once done.</h2>
+          </div>
+          <div className="jobs-list">
+            {nextJob && nextJob.length > 0 ? (
+              (() => {
+                let hasShownActiveText = false;
+                return nextJob.map((job) => (
+                  <div key={job.id}>
+                    {job.normalizedStatus === 'active' && !hasShownActiveText ? (
+                      <p style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
+                        These are your upcoming jobs. You have yet to start them.
+                      </p>
+                    ) : null}
+                    {job.normalizedStatus === 'active' && !hasShownActiveText ? (() => { hasShownActiveText = true; return null; })() : null}
+                    {job.normalizedStatus === 'in_progress' ? (
+                      <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: '2px solid #ebc943', marginBottom: '16px' }}>
+                          <div className="request-card-top">
+
+                            <div style={{ backgroundColor: '#f3f4f6', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontFamily: 'Inter', color: '#374151' }}>
+                              {job.service_type ? `${getServiceEmoji(job.service_type)} ${job.service_type}` : `${getServiceEmoji(null)} Other`}
+                            </div>
+                            <span style={{ backgroundColor: '#faf2d2', color: '#a16207', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontFamily: 'Inter', fontWeight: 600, textTransform: 'capitalize' }}>
+                              {String(job.normalizedStatus ?? 'upcoming').replace(/_/g, ' ')}
+                            </span>
+                          </div>
+                  
+                        <h1 style={{ fontSize: '22px', fontFamily: 'Inter', fontWeight: 500, marginBottom: '8px' }}>
+                          {job.title ?? 'Untitled'}
+                        </h1>
+                        <p style={{ fontSize: '14px', fontFamily: 'Inter', color: '#6b7280', marginBottom: '16px', cursor: 'pointer' }} onClick={() => navigate(`/profile/${job.user_id}`)}>
+                          Posted by: @{job.username ?? 'User'}
+                        </p>
+                        <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '16px' }} />
+                        <p style={{ fontSize: '14px', fontFamily: 'Inter', marginBottom: '24px', fontWeight: 400 }}>
+                          {job.description ?? 'No description provided'}
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div style={{ display: 'flex', gap: '12px' }}>
+                            <div style={{ flex: 1, padding: '12px', backgroundColor: '#f0ede8', borderRadius: '8px', height: '55px' }}>
+                              <p style={{ fontSize: '12px', fontFamily: 'Inter', color: '#6b7280', fontWeight: 500, marginBottom: '4px' }}>Location</p>
+                              <p style={{ fontSize: '14px', fontFamily: 'Inter' }}>📍 {job.location ?? 'TBD'}</p>
+                            </div>
+                            <div style={{ flex: 1, padding: '12px', backgroundColor: '#f0ede8', borderRadius: '8px', height: '55px' }}>
+                              <p style={{ fontSize: '12px', fontFamily: 'Inter', color: '#6b7280', fontWeight: 500, marginBottom: '4px' }}>Time</p>
+                              <p style={{ fontSize: '14px', fontFamily: 'Inter' }}>🕐 {job.job_time?.slice(0, 5) ?? 'TBD'}</p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '12px' }}>
+                            <div style={{ flex: 1, padding: '12px', backgroundColor: '#f0ede8', borderRadius: '8px', height: '55px' }}>
+                              <p style={{ fontSize: '12px', fontFamily: 'Inter', color: '#6b7280', fontWeight: 500, marginBottom: '4px' }}>Date</p>
+                              <p style={{ fontSize: '14px', fontFamily: 'Inter' }}>📅 {job.job_date ?? 'TBD'}</p>
+                            </div>
+                            <div style={{ flex: 1, padding: '12px', backgroundColor: '#f0ede8', borderRadius: '8px', height: '55px' }}>
+                              <p style={{ fontSize: '12px', fontFamily: 'Inter', color: '#6b7280', fontWeight: 500, marginBottom: '4px' }}>Budget</p>
+                              <p style={{ fontSize: '14px', fontFamily: 'Inter', color: '#23a542', fontWeight: "bold" }}>💰 ${job.budget ?? 0}</p>
+                            </div>
+                          </div>
+                        </div>
+                        {(job.status === 'active' || job.status === 'in_progress') && (
+                          <div style={{ fontFamily: 'Inter', marginTop: '24px', padding: '16px 20px', backgroundColor: '#f9fafb', borderRadius: '12px', border: '1px dashed #d1d5db' }}>
+                            <p>
+                              <strong style={{ fontFamily: 'Inter', color: 'green' }}>Meet-up Code: </strong>{job.confirmation_code ?? 'Not available'}
+                            </p>
+                            <p style={{ fontSize: '12px', fontFamily: 'Inter', color: '#6b7280', marginTop: '4px' }}>
+                              Show this code to your client to verify you're meeting the right person
+                            </p>
+                          </div>
+                        )}
+                        <div style={{ marginTop: '20px', fontSize: '12px', fontFamily: 'Inter', color: '#6b7280', textAlign: 'center' }}>
+                          Need to mark as complete? <span style={{ color: '#007bff', cursor: 'pointer' }} onClick={() => navigate('/your-jobs')}>Go to Your Jobs</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="request-card" style={{ marginBottom: '20px', border: '1px solid #26d229', backgroundColor: '#fff' }} onClick={() => navigate(`/jobDetails/${job.id}`)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate(`/jobDetails/${job.id}`)}>
+                        <div className="request-card-top">
+                          <div className="category-badge">
+                            <span>{job.service_type ? `${getServiceEmoji(job.service_type)} ${job.service_type}` : `${getServiceEmoji(null)} Other`}</span>
+                          </div>
+                          <span
+                            className="status-badge"
+                            style={{
+                              backgroundColor: '#dcfce7',
+                              color: '#166534',
+                              borderColor: '#bbf7d0',
+                              textTransform: 'capitalize',
+                            }}
+                          >
+                            {String(job.normalizedStatus ?? "upcoming").replace("_", " ")}
+                          </span>
+                        </div>
+                        <h3 className="request-card-title">{job.title ?? "Untitled job"}</h3>
+                        <p className="request-card-description">
+                          {job.description ?? "No description provided"}
+                        </p>
+                        <div className="request-card-meta">
+                          <div className="request-meta-item">
+                            <span className="request-meta-key"><ClockIcon /> Date &amp; Time</span>
+                            <span className="request-meta-value" style={{ whiteSpace: 'pre-line' }}>
+                              {job.job_date ?? job.date ?? 'TBD'}{"\n"}{job.job_time?.slice(0, 5) ?? job.time ?? ''}
+                            </span>
+                          </div>
+                          <div className="request-meta-item">
+                            <span className="request-meta-key">
+                              <LocationIcon /> Location
+                            </span>
+                            <span className="request-meta-value">
+                              {job.location ?? "TBD"}
+                            </span>
+                          </div>
+                          <div className="request-meta-item">
+                            <span className="request-meta-key">Budget</span>
+                            <span className="request-meta-value budget-value">
+                              ${job.budget ?? 0}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ));
+              })()
+            ) : (
+              <div className="empty-state">No upcoming jobs. Check out available jobs and pick one!</div>
+            )}
+          </div>
+        </section>
+        {/* Two-column grid */}
+          {/* Available Jobs 
           <section>
             <div className="section-header">
               <h2 className="section-heading">Available Jobs</h2>
@@ -456,17 +746,17 @@ const Dashboard = () => {
               </button>
             </div>
 
-            <div className="jobs-list">
-              {MOCK_JOBS.length > 0 ? (
-                MOCK_JOBS.map((job) => (
+              <div className="jobs-list">
+              {availableJobs.length > 0 ? (
+                availableJobs.slice(0, 3).map((job) => (
                   <div
                     key={job.id}
                     className="job-card"
-                    onClick={() => navigate(`/jobs/${job.id}`)}
+                    onClick={() => navigate(`/Jobdetails/${job.id}`)}
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) =>
-                      e.key === "Enter" && navigate(`/jobs/${job.id}`)
+                      e.key === "Enter" && navigate(`/Jobdetails/${job.id}`)
                     }
                   >
                     <div className="job-card-top">
@@ -492,7 +782,7 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
-          </section>
+          </section> */}
 
           {/* Recent Activities */}
           <section>
