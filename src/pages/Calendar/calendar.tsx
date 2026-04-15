@@ -247,6 +247,7 @@ const filteredAccepted = accepted.filter(
               const dayItems =
                 itemsByDate[formattedDate || ""] || [];
 
+                
               return (
                 <div key={index} className="calendar-cell">
                   {date && (
