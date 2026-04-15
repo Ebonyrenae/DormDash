@@ -1,5 +1,5 @@
 
-* {
+.calendar-wrapper * {
   box-sizing: border-box;
 }
 
@@ -72,6 +72,26 @@
   }
 }
 
+
+/* Add this to calendar.css */
+/* Update this section in your CSS */
+.calendar-cell.is-today {
+  /* Removed the green border and light green background */
+  background-color: transparent; 
+  border: 1px solid #ddd; /* Match the regular cell border */
+}
+
+.calendar-cell.is-today .calendar-date {
+  background-color: #29ac3d; /* Keep the green circle */
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 4px auto;
+}
 .calendar-header-controls {
   display: flex;
   justify-content: center;

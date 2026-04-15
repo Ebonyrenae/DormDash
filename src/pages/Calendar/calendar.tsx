@@ -276,12 +276,19 @@ const formatDate = (dateString: string) => {
                     )}`
                   : null;
 
+
+                  const today = new Date();
+                  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+                  // 3. Check for a match
+                  const isToday = formattedDate === todayString;
+
               const dayItems =
                 itemsByDate[formattedDate || ""] || [];
 
 
               return (
-                <div key={index} className="calendar-cell">
+                <div key={index} className={`calendar-cell ${isToday ? "is-today" : ""}`}>
                   {date && (
                     <span className="calendar-date">{date}</span>
                   )}
