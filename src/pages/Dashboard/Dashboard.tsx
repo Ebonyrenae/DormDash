@@ -787,7 +787,7 @@ const Dashboard = () => {
           {/* Recent Activities */}
           <section>
             <div className="section-header">
-              <h2 className="section-heading">Recent Activities</h2>
+              <h2 className="section-heading" style={{color: "#105666"}}>Recent Activities</h2>
               <button
                 className="section-link"
                 onClick={() => navigate("/recent-activities")}

@@ -255,20 +255,16 @@ const filteredAccepted = accepted.filter(
 
                   <div className="calendar-pills">
                     {dayItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`pill ${
-                          item.type === "accepted"
-                            ? "pill-yellow"
-                            : "pill-blue"
-                        }`}
-                        onClick={() =>
-                          navigate(`/my-request/${item.id}`)
-                        }
-                        title={item.title}
-                      >
-                      </div>
-                    ))}
+  <div key={item.id} className="pill-wrapper">
+    <div
+      className={`pill ${item.type === "accepted" ? "pill-yellow" : "pill-blue"}`}
+      onClick={() => navigate(`/my-request/${item.id}`)}
+    />
+    <div className="pill-tooltip">
+      <span className="pill-tooltip-label">Title:</span> {item.title}
+    </div>
+  </div>
+))}
                   </div>
                 </div>
               );

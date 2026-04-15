@@ -43,6 +43,37 @@
   color: white
 }
 
+.pill-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.pill-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 999;
+  color: #101828;
+  pointer-events: none;
+}
+
+.pill-tooltip-label {
+  font-weight: 600;
+}
+
+.pill-wrapper:hover .pill-tooltip {
+  display: block;
+}
+
 
 
 /* Date number */
@@ -58,7 +89,7 @@
   flex-direction: row;
   gap: 5px;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
   align-items: center;
   
 }
@@ -123,6 +154,7 @@
   width: 100%;
   max-width: none;
   margin: 0;
+  overflow: visible;
 }
 
 .calendar-week-header {
@@ -140,6 +172,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  overflow: visible;
   justify-content: center;
 }
 
