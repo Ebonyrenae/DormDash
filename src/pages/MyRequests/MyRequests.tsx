@@ -24,6 +24,8 @@ interface Request {
   offeredPrice?: string | null;
   offerNote?: string | null;
   acceptedByName?: string;
+  accepted_by?: number | null;
+  hasReviewed?: boolean;
 }
 
 const API_BASE_URL =
@@ -69,6 +71,7 @@ type BackendJob = {
   price_note?: string | null;
   price_status?: "pending" | "accepted" | "declined" | null;
   accepted_by_name?: string | null;
+  accepted_by?: number | null;
 };
 
 const SERVICE_EMOJI: Record<string, string> = {
@@ -188,6 +191,8 @@ const MyRequests = () => {
             offeredPrice: j.proposed_price ?? null,
             offerNote: j.price_note ?? null,
             acceptedByName: j.accepted_by_name ?? "Dasher",
+            accepted_by: j.accepted_by ?? null,
+            hasReviewed: (j as any).has_reviewed === 1,
           };
         });
 
@@ -338,14 +343,28 @@ const MyRequests = () => {
       })
       .catch((err) => console.error("Network error unassigning job", err));
   };
+  
   const handleSubmitReview = async () => {
-    if (starRating === 0) {
-      setReviewError("Please select a star rating.");
-      return;
-    }
-    setReviewSubmitting(true);
-    // Fake success for frontend testing only
-    setTimeout(() => {
+  if (starRating === 0) {
+    setReviewError("Please select a star rating.");
+    return;
+  }
+  setReviewSubmitting(true);
+  setReviewError("");
+  try {
+    const res = await fetch(`${API_BASE_URL}/submit_review.php`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        job_id: reviewJobId,
+        dasher_id: reviewDasherId,
+        stars: starRating,
+        review_text: reviewText,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
       setReviewSuccess(true);
       setTimeout(() => {
         setShowReviewModal(false);
@@ -355,7 +374,14 @@ const MyRequests = () => {
         setReviewJobId(null);
         setReviewSubmitting(false);
       }, 1500);
-    }, 500);
+    } else {
+      setReviewError(data.message || "Failed to submit review.");
+    }
+  } catch {
+    setReviewError("Network error. Please try again.");
+  } finally {
+    setReviewSubmitting(false);
+  }
 };
 
   const handleRespondToOffer = async (jobId: string, action: "accept" | "decline") => {
@@ -523,8 +549,8 @@ const MyRequests = () => {
         {/* Stats */}
         <div className="requests-stats-row">
           <div
-            className={`stat-card${activeFilter === "Active" || activeFilter === "All" ? " stat-active" : ""}`}
-            onClick={() => setActiveFilter(activeFilter === "Active" ? "All" : "Active")}
+            className={`stat-card${activeFilter === "Active" ? " stat-active" : ""}`}
+            onClick={() => setActiveFilter("Active")}
             role="button" tabIndex={0}
             onKeyDown={(e) => e.key === "Enter" && setActiveFilter(activeFilter === "Active" ? "All" : "Active")}
           >
@@ -534,7 +560,7 @@ const MyRequests = () => {
 
           <div
             className={`stat-card${activeFilter === "In Progress" ? " stat-active" : ""}`}
-            onClick={() => setActiveFilter(activeFilter === "In Progress" ? "All" : "In Progress")}
+            onClick={() => setActiveFilter( "In Progress")}
             role="button" tabIndex={0}
             onKeyDown={(e) => e.key === "Enter" && setActiveFilter(activeFilter === "In Progress" ? "All" : "In Progress")}
           >
@@ -544,7 +570,7 @@ const MyRequests = () => {
 
           <div
             className={`stat-card${activeFilter === "Completed" ? " stat-active" : ""}`}
-            onClick={() => setActiveFilter(activeFilter === "Completed" ? "All" : "Completed")}
+            onClick={() => setActiveFilter("Completed")}
             role="button" tabIndex={0}
             onKeyDown={(e) => e.key === "Enter" && setActiveFilter(activeFilter === "Completed" ? "All" : "Completed")}
           >
@@ -648,12 +674,16 @@ const MyRequests = () => {
                     </button>
                   )}
                    {req.status === "Completed" && (
-                      <button
+                      req.hasReviewed ? (
+                      <p style={{ color: "#16a34a", fontSize: 13, fontFamily: "Inter", fontWeight: 500 }}>
+                         Thanks for submitting a review!
+                        </p>):(
+                        <button
                         className="pulse-button"
                         onClick={() => {
                           setReviewJobId(req.id);
                           setReviewDasherName(req.acceptedByName ?? "Dasher");
-                          {/*setReviewDasherId(req.accepted_by ?? null);*/}
+                          setReviewDasherId(req.accepted_by ?? null);
                           setStarRating(0);
                           setReviewText("");
                           setReviewError("");
@@ -662,11 +692,11 @@ const MyRequests = () => {
                         }}
                       >
                         Leave Review for {req.acceptedByName}
-                      </button>
+                      </button>)
                     )}
                 </div>
                  {/* ── Price Offer Banner — always visible when offer is pending ── */}
-              {req.offerStatus === "pending" && editingId !== req.id && (
+              {req.offerStatus === "accepted" && editingId !== req.id && (
                 <div style={{
                   marginTop: 10,
                   padding: "10px 14px",
