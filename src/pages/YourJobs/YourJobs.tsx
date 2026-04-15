@@ -132,6 +132,8 @@ const YourJobs = () => {
 
   const [earlyStartIds, setEarlyStartIds] = useState<Set<string>>(new Set());
 
+  const hasJobInProgress = requests.some((r) => r.status === "In Progress");
+
   const handleProposePrice = async () => {
     if (!selectedPriceJobId || !counterPrice) return;
 
@@ -644,34 +646,58 @@ const YourJobs = () => {
                     ) : (
                       <>
                         <button
-                          className="postjob-btn-submit"
-                          style={!ready ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-                          onClick={() => {
-                            if (!ready) {
-                              setEarlyStartIds((prev) => new Set(prev).add(req.id));
-                              return;
-                            }
-                            handleInProgress(req.id);
-                          }}
-                        >
-                          Start Job
-                        </button>
+  className="postjob-btn-submit"
+  style={
+    !ready || hasJobInProgress
+      ? { opacity: 0.5, cursor: "not-allowed" }
+      : {}
+  }
+  onClick={() => {
+    if (hasJobInProgress) {
+      setEarlyStartIds((prev) => new Set(prev).add(req.id));
+      return;
+    }
+    if (!ready) {
+      setEarlyStartIds((prev) => new Set(prev).add(req.id));
+      return;
+    }
+    handleInProgress(req.id);
+  }}
+>
+  Start Job
+</button>
 
-                        {showEarlyMsg && !ready && (
-                          <p style={{
-                            fontSize: 13,
-                            color: "#b45309",
-                            fontFamily: "Inter",
-                            backgroundColor: "#fffbeb",
-                            border: "1px solid #fde68a",
-                            borderRadius: 8,
-                            padding: "8px 12px",
-                            marginTop: 8,
-                          }}>
-                            ⏳ The date and time hasn't come yet for this job.
-                          </p>
-                        )}
+{showEarlyMsg && hasJobInProgress && (
+  <p style={{
+    fontSize: 13,
+    color: "#dc2626",
+    fontFamily: "Inter",
+    backgroundColor: "#fef2f2",
+    border: "1px solid #fecaca",
+    borderRadius: 8,
+    padding: "8px 12px",
+    marginTop: 8,
+  }}>
+    🚫 You already have a job in progress. Complete it before starting another.
+  </p>
+)}
 
+{showEarlyMsg && !ready && !hasJobInProgress && (
+  <p style={{
+    fontSize: 13,
+    color: "#b45309",
+    fontFamily: "Inter",
+    backgroundColor: "#fffbeb",
+    border: "1px solid #fde68a",
+    borderRadius: 8,
+    padding: "8px 12px",
+    marginTop: 8,
+  }}>
+    ⏳ The date and time hasn't come yet for this job.
+  </p>
+)}
+
+                        
                         <button
                           className="btn-view-details"
                           onClick={() => navigate(`/my-job/${req.id}`, { state: { fromYourJobsStatus: "Active" } })}

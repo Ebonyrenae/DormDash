@@ -1,3 +1,15 @@
+
+* {
+  box-sizing: border-box;
+}
+
+.calendar-wrapper {
+  min-height: 100vh;
+  background: #f3f4f6;
+  width: 100%;
+  overflow-x: hidden;
+}
+
 .calendar-page {
   padding: 20px;
   font-family: "Inter", sans-serif;
@@ -10,6 +22,54 @@
 .calendar-wrapper,
 .calendar-wrapper * {
   font-family: "Inter", sans-serif !important;
+
+}
+
+.upcoming-job-box {
+  width: 100%;
+  margin-top: 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upcoming-job-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #15803d;
+  margin: 0;
+}
+
+.upcoming-job-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #101828;
+  margin: 0;
+}
+
+.upcoming-job-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.upcoming-job-empty {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .upcoming-job-box {
+    margin-top: 12px;
+  }
 }
 
 .calendar-header-controls {
@@ -237,18 +297,113 @@
 .poll-yellow{background:#fcd983}
 .poll-blue{background:#a1c5ff}
 
-@media (max-width: 900px){
-  .calendar-main{flex-direction:column;align-items:stretch}
-  .calendar-content{width:100%}
-  .calendar-legend-outside{width:100%;max-width:720px;margin:12px auto}
+@media (max-width: 768px) {
+
+  /* Stack legend below calendar */
+  .calendar-main {
+    flex-direction: column;
+    padding: 12px;
+    gap: 16px;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Calendar page fills full width */
+  .calendar-page {
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Shrink the month/year nav gap */
+  .calendar-header-controls {
+    gap: 40px;
+    margin-bottom: 8px;
+  }
+
+  /* Smaller day header cells */
+  .calendar-cell.header {
+    font-size: 11px;
+    padding: 6px 2px;
+  }
+
+  /* Smaller date cells */
+  .calendar-cell {
+    padding: 4px;
+    min-height: 48px;
+    font-size: 12px;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  /* Smaller date number */
+  .calendar-date {
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    text-align: center;
+  }
+
+  /* Pills row wraps tightly */
+  .calendar-pills {
+    gap: 3px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Smaller dots on mobile */
+  .pill {
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    min-height: 8px;
+  }
+
+  /* Tooltip appears above, stays visible */
+  .pill-tooltip {
+    font-size: 11px;
+    padding: 6px 10px;
+    bottom: 16px;
+    white-space: normal;
+    max-width: 140px;
+    text-align: left;
+  }
+
+  /* Legend goes full width below */
+  .calendar-legend-outside {
+    width: 100%;
+    margin: 0;
+    flex-direction: row;
+    justify-content: center;
+    gap: 24px;
+    padding: 12px 16px;
+  }
+
+  .legend-item {
+    margin-bottom: 0;
+    font-size: 12px;
+  }
+
+  /* Grid gap tighter on mobile */
+  .calendar-grid {
+    gap: 3px;
+  }
 }
 
-@media (max-width: 900px) {
-  .calendar-main{padding:16px}
-  .sidebar-drawer{width:320px}
-}
+@media (max-width: 400px) {
+  .calendar-cell {
+    min-height: 36px;
+    padding: 2px;
+  }
 
-@media (max-width: 900px) {
-  .calendar-page { margin-left: 320px; }
-  .sidebar { width: 320px; }
+  .pill {
+    width: 6px;
+    height: 6px;
+    min-width: 6px;
+    min-height: 6px;
+  }
+
+  .calendar-header-controls {
+    gap: 20px;
+  }
 }
