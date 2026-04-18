@@ -32,7 +32,7 @@ if (!$userId) {
 }
 
 try {
-  // Ensure table exists (minimal migration).
+  // Ensure table exists.
   $pdo->exec(
     "CREATE TABLE IF NOT EXISTS notifications (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -48,7 +48,7 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
   );
 
-  // Add actor_user_id column if the table existed already.
+  // Check for actor_user_id column.
   $colStmt = $pdo->prepare(
     "SELECT COUNT(*) AS c
      FROM information_schema.COLUMNS
@@ -59,12 +59,10 @@ try {
   $colStmt->execute();
   $hasActor = (int)($colStmt->fetch(PDO::FETCH_ASSOC)["c"] ?? 0) > 0;
   if (!$hasActor) {
-    // MySQL versions here don't support IF NOT EXISTS for ADD COLUMN reliably.
     $pdo->exec("ALTER TABLE notifications ADD COLUMN actor_user_id INT NULL AFTER type");
   }
 
-  // Minimal fallback if we cannot modify accept_job.php or create triggers:
-  // Backfill "job accepted" notifications for this user on read (idempotent).
+  // 1. Backfill block: Cleaned up CONCAT logic (removed trailing commas/broken title)
   $pdo->prepare(
     "INSERT IGNORE INTO notifications (user_id, type, actor_user_id, job_id, message)
      SELECT
@@ -74,9 +72,7 @@ try {
        j.id AS job_id,
        CONCAT(
          COALESCE(ua.username, 'Someone'),
-         ' accepted your job: ',
-         LEFT(COALESCE(j.title, ''), 80),
-         '. Message them.'
+         ' accepted your job'
        ) AS message
      FROM jobs j
      LEFT JOIN users ua ON ua.id = j.accepted_by
@@ -85,7 +81,7 @@ try {
        AND j.accepted_by IS NOT NULL"
   )->execute([(int)$userId]);
 
-  // Upgrade older generic messages if they exist (keeps UI useful).
+  // 2. Upgrade block: Cleaned up SET syntax (removed 'As message' alias)
   $pdo->prepare(
     "UPDATE notifications n
      JOIN jobs j ON j.id = n.job_id
@@ -94,15 +90,14 @@ try {
        n.actor_user_id = j.accepted_by,
        n.message = CONCAT(
          COALESCE(ua.username, 'Someone'),
-         ' accepted your job: ',
-         LEFT(COALESCE(j.title, ''), 80),
-         '. Message them.'
+         ' accepted your job'
        )
      WHERE n.user_id = ?
        AND n.type = 'job_accepted'
        AND (n.actor_user_id IS NULL OR n.actor_user_id = 0)"
   )->execute([(int)$userId]);
 
+  // Fetch results
   $stmt = $pdo->prepare(
     "SELECT id, type, actor_user_id, job_id, message, is_read, created_at
      FROM notifications
@@ -113,6 +108,7 @@ try {
   $stmt->execute([(int)$userId]);
   $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+  // Count unread
   $unreadStmt = $pdo->prepare(
     "SELECT COUNT(*) AS unreadCount
      FROM notifications
@@ -125,4 +121,3 @@ try {
 } catch (PDOException $e) {
   echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
-
