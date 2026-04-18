@@ -31,7 +31,7 @@ export default function Notifications() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE}/notifications.php`, {
+        const res = await fetch(`${API_BASE}/notifications2.php`, {
           method: "GET",
           credentials: "include",
         });

@@ -188,7 +188,10 @@ const Dashboard = () => {
   const [availableJobs, setAvailableJobs] = useState<Job[]>([]);
   const [notificationsUnread, setNotificationsUnread] = useState(0);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [bellOpen, setBellOpen] = useState(false);
+  const [allNotifications, setAllNotifications] = useState<NotificationItem[]>([]);
   const seenNotificationIds = useRef<Set<number>>(new Set());
+  const bellRef = useRef<HTMLDivElement>(null);
   const [acceptedJobs, setAcceptedJobs] = useState<any[]>([]);
 
   useEffect(() => {
@@ -247,7 +250,7 @@ const Dashboard = () => {
     let cancelled = false;
     const tick = async () => {
       try {
-        const res = await fetch(`${API_BASE}/notifications.php`, {
+        const res = await fetch(`${API_BASE}/notifications2.php`, {
           method: "GET",
           credentials: "include",
         });
@@ -262,24 +265,38 @@ const Dashboard = () => {
           ? data.notifications
           : [];
 
-        for (const n of items) {
+          // Save all notifications for the bell dropdown
+          setAllNotifications(items);
+
+          // Only show the single most recent unread notification as a toast
+        const mostRecent = items.find((n) => {
           const idNum = Number(n.id);
-          if (!idNum || seenNotificationIds.current.has(idNum)) continue;
-          seenNotificationIds.current.add(idNum);
-
           const isUnread = String(n.is_read) === "0" || n.is_read === 0;
-          if (!isUnread) continue;
+          return idNum && isUnread && !seenNotificationIds.current.has(idNum);
+        });
 
+
+        if (mostRecent) {
+          const idNum = Number(mostRecent.id);
+          seenNotificationIds.current.add(idNum);
+          // Mark all other unseen-but-unread as seen so they don't pop next poll
+          for (const n of items) {
+            const id = Number(n.id);
+            if (id && !seenNotificationIds.current.has(id)) {
+              seenNotificationIds.current.add(id);
+            }
+          }
           setToasts((prev) => [
             ...prev,
             {
               id: idNum,
-              message: n.message,
-              jobId: n.job_id ?? null,
-              actorUserId: (n.actor_user_id ?? null) as number | null,
+              message: mostRecent.message,
+              jobId: mostRecent.job_id ?? null,
+              actorUserId: (mostRecent.actor_user_id ?? null) as number | null,
             },
           ]);
         }
+        
       } catch {
         // Non-blocking.
       }
@@ -437,59 +454,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-page">
-      <div className="notif-toast-stack" aria-live="polite" aria-relevant="additions">
-        {toasts.map((t) => (
-          <div key={t.id} className="notif-toast">
-            <div className="notif-toast-row">
-              <div className="notif-toast-message">{t.message}</div>
-              <div className="notif-toast-actions">
-                <button
-                  type="button"
-                  className="notif-toast-btn"
-                  onClick={() => void markToastRead(t.id)}
-                >
-                  Mark read
-                </button>
-                <button
-                  type="button"
-                  className="notif-toast-x"
-                  aria-label="Dismiss notification"
-                  onClick={() => dismissToast(t.id)}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-            <div className="notif-toast-links">
-              {t.actorUserId ? (
-                <button
-                  type="button"
-                  className="notif-toast-link secondary"
-                  onClick={() => {
-                    dismissToast(t.id);
-                    navigate(`/messages/${t.actorUserId}`);
-                  }}
-                >
-                  Message them
-                </button>
-              ) : null}
-              {t.jobId ? (
-                <button
-                  type="button"
-                  className="notif-toast-link"
-                  onClick={() => {
-                    dismissToast(t.id);
-                    navigate(`/Jobdetails/${t.jobId}`);
-                  }}
-                >
-                  View job
-                </button>
-              ) : null}
-            </div>
-          </div>
-        ))}
-      </div>
-
+      
       {/* Sidebar Overlay */}
       <div
         className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
@@ -551,12 +516,14 @@ const Dashboard = () => {
           >
             <CalendarIcon />
           </button>
-                      
+
+          {/* Bell with dropdown */}
+            <div ref={bellRef} style={{ position: "relative" }}>
 
             <button
               type="button"
               className="nav-bell"
-              onClick={() => navigate("/notifications")}
+              onClick={() => setBellOpen((o) => !o)}
               aria-label="Open notifications"
               title="Notifications"
             >
@@ -565,24 +532,159 @@ const Dashboard = () => {
                 <span className="nav-bell-badge" aria-label={`${notificationsUnread} unread`} />
               ) : null}
             </button>
-            <div
-              className="nav-avatar"
-              onClick={() => navigate("/profile")}
-              title="View profile"
-            >
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt=""
-                  className="nav-avatar-img"
-                />
-              ) : (
-                userInitials
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+
+            {bellOpen && (
+              <div className="notif-dropdown">
+                  <div className="notif-dropdown-header">
+                    <span className="notif-dropdown-title">Notifications</span>
+                    <button
+                      className="notif-dropdown-mark-all"
+                      onClick={async () => {
+                        try {
+                          await fetch(`${API_BASE}/notifications_mark_read.php`, {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ mark_all: true }),
+                          });
+                          setNotificationsUnread(0);
+                          setAllNotifications((prev) =>
+                            prev.map((n) => ({ ...n, is_read: 1 }))
+                          );
+                        } catch {}
+                      }}
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+
+                  <div className="notif-dropdown-list">
+                    {allNotifications.length === 0 ? (
+                      <p className="notif-dropdown-empty">No notifications yet</p>
+                    ) : (
+                      allNotifications.map((n) => {
+                        const isUnread =
+                          String(n.is_read) === "0" || n.is_read === 0;
+                        return (
+                          <div
+                            key={n.id}
+                            className={`notif-dropdown-item${isUnread ? " unread" : ""}`}
+                          >
+                            <div className="notif-dropdown-dot" />
+                            <div className="notif-dropdown-body">
+                              <p className="notif-dropdown-msg">{n.message}</p>
+                              <p className="notif-dropdown-time">
+                                {new Date(n.created_at).toLocaleDateString(
+                                  undefined,
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </p>
+                              <div className="notif-dropdown-actions">
+                                {n.actor_user_id ? (
+                                  <span
+                                    className="notif-dropdown-link green"
+                                    onClick={() => {
+                                      setBellOpen(false);
+                                      navigate(`/messages/${n.actor_user_id}`);
+                                    }}
+                                  >
+                                    Message
+                                  </span>
+                                ) : null}
+                                {n.job_id ? (
+                                  <span
+                                    className="notif-dropdown-link"
+                                    onClick={() => {
+                                      setBellOpen(false);
+                                      navigate(`/Jobdetails/${n.job_id}`);
+                                    }}
+                                  > View job</span>) : null} </div>
+                                  </div>
+                                  </div>
+                                   );
+                                  })
+                                   )}
+                                   </div>
+                                   
+                                     </div>
+                                     )}
+                                     </div>
+                                      <div
+                                      className="nav-avatar"
+                                      onClick={() => navigate("/profile")}
+                                      title="View profile"
+                                      >
+                                        {avatarUrl ? (
+                                          <img
+                                          src={avatarUrl}
+                                           alt=""
+                                           className="nav-avatar-img"
+                                           />
+                                          ) : (
+                                             userInitials
+                                              )}
+                                              </div>
+                                              </div>
+                                              </div>
+                                              </nav>
+                                              <div
+                                              className="notif-toast-stack"
+                                              aria-live="polite"
+                                              aria-relevant="additions"
+                                               >
+                                                {toasts.map((t) => (
+                                                  <div key={t.id} className="notif-toast">
+                                                    <div className="notif-toast-row">
+                                                      <div className="notif-toast-message">{t.message}</div>
+                                                      <button
+                                                       type="button"
+                                                       className="notif-toast-x"
+                                                       aria-label="Dismiss notification"
+                                                       onClick={() => dismissToast(t.id)}
+                                                       >
+                                                        ×
+                                                        </button>
+                                                         </div>
+                                                         <div className="notif-toast-links">
+                                                          {t.actorUserId ? (
+                                                            <p
+                                                            className="notif-toast-link secondary"
+                                                            onClick={() => {
+                                                              dismissToast(t.id);
+                                                              navigate(`/messages/${t.actorUserId}`);
+                                                            }}
+                                                            >
+                                                               Message them
+                                                               </p>
+                                                               ) : null}
+                                                               {t.jobId ? (
+                                                                <p
+                                                                className="notif-toast-link"
+                                                                onClick={() => {
+                                                                  dismissToast(t.id);
+                                                                  navigate(`/Jobdetails/${t.jobId}`);
+                                                                 }}
+                                                                  >
+                                                                    View Job
+                                                                    </p>
+                                                                  ) : null}
+                                                                  <p
+                                                                  className="notif-toast-link"
+                                                                  onClick={() => void markToastRead(t.id)}>
+                                                                    Mark read
+                                                                    </p>
+                                                                     </div>
+                                                                     </div>))}
+                                                                     </div>
+
+     
+           
+
 
       {/* Main Content */}
       <main className="dashboard-main">
