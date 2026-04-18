@@ -62,24 +62,23 @@ try {
     $pdo->exec("ALTER TABLE notifications ADD COLUMN actor_user_id INT NULL AFTER type");
   }
 
-  // 1. Backfill block: Cleaned up CONCAT logic (removed trailing commas/broken title)
   $pdo->prepare(
-    "INSERT IGNORE INTO notifications (user_id, type, actor_user_id, job_id, message)
-     SELECT
-       j.user_id AS user_id,
-       'job_accepted' AS type,
-       j.accepted_by AS actor_user_id,
-       j.id AS job_id,
-       CONCAT(
-         COALESCE(ua.username, 'Someone'),
-         ' accepted your job'
-       ) AS message
-     FROM jobs j
-     LEFT JOIN users ua ON ua.id = j.accepted_by
-     WHERE j.user_id = ?
-       AND j.status = 'active'
-       AND j.accepted_by IS NOT NULL"
-  )->execute([(int)$userId]);
+  "INSERT IGNORE INTO notifications (user_id, type, actor_user_id, job_id, message)
+   SELECT
+     j.user_id AS user_id,
+     'job_accepted' AS type,
+     j.accepted_by AS actor_user_id,
+     j.id AS job_id,
+     CONCAT(
+       COALESCE(ua.username, 'Someone'),
+       ' accepted your job'
+     ) AS message
+   FROM jobs j
+   LEFT JOIN users ua ON ua.id = j.accepted_by
+   WHERE j.user_id = ?
+     AND j.status = 'active'
+     AND j.accepted_by IS NOT NULL"
+)->execute([(int)$userId]);
 
   // 2. Upgrade block: Cleaned up SET syntax (removed 'As message' alias)
   $pdo->prepare(
@@ -99,12 +98,14 @@ try {
 
   // Fetch results
   $stmt = $pdo->prepare(
-    "SELECT id, type, actor_user_id, job_id, message, is_read, created_at
-     FROM notifications
-     WHERE user_id = ?
-     ORDER BY created_at DESC
-     LIMIT 50"
-  );
+  "SELECT n.id, n.type, n.actor_user_id, n.job_id, n.message, n.is_read, n.created_at,
+          j.title AS job_title
+   FROM notifications n
+   LEFT JOIN jobs j ON j.id = n.job_id
+   WHERE n.user_id = ?
+   ORDER BY n.created_at DESC
+   LIMIT 50"
+);
   $stmt->execute([(int)$userId]);
   $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

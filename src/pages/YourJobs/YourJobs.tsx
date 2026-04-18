@@ -356,8 +356,8 @@ const YourJobs = () => {
             <h3 style={{ fontFamily: "Inter", fontWeight: 500, marginBottom: 8 }}>
               Propose New Price
             </h3>
-            <input
-              type="number"
+            <textarea
+              
               placeholder="Enter Counter Price ($)"
               value={counterPrice}
               onChange={(e) => setCounterPrice(e.target.value)}
@@ -381,12 +381,19 @@ const YourJobs = () => {
               >
                 Cancel
               </button>
+           
+      
               <button
                 className="modal-confirm-btn"
-                onClick={handleProposePrice}
-              >
+
+                onClick={() => {
+                  if (!counterPrice || Number(counterPrice) <= 0) return;
+                  handleProposePrice();
+                }}
+                style={!counterPrice || Number(counterPrice) <= 0 ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                >
                 Send Counter Price
-              </button>
+              </button> 
             </div>
           </div>
         </div>

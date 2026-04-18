@@ -168,6 +168,7 @@ type NotificationItem = {
   message: string;
   is_read: number | string;
   created_at: string;
+  job_title?: string | null;
 };
 
 type ToastItem = {
@@ -331,6 +332,14 @@ const Dashboard = () => {
       dismissToast(id);
     }
   };
+
+  useEffect(() => {
+  if (toasts.length === 0) return;
+  const timer = setTimeout(() => {
+    setToasts((prev) => prev.slice(1));
+  }, 10000);
+  return () => clearTimeout(timer);
+}, [toasts]);
 
   useEffect(() => {
     const fetchAcceptedJobs = async () => {
@@ -573,6 +582,11 @@ const Dashboard = () => {
                             <div className="notif-dropdown-dot" />
                             <div className="notif-dropdown-body">
                               <p className="notif-dropdown-msg">{n.message}</p>
+                              {(n as any).job_title ? (
+                                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 3px' }}>
+                                  {(n as any).job_title}
+                                  </p>
+                                ) : null}
                               <p className="notif-dropdown-time">
                                 {new Date(n.created_at).toLocaleDateString(
                                   undefined,
@@ -639,47 +653,16 @@ const Dashboard = () => {
                                                >
                                                 {toasts.map((t) => (
                                                   <div key={t.id} className="notif-toast">
-                                                    <div className="notif-toast-row">
-                                                      <div className="notif-toast-message">{t.message}</div>
-                                                      <button
-                                                       type="button"
-                                                       className="notif-toast-x"
-                                                       aria-label="Dismiss notification"
-                                                       onClick={() => dismissToast(t.id)}
-                                                       >
-                                                        ×
-                                                        </button>
+                                                    
+                                                      <p className="notif-toast-link secondary"> New Notifications</p>
+                                                    <div className="notif-toast-message">{t.message}</div>
+                                                    
+                                                  
                                                          </div>
-                                                         <div className="notif-toast-links">
-                                                          {t.actorUserId ? (
-                                                            <p
-                                                            className="notif-toast-link secondary"
-                                                            onClick={() => {
-                                                              dismissToast(t.id);
-                                                              navigate(`/messages/${t.actorUserId}`);
-                                                            }}
-                                                            >
-                                                               Message them
-                                                               </p>
-                                                               ) : null}
-                                                               {t.jobId ? (
-                                                                <p
-                                                                className="notif-toast-link"
-                                                                onClick={() => {
-                                                                  dismissToast(t.id);
-                                                                  navigate(`/Jobdetails/${t.jobId}`);
-                                                                 }}
-                                                                  >
-                                                                    View Job
-                                                                    </p>
-                                                                  ) : null}
-                                                                  <p
-                                                                  className="notif-toast-link"
-                                                                  onClick={() => void markToastRead(t.id)}>
-                                                                    Mark read
-                                                                    </p>
-                                                                     </div>
-                                                                     </div>))}
+                                                         
+                                                         
+                                                                     
+                                                                     ))}
                                                                      </div>
 
      
