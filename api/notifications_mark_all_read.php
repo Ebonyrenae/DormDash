@@ -31,41 +31,34 @@ if (!$userId) {
   exit;
 }
 
-try {
-  // Ensure table exists (minimal migration).
-  $pdo->exec(
-    "CREATE TABLE IF NOT EXISTS notifications (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
-      type VARCHAR(50) NOT NULL,
-      actor_user_id INT NULL,
-      job_id INT NULL,
-      message VARCHAR(255) NOT NULL,
-      is_read TINYINT(1) NOT NULL DEFAULT 0,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY uniq_user_type_job (user_id, type, job_id),
-      INDEX idx_user_created (user_id, created_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
-  );
+$body = json_decode(file_get_contents('php://input'), true);
 
-  $colStmt = $pdo->prepare(
-    "SELECT COUNT(*) AS c
-     FROM information_schema.COLUMNS
-     WHERE TABLE_SCHEMA = DATABASE()
-       AND TABLE_NAME = 'notifications'
-       AND COLUMN_NAME = 'actor_user_id'"
-  );
-  $colStmt->execute();
-  $hasActor = (int)($colStmt->fetch(PDO::FETCH_ASSOC)["c"] ?? 0) > 0;
-  if (!$hasActor) {
-    $pdo->exec("ALTER TABLE notifications ADD COLUMN actor_user_id INT NULL AFTER type");
+try {
+  // Mark ALL notifications read
+  if (!empty($body['mark_all'])) {
+    $stmt = $pdo->prepare(
+      "UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0"
+    );
+    $stmt->execute([(int)$userId]);
+    echo json_encode(['success' => true, 'updated' => $stmt->rowCount()]);
+    exit;
   }
 
-  $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
-  $stmt->execute([(int)$userId]);
+  // Mark a single notification read
+  $notifId = isset($body['notification_id']) ? (int)$body['notification_id'] : 0;
+  if (!$notifId) {
+    echo json_encode(['success' => false, 'message' => 'Missing notification_id']);
+    exit;
+  }
 
-  echo json_encode(['success' => true]);
+  // The WHERE includes user_id so users can only mark their own notifications
+  $stmt = $pdo->prepare(
+    "UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?"
+  );
+  $stmt->execute([$notifId, (int)$userId]);
+
+  echo json_encode(['success' => true, 'updated' => $stmt->rowCount()]);
+
 } catch (PDOException $e) {
   echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
-
