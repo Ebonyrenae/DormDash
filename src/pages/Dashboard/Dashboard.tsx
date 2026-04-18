@@ -541,7 +541,7 @@ const Dashboard = () => {
                       className="notif-dropdown-mark-all"
                       onClick={async () => {
                         try {
-                          await fetch(`${API_BASE}/notifications_mark_read.php`, {
+                          await fetch(`${API_BASE}/notifications_mark_all_read.php`, {
                             method: "POST",
                             credentials: "include",
                             headers: { "Content-Type": "application/json" },
