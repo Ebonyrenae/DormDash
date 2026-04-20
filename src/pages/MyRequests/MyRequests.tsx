@@ -429,6 +429,26 @@ const MyRequests = () => {
   const allRequests = [...requests, ...postedAsRequests];
   const filtered = activeFilter === "All" ? allRequests : allRequests.filter((r) => r.status === activeFilter);
 
+  const ArrowLeftIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M19 12H5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 19L5 12L12 5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+
   return (
     <>
     {showReviewModal && (
@@ -513,15 +533,21 @@ const MyRequests = () => {
 )}
     <div className="requests-page">
       {/* Sidebar Overlay */}
+
+      
       <div
         className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
         onClick={() => setSidebarOpen(false)}
         aria-hidden="true"
       />
 
+      
+
       {/* Sidebar Drawer */}
       <aside className={`sidebar-drawer${sidebarOpen ? " open" : ""}`} aria-label="Navigation menu">
         <nav className="sidebar-nav">
+
+          
           {SIDEBAR_LINKS.map((link) => (
             <button
               key={link.path}
@@ -535,12 +561,25 @@ const MyRequests = () => {
       </aside>
 
       <header className="requests-header">
+
+        
         <div className="requests-header-inner">
-          <button className="requests-menu-btn" aria-label="Open menu" onClick={() => setSidebarOpen(true)}>
-            <span /><span /><span />
-          </button>
-          <h1 className="requests-page-title">My Requests</h1>
-        </div>
+  <div className="requests-header-left">
+    <button
+      className="nav-back-btn"
+      onClick={() => navigate("/dashboard")}
+      aria-label="Go back"
+    >
+      <ArrowLeftIcon />
+    </button>
+    <button className="requests-menu-btn" aria-label="Open menu" onClick={() => setSidebarOpen(true)}>
+      <span /><span /><span />
+    </button>
+  </div>
+  <h1 className="requests-page-title">My Requests</h1>
+    <div className="requests-header-right" /> {/* empty spacer */}
+
+</div>
         <hr className="requests-header-divider" />
       </header>
 

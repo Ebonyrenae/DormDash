@@ -1,7 +1,7 @@
 /* Dashboard Page */
 .dashboard-page {
   min-height: 100vh;
-  background: #f9fafb;
+  background: #f1f1f2;
   font-family: "Inter", sans-serif;
 }
 
@@ -234,38 +234,47 @@
 }
 
 .notif-toast-stack {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 2000;
+  
+  position: fixed; /* Fixes it relative to the browser window */
+  top: 75px;      /* Adjust this to sit just below your nav bar */
+  right: 10px;    /* Aligns it with your right-hand padding */
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: min(420px, calc(100vw - 32px));
+  width: 360px;
+  z-index: 2000;  /* Higher than your nav (100) and sidebar (1001) */
   pointer-events: none;
+  opacity: 0.99;
 }
 
 .notif-toast {
   pointer-events: auto;
   background: white;
-  border: 1px solid rgba(41, 172, 61, 0.35);
-  border-radius: 14px;
-  padding: 12px 12px;
+  border: #d2d2d3 0.5px solid;
+  border-radius: 5px;
+  padding: 8px 16px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  align-items: left;
+  display: flex;
+  flex-direction: column;
 }
 
 .notif-toast-row {
   display: flex;
-  align-items: flex-start;
+  
   justify-content: space-between;
-  gap: 10px;
+  gap: 5px;
+  margin-bottom: 0%;
+  align-items: center;
 }
 
 .notif-toast-message {
-  font-size: 14px;
-  color: #101828;
-  font-weight: 600;
+  font-size: 13px;
+  color: #575757;
+  font-weight: 550;
   line-height: 1.35;
+  margin-bottom: 0%;
+  margin-top: 5px;
 }
 
 .notif-toast-actions {
@@ -296,34 +305,36 @@
   border: none;
   color: #6a7282;
   font-size: 20px;
-  line-height: 1;
   cursor: pointer;
-  padding: 0 4px;
+  position: fixed;
+  margin-left: 320px;
+ 
 }
 
-.notif-toast-link {
-  margin-top: 10px;
-  width: 100%;
-  background: #29ac3d;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-weight: 800;
+.notif-toast-link { 
+  color: rgb(47, 46, 46);
+  font-weight: 500;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .notif-toast-links {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  margin: 0;
+  
 }
 
 .notif-toast-link.secondary {
   background: white;
   color: #29ac3d;
-  border: 1px solid rgba(41, 172, 61, 0.45);
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 0%;
+  margin-top: 0%;
+  
+  
 }
 
 /* Main Content */
@@ -539,7 +550,7 @@
 }
 
 .activity-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: #105666 0px 2px 2px;
   transform: translateY(-2px);
 }
 
@@ -659,4 +670,153 @@
   .activity-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Bell Notification Dropdown ── */
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  background: white;
+  border: 0.5px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 500;
+  overflow: hidden;
+}
+
+.notif-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid #e5e7eb;
+}
+
+.notif-dropdown-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #101828;
+}
+
+.notif-dropdown-mark-all {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: #29ac3d;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+}
+
+.notif-dropdown-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.notif-dropdown-empty {
+  padding: 24px 16px;
+  font-size: 13px;
+  color: #9ca3af;
+  text-align: center;
+  margin: 0;
+}
+
+.notif-dropdown-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.notif-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.notif-dropdown-item:hover {
+  background: #f9fafb;
+}
+
+.notif-dropdown-item.unread {
+  background: #f0fdf4;
+}
+
+.notif-dropdown-item.unread:hover {
+  background: #dcfce7;
+}
+
+.notif-dropdown-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d1d5db;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.notif-dropdown-item.unread .notif-dropdown-dot {
+  background: #29ac3d;
+}
+
+.notif-dropdown-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-dropdown-msg {
+  font-size: 13px;
+  font-weight: 500;
+  color: #101828;
+  margin: 0 0 3px;
+  line-height: 1.4;
+}
+
+.notif-dropdown-time {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0 0 6px;
+}
+
+.notif-dropdown-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.notif-dropdown-link {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.notif-dropdown-link:hover {
+  color: #101828;
+}
+
+.notif-dropdown-link.green {
+  color: #29ac3d;
+}
+
+.notif-dropdown-link.green:hover {
+  color: #1e8c30;
+}
+
+
+
+.notif-dropdown-see-all {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #29ac3d;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+  transition: opacity 0.15s;
+}
+
+.notif-dropdown-see-all:hover {
+  opacity: 0.75;
 }
