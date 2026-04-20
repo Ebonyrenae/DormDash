@@ -199,6 +199,26 @@ useEffect(() => {
       ? jobs
       : jobs.filter((j) => j.category === activeCategory);
 
+
+  const ArrowLeftIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M19 12H5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 19L5 12L12 5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
   return (
     <div className="alljobs-page">
       {/* Sidebar Overlay */}
@@ -227,19 +247,24 @@ useEffect(() => {
       </aside>
 
       {/* Header */}
-      <header className="alljobs-header">
-        <div className="alljobs-header-top">
-          <button
-            className="alljobs-menu-btn"
-            aria-label="Open menu"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-          <h1 className="alljobs-page-title">All Jobs</h1>
-        </div>
+            <header className="requests-header">
+
+         <div className="requests-header-inner">
+  <div className="requests-header-left">
+    <button
+      className="nav-back-btn"
+      onClick={() => navigate("/dashboard")}
+      aria-label="Go back"
+    >
+      <ArrowLeftIcon />
+    </button>
+    <button className="requests-menu-btn" aria-label="Open menu" onClick={() => setSidebarOpen(true)}>
+      <span /><span /><span />
+    </button>
+  </div>
+  <h1 className="requests-page-title">All Jobs</h1>
+  <div className="requests-header-right" /> {/* empty spacer */}
+</div>
 
         <div className="alljobs-filter-bar">
           {CATEGORIES.map((cat) => (
@@ -285,7 +310,7 @@ useEffect(() => {
                    e.stopPropagation(); // Prevents clicking the card from opening the job
                    navigate(`/profile/${job.user_id}`);
                    }}
-                   style={{ color: '#29ac3d', cursor: 'pointer', fontSize: '14px', marginBottom: '8px' }}
+                   style={{ color: '#29ac3d', cursor: 'pointer', fontSize: '14px', marginBottom: '8px', width: 'fit-content' }}
 >Posted by: @{job.username}
 </p>
 

@@ -9,6 +9,8 @@ type CalendarItem = {
   type: "request" | "accepted";
   title: string;
   date: string;
+  time? : string;
+  location? : string;
 };
 
 const API_BASE_URL =
@@ -46,6 +48,8 @@ const Calendar = () => {
         }),
       ]);
 
+    
+
       const requestsData = await requestsRes.json();
       const acceptedData = await acceptedRes.json();
 
@@ -67,6 +71,8 @@ const filteredAccepted = accepted.filter(
         ...requests.map((r: any) => ({
           id: r.id,
           title: r.title,
+          time : r.job_time,
+          location: r.location,
           date: r.job_date,
           type: "request" as const,
         })),
@@ -74,6 +80,8 @@ const filteredAccepted = accepted.filter(
           id: a.id,
           title: a.title,
           date: a.job_date,
+          time: a.job_time,
+          location: a.location,
           type: "accepted" as const,
         })),
       ];
@@ -168,6 +176,30 @@ const filteredAccepted = accepted.filter(
     "December",
   ];
 
+  // Inside your component or utility file
+const formatDate = (dateString: string) => {
+  // Adding 'T00:00:00' forces the browser to treat it as local time
+  const date = new Date(dateString + 'T00:00:00');
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  });
+};
+
+  const nextUpcomingJob = useMemo(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return items
+    .filter((item) => {
+      const itemDate = new Date(normalizeDate(item.date));
+      return itemDate >= today;
+    })
+
+    .sort((a, b) => new Date(normalizeDate(a.date)).getTime() - new Date(normalizeDate(b.date)).getTime())[0] ?? null;
+}, [items]);
+
   return (
     <div className="calendar-wrapper">
       {/* Sidebar */}
@@ -244,16 +276,25 @@ const filteredAccepted = accepted.filter(
                     )}`
                   : null;
 
+
+                  const today = new Date();
+                  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+                  // 3. Check for a match
+                  const isToday = formattedDate === todayString;
+
               const dayItems =
                 itemsByDate[formattedDate || ""] || [];
 
                 {/*dummy change*/}
                 
               return (
-                <div key={index} className="calendar-cell">
+                <div key={index} className={`calendar-cell ${isToday ? "is-today" : ""}`}>
                   {date && (
                     <span className="calendar-date">{date}</span>
                   )}
+
+                  {/*dummy change*/}
 
                   <div className="calendar-pills">
                     {dayItems.map((item) => (
@@ -287,9 +328,39 @@ const filteredAccepted = accepted.filter(
 
             <div className="legend-item">
               <span className="pill pill-blue" />
-                          <span>Items with blue pills are your requests</span>
+              <span>Items with blue pills are your requests</span>
 
             </div>
+
+            <div className="upcoming-job-box">
+    <h3 className="upcoming-job-title">📅 Next Upcoming</h3>
+    {nextUpcomingJob ? (
+      <>
+        <p className="upcoming-job-name">{nextUpcomingJob.title}</p>
+        <div className="upcoming-job-detail">
+          <span>🗓</span>
+          <span>{formatDate(nextUpcomingJob.date)}</span>
+        </div>
+        <div className="upcoming-job-detail">
+        <span>🕒</span>
+        <span>{nextUpcomingJob.time || "Time not set"}</span>
+      </div>
+
+      {/* Added Location Section */}
+      <div className="upcoming-job-detail">
+        <span>📍</span>
+        <span>{nextUpcomingJob.location || "No location provided"}</span>
+      </div>
+
+        <div className="upcoming-job-detail">
+          <span>🏷</span>
+          <span style={{ textTransform: "capitalize" }}>{nextUpcomingJob.type === "accepted" ? "Accepted Job" : "Request"}</span>
+        </div>
+      </>
+    ) : (
+      <p className="upcoming-job-empty">No upcoming jobs scheduled</p>
+    )}
+  </div>
           </aside>
       </main>
     </div>

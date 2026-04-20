@@ -146,8 +146,8 @@ type ProfileUser = {
 type MajorOption = { id: string; field: string };
 
 const PLACEHOLDER_REVIEWS = [
-  { stars: 5, text: "Great to work with!", author: "@user1" },
-  { stars: 5, text: "Super helpful and reliable.", author: "@user2" },
+  { rating: 5, service: "Software Engineer", text: "Great to work with!", author: "@user1" },
+  { rating: 5, service: "Data Scientist", text: "Super helpful and reliable.", author: "@user2" },
 ];
 
 const Profile = () => {
@@ -158,6 +158,9 @@ const Profile = () => {
   const [profile, setProfile] = useState<ProfileUser | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<{ rating: number; service: string; review_text: string; reviewer_name: string }[]>([]);
+  const [averageRating, setAverageRating] = useState<number | null>(null);
+  const [totalReviews, setTotalReviews] = useState<number>(0);
 
   const [editUsername, setEditUsername] = useState("");
   const [editUniversity, setEditUniversity] = useState("");
@@ -252,6 +255,27 @@ const Profile = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  
+  useEffect(() => {
+  const profileId = isMe
+    ? localStorage.getItem("userId") || localStorage.getItem("user_id")
+    : userId;
+
+  if (!profileId) return;
+
+  fetch(`${API_BASE}/get_reviews.php?user_id=${profileId}`, {
+    credentials: "include",
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        setReviews(data.reviews);
+        setAverageRating(data.average_rating);
+        setTotalReviews(data.total_reviews);
+      }
+    })
+    .catch((err) => console.error("Failed to fetch reviews", err));
+}, [userId, isMe]);
 
   const handleSidebarLink = (path: string) => {
     setSidebarOpen(false);
@@ -507,36 +531,41 @@ const Profile = () => {
             <div className="profile-info-card">
               <div className="profile-info-item">
                 <span className="profile-info-label">University</span>
-                <span className="profile-info-value">
-                  {displayProfile.university || "—"}
-                </span>
-              </div>
-              <div className="profile-info-divider" />
-              <div className="profile-info-item">
-                <span className="profile-info-label">Program</span>
-                <span className="profile-info-value">
-                  {displayProfile.program || "—"}
-                </span>
-              </div>
-              <div className="profile-info-divider" />
-              <div className="profile-info-item">
-                <span className="profile-info-label">Member since</span>
-                <span className="profile-info-value">—</span>
-              </div>
-              <div className="profile-info-divider" />
-              <div className="profile-info-item">
-                <span className="profile-info-label">Rating</span>
-                <div className="profile-rating-row">
-                  <span className="profile-stars">{renderStars(0)}</span>
-                  <span className="profile-rating-num">(—)</span>
+                <span className="profile-info-value">{displayProfile.university || "—"}</span>
                 </div>
-              </div>
-              <div className="profile-info-divider" />
-              <div className="profile-info-item">
-                <span className="profile-info-label">Jobs done</span>
-                <span className="profile-stat-pill">—</span>
-              </div>
-            </div>
+                <div className="profile-info-divider" />
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Program</span>
+                  <span className="profile-info-value">{displayProfile.program || "—"}</span>
+                  </div>
+                  <div className="profile-info-divider" />
+                  <div className="profile-info-item">
+                    <span className="profile-info-label">Member since</span>
+                    <span className="profile-info-value">—</span>
+                    </div>
+                    <div className="profile-info-divider" />
+                    <div className="profile-info-item">
+                      <span className="profile-info-label">Rating</span>
+                      <div className="profile-rating-row">
+                        <span className="profile-stars">
+                          {averageRating ? renderStars(averageRating) : "No ratings yet"}
+                          </span>
+                          <span className="profile-rating-num">
+                            {averageRating ? `(${averageRating} / 5)` : ""}
+                            </span>
+                            </div>
+                            </div>
+                            <div className="profile-info-divider" />
+                            <div className="profile-info-item">
+                              <span className="profile-info-label">Jobs done</span>
+                              <span className="profile-stat-pill">—</span>
+                              </div>
+                              </div>   
+
+
+
+            
+            
 
             <div className="profile-cols">
               <div className="profile-section-card">
@@ -561,19 +590,37 @@ const Profile = () => {
             </div>
 
             <div className="profile-reviews-card">
-              <h2 className="profile-reviews-title">Reviews</h2>
-              <div className="profile-reviews-list">
-                {PLACEHOLDER_REVIEWS.map((r, i) => (
-                  <div key={i} className="profile-review-item">
-                    <span className="profile-review-stars">
-                      {renderStars(r.stars)}
-                    </span>
-                    <p className="profile-review-text">"{r.text}"</p>
-                    <p className="profile-review-author">— {r.author}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+              <h2 className="profile-reviews-title">
+                 Reviews {totalReviews > 0 && `(${totalReviews})`}
+                 </h2>
+                 <div className="profile-reviews-list">
+                  {reviews.length === 0 ? (
+                    <p style={{ fontFamily: "Inter", fontSize: 14, color: "#9ca3af", textAlign: "center" }}>
+                       No reviews yet.
+                        </p>
+                        ) : (
+                          reviews.map((r, i) => (
+                          <div key={i} className="profile-review-item">
+                           
+                           <p className="profile-review-title">{r.service}</p>
+                            <div style={{flexDirection: "row",display: "flex", alignItems: "baseline", gap: "8px"}} >
+                              <p className="profile-review-text">"{r.review_text}"</p>
+                              <p className="profile-review-footer">— @{r.reviewer_name}</p>
+
+                              </div>
+                              
+                            
+                            <span className="profile-review-footer">
+                              
+                              {renderStars (r.rating)} {r.rating}.0 </span>
+
+                              
+                              </div>
+                              )) )}
+                              </div>
+                              </div>
+
+         
           </>
         ) : (
           <>
