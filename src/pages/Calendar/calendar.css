@@ -77,12 +77,13 @@
 /* Update this section in your CSS */
 .calendar-cell.is-today {
   /* Removed the green border and light green background */
-  background-color: transparent; 
+
+  background-color: #f8e3dd; 
   border: 1px solid #ddd; /* Match the regular cell border */
 }
 
 .calendar-cell.is-today .calendar-date {
-  background-color: #29ac3d; /* Keep the green circle */
+  background-color: #5f1703; /* Keep the green circle */
   color: white;
   border-radius: 50%;
   width: 24px;
@@ -213,7 +214,7 @@
 /* Header / hamburger */
 .calendar-header{background:white;padding:20px 56px 0;position:sticky;top:0;z-index:100}
 .calendar-header-inner{display:flex;align-items:center;justify-content:center;position:relative;padding-bottom:16px}
-.requests-menu-btn{background:none;border:none;cursor:pointer;padding:6px;display:flex;flex-direction:column;gap:5px;position:absolute;left:0;border-radius:6px;transition:background .2s}
+.requests-menu-btn{background:none;border:none;cursor:pointer;padding:6px;display:flex;flex-direction:column;gap:5px;border-radius:6px;transition:background .2s}
 .requests-menu-btn:hover{background:#f3f4f6}
 .requests-menu-btn span{display:block;width:22px;height:2px;background:#101828;border-radius:2px}
 .requests-header-divider{height:1px;background:#e5e7eb;margin:0 -56px;border:none}
@@ -318,8 +319,6 @@
 .poll-blue{background:#a1c5ff}
 
 @media (max-width: 768px) {
-
-  /* Stack legend below calendar */
   .calendar-main {
     flex-direction: column;
     padding: 12px;
@@ -341,13 +340,11 @@
     margin-bottom: 8px;
   }
 
-  /* Smaller day header cells */
   .calendar-cell.header {
     font-size: 11px;
     padding: 6px 2px;
   }
 
-  /* Smaller date cells */
   .calendar-cell {
     padding: 4px;
     min-height: 48px;
@@ -356,7 +353,6 @@
     justify-content: flex-start;
   }
 
-  /* Smaller date number */
   .calendar-date {
     font-size: 10px;
     font-weight: 600;
@@ -364,14 +360,12 @@
     text-align: center;
   }
 
-  /* Pills row wraps tightly */
   .calendar-pills {
     gap: 3px;
     flex-wrap: wrap;
     justify-content: center;
   }
 
-  /* Smaller dots on mobile */
   .pill {
     width: 8px;
     height: 8px;
@@ -379,7 +373,6 @@
     min-height: 8px;
   }
 
-  /* Tooltip appears above, stays visible */
   .pill-tooltip {
     font-size: 11px;
     padding: 6px 10px;
@@ -389,26 +382,51 @@
     text-align: left;
   }
 
-  /* Legend goes full width below */
+  .calendar-grid {
+    gap: 3px;
+  }
+
+  /* Fix legend layout on mobile */
   .calendar-legend-outside {
     width: 100%;
     margin: 0;
-    flex-direction: row;
-    justify-content: center;
-    gap: 24px;
-    padding: 12px 16px;
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
   .legend-item {
     margin-bottom: 0;
-    font-size: 12px;
+    font-size: 13px;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
   }
 
+  /* Next upcoming box full width */
+  .upcoming-job-box {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .upcoming-job-title {
+    font-size: 15px;
+  }
+
+  .upcoming-job-name {
+    font-size: 15px;
+  }
+
+  .upcoming-job-detail {
+    font-size: 13px;
+  }
+}
   /* Grid gap tighter on mobile */
   .calendar-grid {
     gap: 3px;
   }
-}
+
 
 @media (max-width: 400px) {
   .calendar-cell {

@@ -325,7 +325,7 @@ const formatDate = (dateString: string) => {
 
             <div className="legend-item">
               <span className="pill pill-blue" />
-                          <span>Items with blue pills are your requests</span>
+              <span>Items with blue pills are your requests</span>
 
             </div>
 
