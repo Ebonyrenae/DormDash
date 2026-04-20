@@ -83,9 +83,25 @@
 .requests-header-inner {
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  justify-content: space-between;
   padding-bottom: 16px;
+}
+
+.nav-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.nav-back-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 .requests-menu-btn {
@@ -96,8 +112,6 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  position: absolute;
-  left: 0;
   border-radius: 6px;
   transition: background 0.2s;
 }
@@ -119,6 +133,8 @@
   font-size: 32px;
   color: #29ac3d;
   margin: 0;
+  text-align: center;
+  flex: 1;
 }
 
 .requests-header-divider {
@@ -462,6 +478,18 @@
   color: #364153;
   font-weight: 500;
 }
+
+.requests-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+}
+
+.requests-header-right {
+  min-width: 80px;  /* same width as left to keep title centered */
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {

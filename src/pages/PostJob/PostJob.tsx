@@ -182,6 +182,25 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 };
 
+const ArrowLeftIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M19 12H5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 19L5 12L12 5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
   return (
     <div className="postjob-page">
       {/* Sidebar Overlay */}
@@ -210,28 +229,28 @@ const handleSubmit = async (e: React.FormEvent) => {
       </aside>
 
       {/* Header */}
-      <header className="postjob-header">
-        <div className="postjob-header-inner">
-          <button
-            type="button"
-            className="postjob-menu-btn"
-            aria-label="Open menu"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-
-          <div className="postjob-title-block">
-            <h1 className="postjob-page-title">Post A Job</h1>
-            <p className="postjob-page-subtitle">
-              Fill in the details below to post your job
-            </p>
-          </div>
-        </div>
-        <hr className="postjob-header-divider" />
-      </header>
+      <header className="requests-header">
+  <div className="requests-header-inner">
+    <div className="requests-header-left">
+      <button
+        className="nav-back-btn"
+        onClick={() => navigate("/dashboard")}
+        aria-label="Go back"
+      >
+        <ArrowLeftIcon />
+      </button>
+      <button className="requests-menu-btn" aria-label="Open menu" onClick={() => setSidebarOpen(true)}>
+        <span /><span /><span />
+      </button>
+    </div>
+    <h1 className="requests-page-title">Post a Job</h1>
+    <div className="requests-header-right" />
+  </div>
+  <p className="postjob-page-subtitle">
+    Fill in the details below to post your job
+  </p>
+  <hr className="postjob-header-divider" />
+</header>
 
       {/* Form */}
       <form className="postjob-form" onSubmit={handleSubmit}>
