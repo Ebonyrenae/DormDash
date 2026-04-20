@@ -84,24 +84,7 @@ const ClockIcon = () => (
   </svg>
 );
 
-const ArrowLeftIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M19 12H5"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M12 19L5 12L12 5"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+
 
 const CalendarIcon = () => (
   <svg viewBox="0 0 24 24" fill="none">
@@ -493,13 +476,7 @@ const Dashboard = () => {
       <nav className="dashboard-nav">
         <div className="dashboard-nav-content">
           <div className="dashboard-nav-left">
-            <button
-              className="nav-back-btn"
-              onClick={() => navigate(-1)}
-              aria-label="Go back"
-            >
-              <ArrowLeftIcon />
-            </button>
+            
             <button
               className="nav-menu-btn"
               aria-label="Open menu"
@@ -872,7 +849,7 @@ const Dashboard = () => {
           {/* Recent Activities */}
           <section>
             <div className="section-header">
-              <h2 className="section-heading">Recent Activities</h2>
+              <h2 className="section-heading" style={{color: "#105666", fontSize: "1.5rem", marginBottom: "25px"}}>Recent Activities</h2>
               <button
                 className="section-link"
                 onClick={() => navigate("/recent-activities")}

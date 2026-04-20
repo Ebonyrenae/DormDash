@@ -224,6 +224,7 @@ if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
       )}
 
       <div className="job-details-page">
+        <div className="content-wrapper">
 
         {/* Back button — goes to previous page in history */}
         <button className="back-button" onClick={() => navigate(-1)}>
@@ -400,6 +401,7 @@ if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
           )}
 
         </div>
+      </div>
       </div>
     </>
   );

@@ -243,6 +243,7 @@ const JobDetails = () => {
     )}
         
         <div className="job-details-page">
+        <div className="content-wrapper">
 
         {/* Back button */}
         <button className="back-button" onClick={() => navigate(fromPath || "/your-jobs")}>
@@ -374,6 +375,7 @@ const JobDetails = () => {
     )}
 
         </div>
+    </div>
     </div>
     </>
   );

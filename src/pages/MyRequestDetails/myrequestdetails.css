@@ -33,11 +33,16 @@
     flex-direction: row;
     white-space: nowrap;
     margin-bottom: 20px;
-    align-self: flex-start;
     gap: 5px;
  
     
 }
+
+.content-wrapper {
+  width: 100%;
+  max-width: 600px; /* same as your card */
+}
+
 .back-button:hover{
     color: grey;
 }
