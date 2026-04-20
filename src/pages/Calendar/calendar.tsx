@@ -286,7 +286,8 @@ const formatDate = (dateString: string) => {
               const dayItems =
                 itemsByDate[formattedDate || ""] || [];
 
-
+                {/*dummy change*/}
+                
               return (
                 <div key={index} className={`calendar-cell ${isToday ? "is-today" : ""}`}>
                   {date && (
