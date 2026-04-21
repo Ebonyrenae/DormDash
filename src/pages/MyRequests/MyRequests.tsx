@@ -203,7 +203,7 @@ const MyRequests = () => {
     };
 
     fetchJobs();
-    const interval = setInterval(fetchJobs, 5000);
+    const interval = setInterval(fetchJobs, 30000); // refresh every 30 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -714,9 +714,9 @@ const MyRequests = () => {
                   )}
                    {req.status === "Completed" && (
                       req.hasReviewed ? (
-                      <p style={{ color: "#16a34a", fontSize: 13, fontFamily: "Inter", fontWeight: 500 }}>
+                      <span style={{ color: "#16a34a", fontSize: 13, fontFamily: "Inter", fontWeight: 500 }}>
                          Thanks for submitting a review!
-                        </p>):(
+                        </span>):(
                         <button
                         className="pulse-button"
                         onClick={() => {
@@ -735,7 +735,7 @@ const MyRequests = () => {
                     )}
                 </div>
                  {/* ── Price Offer Banner — always visible when offer is pending ── */}
-              {req.offerStatus === "accepted" && editingId !== req.id && (
+              {req.offerStatus === "pending" && editingId !== req.id && (
                 <div style={{
                   marginTop: 10,
                   padding: "10px 14px",
@@ -745,17 +745,17 @@ const MyRequests = () => {
                   fontFamily: "Inter",
                   width: "100%",
                 }}>
-                  <p style={{ fontWeight: 500, color: "#2563eb", marginBottom: 6 }}>
+                  <div style={{ fontWeight: 500, color: "#2563eb", marginBottom: 6 }}>
                      New Price Offer From Your DormDasher {req.acceptedByName}
-                  </p>
+                  </div>
                   {req.offerNote && (
-                    <p style={{ fontSize: 13, color: "#374151", marginBottom: 8 ,textAlign: "center"}}>
+                    <div style={{ fontSize: 13, color: "#374151", marginBottom: 8 ,textAlign: "center"}}>
                       Note: {req.offerNote}
-                    </p>
+                    </div>
                   )}
-                  <p style={{ fontSize: 13, color: "#1e40af", marginBottom: 4 ,textAlign: "center"}}>
+                  <div style={{ fontSize: 13, color: "#1e40af", marginBottom: 4 ,textAlign: "center"}}>
                     Offered Price: <strong>${req.offeredPrice}</strong>
-                  </p>
+                  </div>
                   
                   <div style={{ display: "flex", gap: 15, justifyContent: "center", marginTop: 6 }}>
                     <button
