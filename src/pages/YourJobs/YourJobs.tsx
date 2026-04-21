@@ -173,7 +173,7 @@ const YourJobs = () => {
       try {
         setLoadError(null);
         const userId = localStorage.getItem("userId");
-        const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php?user_id=${userId}&t=${Date.now()}`, {
+        const res = await fetch(`${API_BASE_URL}/get_accepted_Jobs.php`, {
           method: "GET",
           credentials: "include",
         });
@@ -221,7 +221,7 @@ const YourJobs = () => {
     };
 
     fetchJobs();
-    const interval = setInterval(fetchJobs, 5000);
+    const interval = setInterval(fetchJobs, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -668,9 +668,9 @@ const YourJobs = () => {
                           border: "1px solid #fecaca",
                           fontFamily: "Inter",
                         }}>
-                          <p style={{ fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
+                          <div style={{ fontSize: 14, color: "#dc2626", fontWeight: 500 }}>
                             ⚠️ You have been unassigned from this job.
-                          </p>
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -775,9 +775,9 @@ const YourJobs = () => {
                             borderRadius: 8,
                             fontFamily: "Inter",
                           }}>
-                            <p style={{ fontSize: 13, color: "#16a34a", fontWeight: 500 }}>
-                              ✅ Your price offer was accepted! New budget: ${req.offeredPrice}
-                            </p>
+                            <div style={{ fontSize: 13, color: "#16a34a", fontWeight: 500 }}>
+                              ✅ Your price offer was accepted! New budget: ${req.budget}
+                            </div>
                           </div>
                         )}
 
@@ -790,9 +790,9 @@ const YourJobs = () => {
                             borderRadius: 8,
                             fontFamily: "Inter",
                           }}>
-                            <p style={{ fontSize: 13, color: "#dc2626", fontWeight: 500 }}>
+                            <div style={{ fontSize: 13, color: "#dc2626", fontWeight: 500 }}>
                               ❌ Your price offer was declined.
-                            </p>
+                            </div >
                           </div>
                         )}
 
@@ -836,16 +836,16 @@ const YourJobs = () => {
                         border: "1px solid #bbf7d0",
                         fontFamily: "Inter",
                       }}>
-                        <p style={{ fontSize: 12, color: "grey", fontWeight: 500, marginBottom: 4 }}>
+                        <div style={{ fontSize: 12, color: "grey", fontWeight: 500, marginBottom: 4 }}>
                           Completed On
-                        </p>
-                        <p style={{ fontSize: 14, color: "#16a34a", fontWeight: 500 }}>
+                        </div>
+                        <div style={{ fontSize: 14, color: "#16a34a", fontWeight: 500 }}>
                           ✅ {new Date(req.completedAt).toLocaleDateString("en-US", {
                             month: "long", day: "numeric", year: "numeric",
                           })} at {new Date(req.completedAt).toLocaleTimeString("en-US", {
                             hour: "numeric", minute: "2-digit",
                           })}
-                        </p>
+                        </div>
                       </div>
                     )}
                     <button
