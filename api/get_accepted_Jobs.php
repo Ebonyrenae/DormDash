@@ -33,13 +33,16 @@ if (!$userId) {
 }
 
 try {
-  $sql = "SELECT id, user_id, service_type, title, description, budget, 
-          location, job_date, job_time, created_at, status, completion_code, 
-          confirmation_code, was_unassigned, proposed_price, price_note, price_status
-          FROM jobs
-          WHERE accepted_by = ?
-          OR (unassigned_from = ? AND was_unassigned = 1)
-          ORDER BY created_at DESC";
+  $sql = "SELECT jobs.id, jobs.user_id, jobs.service_type, jobs.title, jobs.description, 
+        jobs.budget, jobs.location, jobs.job_date, jobs.job_time, jobs.created_at, 
+        jobs.status, jobs.completion_code, jobs.confirmation_code, jobs.was_unassigned, 
+        jobs.proposed_price, jobs.price_note, jobs.price_status,
+        users.username, users.phone
+        FROM jobs
+        LEFT JOIN users ON jobs.user_id = users.id
+        WHERE jobs.accepted_by = ?
+        OR (jobs.unassigned_from = ? AND jobs.was_unassigned = 1)
+        ORDER BY jobs.created_at DESC";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([$userId, $userId]);
   $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);

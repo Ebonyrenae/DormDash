@@ -20,6 +20,7 @@ type BackendJob = {
   confirmation_code?: string | null;
   completion_code?: string | null;
   status?: string;
+  phone?: string;
 };
 
 type BackendUser ={
@@ -114,38 +115,48 @@ const JobDetails = () => {
 }
 
   useEffect(() => {
-    (async () => {
-      try {
-        const targetJobId = Number(jobId);
-        let foundJob: BackendJob | null = null;
-        let foundSource: "all" | "accepted" | "my" | "fallback" = "fallback";
+  (async () => {
+    try {
+      const targetJobId = Number(jobId);
+      let foundJob: BackendJob | null = null;
+      let foundSource: "all" | "accepted" | "my" | "fallback" = "fallback";
 
-        // Try to fetch jobs that include internal codes first (owner and accepted lists)
-        if (loggedInUserId) {
-          const myJobsRes = await fetch(`${API_BASE_URL}/get_my_jobs.php`, {
-            credentials: "include",
-          });
-          const myJobsData = await myJobsRes.json();
-          if (myJobsData.success) {
-            foundJob = findById(myJobsData.jobs, targetJobId);
-            if (foundJob) foundSource = "my";
-          }
+      if (loggedInUserId) {
+  // Try get_accepted_jobs FIRST so phone number is available
+  try {
+    const acceptedRes = await fetch(
+      `${API_BASE_URL}/get_accepted_jobs.php?user_id=${loggedInUserId}&t=${Date.now()}`,
+      { credentials: "include" }
+    );
+    const acceptedData = await acceptedRes.json();
+    if (acceptedData.success) {
+      foundJob = findById(acceptedData.jobs, targetJobId);
+      if (foundJob) foundSource = "accepted";
+    }
+  } catch {
+    console.warn("get_accepted_jobs failed, trying next source");
+  }
 
-          if (!foundJob) {
-            const acceptedRes = await fetch(
-              `${API_BASE_URL}/get_accepted_jobs.php?user_id=${loggedInUserId}&t=${Date.now()}`,
-              { credentials: "include" }
-            );
-            const acceptedData = await acceptedRes.json();
-            if (acceptedData.success) {
-              foundJob = findById(acceptedData.jobs, targetJobId);
-              if (foundJob) foundSource = "accepted";
-            }
-          }
-        }
+  // Then try get_my_jobs
+  if (!foundJob) {
+    try {
+      const myJobsRes = await fetch(`${API_BASE_URL}/get_my_jobs.php`, {
+        credentials: "include",
+      });
+      const myJobsData = await myJobsRes.json();
+      if (myJobsData.success) {
+        foundJob = findById(myJobsData.jobs, targetJobId);
+        if (foundJob) foundSource = "my";
+      }
+    } catch {
+      console.warn("get_my_jobs failed, trying next source");
+    }
+  }
+}
 
-        // Last, fall back to the public/all jobs feed if still not found
-        if (!foundJob) {
+      // Try get_all_jobs
+      if (!foundJob) {
+        try {
           const allJobsRes = await fetch(`${API_BASE_URL}/get_all_jobs.php`, {
             credentials: "include",
           });
@@ -154,64 +165,79 @@ const JobDetails = () => {
             foundJob = findById(allJobsData.jobs, targetJobId);
             if (foundJob) foundSource = "all";
           }
+        } catch {
+          console.warn("get_all_jobs failed");
         }
-
-        if (!foundJob) {
-          if (routeState?.recentActivity) {
-            foundJob = {
-              id: targetJobId,
-              service_type: routeState.recentActivity.category ?? "Other",
-              title: routeState.recentActivity.title,
-              description: "This job is no longer available in the active feed.",
-              budget: routeState.recentActivity.budget ?? "",
-              location: routeState.recentActivity.location ?? "",
-              job_date: "",
-              job_time: "",
-              user_id: 0,
-              username: "User",
-              created_at: "",
-              status: "active",
-            };
-            foundSource = "fallback";
-          } else {
-            setError("Job not found");
-            return;
-          }
-        }
-        setJob(foundJob);
-        console.log("Loaded job details (source:", foundSource, "):", foundJob);
-
-        if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
-          setCtaState("your_post");
-        } else if (
-          foundSource === "accepted" ||
-          routeState?.recentActivity?.eventType === "accepted_job"
-        ) {
-          setCtaState("picked_by_you");
-        } else if (
-          recentAvailability === "picked_by_other" ||
-          (foundJob.status ?? "pending") !== "pending"
-        ) {
-          setCtaState("picked_by_other");
-        } else {
-          setCtaState("available");
-        }
-
-        trackViewedJob({
-          jobId: String(foundJob.id),
-          title: foundJob.title,
-          budget: foundJob.budget,
-          location: foundJob.location,
-          category: foundJob.service_type,
-        });
-
-      } catch {
-        setError("Network error loading job.");
-      } finally {
-        setLoading(false);
       }
-    })();
-  }, [jobId]);
+
+      if (!foundJob) {
+        if (routeState?.recentActivity) {
+          foundJob = {
+            id: targetJobId,
+            service_type: routeState.recentActivity.category ?? "Other",
+            title: routeState.recentActivity.title,
+            description: "This job is no longer available in the active feed.",
+            budget: routeState.recentActivity.budget ?? "",
+            location: routeState.recentActivity.location ?? "",
+            job_date: "",
+            job_time: "",
+            user_id: 0,
+            username: "User",
+            created_at: "",
+            status: "active",
+          };
+          foundSource = "fallback";
+        } else {
+          setError("Job not found");
+          return;
+        }
+      }
+
+      setJob(foundJob);
+
+      // ... inside your useEffect, after setJob(foundJob) ...
+
+// Use a local variable to determine the state immediately for logging/tracking
+// ... inside your useEffect ...
+
+let nextCtaState: CtaState = "available";
+
+// 1. Check if it's an accepted job FIRST
+if (foundSource === "accepted" || routeState?.recentActivity?.eventType === "accepted_job") {
+    nextCtaState = "picked_by_you";
+} 
+// 2. Then check if it's your own post
+else if (foundSource === "my" || foundJob.user_id === loggedInUserId) {
+    nextCtaState = "your_post";
+} 
+// 3. Then check if someone else got it
+else if (recentAvailability === "picked_by_other" || (foundJob.status !== "pending" && foundJob.status !== "active")) {
+    nextCtaState = "picked_by_other";
+} 
+else {
+    nextCtaState = "available";
+}
+
+setCtaState(nextCtaState);
+
+// Log the LOCAL variable (nextCtaState) so you see the REAL value immediately
+console.log("Source:", foundSource, "Determined CTA:", nextCtaState, "Phone:", foundJob.phone);
+
+trackViewedJob({
+    jobId: String(foundJob.id),
+    title: foundJob.title,
+    budget: foundJob.budget,
+    location: foundJob.location,
+    category: foundJob.service_type,
+});
+
+    } catch {
+      setError("Network error loading job.");
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [jobId]);
 
 
   if (loading) return <div>Loading...</div>;
@@ -284,6 +310,25 @@ const JobDetails = () => {
 
             {/* Info boxes */}
             <div className="box-column">
+
+  {/* Phone number - only shown to dasher who accepted */}
+  {ctaState === "picked_by_you" && job.phone && (
+    <div className="box-row">
+      <div className="boxes" style={{ width: "100%" }}>
+        <div style={{ flexDirection: "column", display: "flex" }}>
+          <p style={{ fontSize: 12, fontFamily: "Inter", color: "grey", fontWeight: 500 }}>
+            Poster Contact
+          </p>
+          <p style={{ fontSize: 14, fontFamily: "Inter" }}>
+            {"📞 "}
+            <a href={"tel:" + job.phone} style={{ color: "#29ac3d", textDecoration: "none" }}>
+              {job.phone}
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  )}
 
             {/* Row 1 - Location and Time */}
             <div className="box-row">
