@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 session_start();
 require_once 'config.php';
 
-$userId = $_SESSION['user_id'] ?? null;
+$userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
 if (!$userId) {
   echo json_encode(['success' => false, 'message' => 'Not logged in']);
   exit;
@@ -41,7 +41,7 @@ try {
         FROM jobs
         LEFT JOIN users ON jobs.user_id = users.id
         WHERE jobs.accepted_by = ?
-        OR (jobs.unassigned_from = ? AND jobs.was_unassigned = 1)
+        OR (jobs.unassigned_from = ? AND jobs.was_unassigned = 1 AND dismissed_by_user = 0)
         ORDER BY jobs.created_at DESC";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([$userId, $userId]);
