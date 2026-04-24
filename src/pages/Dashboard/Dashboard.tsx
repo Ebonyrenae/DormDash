@@ -651,16 +651,16 @@ const Dashboard = () => {
         {/* Action Buttons */}
         <div className="dashboard-actions">
           <button className="action-btn" onClick={() => navigate("/all-jobs")}>
-            View all jobs
+            View All Jobs
           </button>
           <button className="action-btn" onClick={() => navigate("/post-job")}>
-            Post a job
+            Post a Job
           </button>
           <button
             className="action-btn"
             onClick={() => navigate("/my-requests")}
           >
-            My requests
+            My Requests
           </button>
         </div>
 
