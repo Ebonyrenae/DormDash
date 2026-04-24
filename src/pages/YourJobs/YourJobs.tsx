@@ -221,7 +221,7 @@ const YourJobs = () => {
     };
 
     fetchJobs();
-    const interval = setInterval(fetchJobs, 30000);
+    const interval = setInterval(fetchJobs, 5000);
     return () => clearInterval(interval);
   }, []);
 

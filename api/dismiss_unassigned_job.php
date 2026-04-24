@@ -47,10 +47,11 @@ if (!$jobId) {
 try {
   $stmt = $pdo->prepare("
     UPDATE jobs 
-    SET was_unassigned = 0, unassigned_from = NULL
-    WHERE id = ? AND unassigned_from = ? AND was_unassigned = 1
+    SET dismissed_by_user = 1
+    WHERE id = ?
+    AND was_unassigned = 1
   ");
-  $stmt->execute([$jobId, $userId]);
+  $stmt->execute([$jobId]);
 
   $rowsAffected = $stmt->rowCount();
 
