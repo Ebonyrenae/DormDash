@@ -38,7 +38,7 @@ try {
           confirmation_code, was_unassigned, proposed_price, price_note, price_status
           FROM jobs
           WHERE accepted_by = ?
-          OR (unassigned_from = ? AND was_unassigned = 1)
+          OR (unassigned_from = ? AND was_unassigned = 1 AND dismissed_by_user = 0)
           ORDER BY created_at DESC";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([$userId, $userId]);
