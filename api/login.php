@@ -3,37 +3,32 @@
    1. SESSION COOKIE SETTINGS (MUST BE FIRST)
    ========================= */
 $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
-           ($_SERVER['SERVER_PORT'] == 443);
-
+($_SERVER['SERVER_PORT'] == 443);
 session_set_cookie_params([
-  'lifetime' => 0,
-  'path' => '/',
-  'domain' => '',        
-  'secure' => $secure,   
-  'httponly' => true,
-  'samesite' => $secure ? 'None' : 'Lax'
+    'lifetime' => 0,
+    'path'     => '/',
+    'domain'   => '',        
+    'secure'   => $secure,   
+    'httponly' => true,
+    'samesite' => $secure ? 'None' : 'Lax'
 ]);
-
 session_start();
 
 /* =========================
    2. CORS & HEADERS
    ========================= */
 $allowed_origins = [
-  "https://aptitude.cse.buffalo.edu",
-  "https://cattle.cse.buffalo.edu",
-  
-  "http://localhost:5173",
-  "http://localhost:5175"
+    "https://aptitude.cse.buffalo.edu",
+    "https://cattle.cse.buffalo.edu",
+    "http://localhost:5173",
+    "http://localhost:5175"
 ];
-
 $origin = $_SERVER['HTTP_ORIGIN'] ?? "";
 if (in_array($origin, $allowed_origins, true)) {
-  header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Origin: $origin");
 } else {
-  header("Access-Control-Allow-Origin: https://www-student.cse.buffalo.edu");
+    header("Access-Control-Allow-Origin: https://www-student.cse.buffalo.edu");
 }
-
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -41,32 +36,42 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 /* Preflight */
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-  http_response_code(200);
-  exit();
+    http_response_code(200);
+    exit();
 }
 
 /* =========================
-   3. DB (Your original logic starts here)
+   3. DB
    ========================= */
-$host = "localhost";
-$user = "narde";
-$pass = "50501035";
-$db   = "cse442_2026_spring_team_i_db";
+// Manual .env loader (no Composer needed)
+$lines = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+foreach ($lines as $line) {
+    if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+        [$key, $value] = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($value);
+    }
+}
 
-$conn = new mysqli($host, $user, $pass, $db);
+$conn = new mysqli(
+    $_ENV['DB_HOST'],
+    $_ENV['DB_USER'],
+    $_ENV['DB_PASS'],
+    $_ENV['DB_NAME']
+);
+
 if ($conn->connect_error) {
-  echo json_encode(["success" => false, "message" => "db connection failed"]);
-  exit;
+    echo json_encode(["success" => false, "message" => "db connection failed"]);
+    exit;
 }
 
 /* Read JSON body */
-$data = json_decode(file_get_contents("php://input"), true);
+$data       = json_decode(file_get_contents("php://input"), true);
 $identifier = $data["identifier"] ?? "";
 $password   = $data["password"] ?? "";
 
 if ($identifier === "" || $password === "") {
-  echo json_encode(["success" => false, "message" => "missing identifier or password"]);
-  exit;
+    echo json_encode(["success" => false, "message" => "missing identifier or password"]);
+    exit;
 }
 
 /* Query user */
@@ -76,28 +81,28 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-  echo json_encode(["success" => false, "message" => "user not found"]);
-  exit;
+    echo json_encode(["success" => false, "message" => "user not found"]);
+    exit;
 }
 
 $userRow = $result->fetch_assoc();
 
 /* Verify password */
 if (!password_verify($password, $userRow["password"])) {
-  echo json_encode(["success" => false, "message" => "invalid password"]);
-  exit;
+    echo json_encode(["success" => false, "message" => "invalid password"]);
+    exit;
 }
 
 /* Set session */
-$_SESSION["user_id"] = (int)$userRow["id"];
+$_SESSION["user_id"]  = (int)$userRow["id"];
 $_SESSION["username"] = $userRow["username"];
-$_SESSION["email"] = $userRow["email"];
+$_SESSION["email"]    = $userRow["email"];
 
 echo json_encode([
-  "success" => true,
-  "user" => [
-    "id" => (int)$userRow["id"],
-    "username" => $userRow["username"],
-    "email" => $userRow["email"]
-  ]
+    "success" => true,
+    "user" => [
+        "id"       => (int)$userRow["id"],
+        "username" => $userRow["username"],
+        "email"    => $userRow["email"]
+    ]
 ]);
