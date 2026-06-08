@@ -48,6 +48,8 @@ During this project I feel like I transitioned from just a CS student learning i
 * Additional features such as in-app messaging.
 * More notification types, such as when a payment is sent or when the Dormdasher has arrived.
 
-## Demo
+## Instructions to access Dormdash 
+1. [Go to this website] (https://www.buffalo.edu/ubit/service-guides/connecting/vpn/computer.html) to set up and use UB's VPN .Instructions are provided on the page.
+2. [click this link] (https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442i) to access DormDash once connected to the VPN.
 
-## Our In-Class Presentation
+
